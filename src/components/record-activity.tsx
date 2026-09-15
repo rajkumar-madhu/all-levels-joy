@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { addComment } from "@/lib/itsm.functions";
 import { activityQuery } from "@/lib/workspace-queries";
 import { formatDateTime } from "@/lib/itsm-shared";
+import { RecordAttachments } from "@/components/record-attachments";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -34,7 +35,10 @@ export function RecordActivity({
   });
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
+      <RecordAttachments recordType={recordType} recordId={recordId} />
+
+      <div className="space-y-4">
       <h3 className="text-sm font-semibold text-foreground">Activity & notes</h3>
 
       <div className="space-y-2">
@@ -95,6 +99,7 @@ export function RecordActivity({
             <li className="text-muted-foreground">No audit entries recorded yet.</li>
           ) : null}
         </ol>
+      </div>
       </div>
     </section>
   );

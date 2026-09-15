@@ -21,6 +21,7 @@ import { bootstrapWorkspace, markNotificationsRead } from "@/lib/itsm.functions"
 import { workspaceQuery, type Workspace } from "@/lib/workspace-queries";
 import { ROLE_LABELS, canManage, type AppRole } from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
+import { GlobalSearch } from "@/components/global-search";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -163,10 +164,13 @@ export function AppShell({
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="min-w-0 flex-1">
+          <div className="hidden min-w-0 sm:block sm:w-40 lg:w-52">
             <p className="truncate text-sm font-medium text-foreground">
               {workspace?.organization?.name ?? "Workspace"}
             </p>
+          </div>
+          <div className="min-w-0 flex-1">
+            <GlobalSearch />
           </div>
           <Button
             variant="outline"
