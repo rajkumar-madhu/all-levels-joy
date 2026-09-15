@@ -55,9 +55,8 @@ export function RecordAttachments({
     try {
       const safeName = file.name.replace(/[^\w.\-() ]+/g, "_").slice(-120);
       const path = `${DEMO_ORG_ID}/${recordType}/${recordId}/${Date.now()}-${safeName}`;
-      const { error } = await supabase.storage.from("itsm-evidence").upload(path, file, {
-        contentType: file.type || undefined,
-      });
+      const options = file.type ? { contentType: file.type } : undefined;
+      const { error } = await supabase.storage.from("itsm-evidence").upload(path, file, options);
       if (error) throw new Error(error.message);
       await register.mutateAsync({
         data: {
@@ -65,7 +64,7 @@ export function RecordAttachments({
           recordId,
           storagePath: path,
           fileName: file.name,
-          mimeType: file.type || undefined,
+          ...(file.type ? { mimeType: file.type } : {}),
           sizeBytes: file.size,
         },
       });
