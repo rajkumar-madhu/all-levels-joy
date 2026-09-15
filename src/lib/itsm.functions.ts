@@ -58,7 +58,7 @@ function requireRoles(roles: AppRole[], allowed: AppRole[]) {
 /** Ensures the signed-in user has a profile, an organization membership, and roles. */
 export const bootstrapWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { displayName?: string } | undefined) =>
+  .validator((input: { displayName?: string } | undefined) =>
     z.object({ displayName: z.string().trim().max(120).optional() }).parse(input ?? {}),
   )
   .handler(async ({ data, context }) => {
@@ -222,7 +222,7 @@ export const getReferenceData = createServerFn({ method: "GET" })
 
 export const getRecordActivity = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { recordType: string; recordId: string }) =>
+  .validator((input: { recordType: string; recordId: string }) =>
     z.object({ recordType: z.string().max(40), recordId: uuid }).parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -247,7 +247,7 @@ export const getRecordActivity = createServerFn({ method: "GET" })
 
 export const addComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { recordType: string; recordId: string; body: string; internal?: boolean }) =>
+  .validator((input: { recordType: string; recordId: string; body: string; internal?: boolean }) =>
     z
       .object({
         recordType: z.string().max(40),
@@ -275,7 +275,7 @@ export const addComment = createServerFn({ method: "POST" })
 
 export const createIncident = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: {
       title: string;
       description: string;
@@ -326,7 +326,7 @@ export const createIncident = createServerFn({ method: "POST" })
 
 export const updateIncident = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: {
       id: string;
       state?: string;
@@ -377,7 +377,7 @@ export const updateIncident = createServerFn({ method: "POST" })
 
 export const createServiceRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { catalogItemId: string; title: string; description: string }) =>
+  .validator((input: { catalogItemId: string; title: string; description: string }) =>
     z
       .object({
         catalogItemId: uuid,
@@ -450,7 +450,7 @@ export const createServiceRequest = createServerFn({ method: "POST" })
 
 export const updateServiceRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string; state: string }) =>
+  .validator((input: { id: string; state: string }) =>
     z
       .object({
         id: uuid,
@@ -473,7 +473,7 @@ export const updateServiceRequest = createServerFn({ method: "POST" })
 
 export const createChange = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: {
       title: string;
       description: string;
@@ -565,7 +565,7 @@ export const createChange = createServerFn({ method: "POST" })
 
 export const updateChange = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string; state?: string; pirNotes?: string }) =>
+  .validator((input: { id: string; state?: string; pirNotes?: string }) =>
     z
       .object({
         id: uuid,
@@ -591,7 +591,7 @@ export const updateChange = createServerFn({ method: "POST" })
 
 export const decideApproval = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string; decision: "approved" | "rejected"; notes?: string }) =>
+  .validator((input: { id: string; decision: "approved" | "rejected"; notes?: string }) =>
     z
       .object({
         id: uuid,
@@ -636,7 +636,7 @@ export const decideApproval = createServerFn({ method: "POST" })
 
 export const saveKnowledgeArticle = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: {
       id?: string | null;
       title: string;
@@ -701,7 +701,7 @@ export const saveKnowledgeArticle = createServerFn({ method: "POST" })
 
 export const saveConfigurationItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: {
       id?: string | null;
       name: string;
@@ -761,7 +761,7 @@ export const saveConfigurationItem = createServerFn({ method: "POST" })
 
 export const updateProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: {
       displayName: string;
       phone: string;
