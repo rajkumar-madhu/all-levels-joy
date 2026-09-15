@@ -816,3 +816,122 @@ export const markNotificationsRead = createServerFn({ method: "POST" })
       .is("read_at", null);
     return { ok: true };
   });
+
+export const searchRecords = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { query: string }) =>
+    z.object({ query: z.string().trim().min(2).max(80) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const escaped = data.query.replace(/[%_,]/g, " ").trim();
+    const term = `%${escaped}%`;
+    const match = `number.ilike.${term},title.ilike.${term}`;
+
+    const [incidents, requests, changes, knowledge, assets] = await Promise.all([
+      supabase
+        .from("incidents")
+        .select("id, number, title, state, priority")
+        .eq("organization_id", DEMO_ORG_ID)
+        .or(match)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("service_requests")
+        .select("id, number, title, state")
+        .eq("organization_id", DEMO_ORG_ID)
+        .or(match)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("changes")
+        .select("id, number, title, state")
+        .eq("organization_id", DEMO_ORG_ID)
+        .or(match)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("knowledge_articles")
+        .select("id, number, title, status")
+        .eq("organization_id", DEMO_ORG_ID)
+        .or(match)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("configuration_items")
+        .select("id, name")
+        .eq("organization_id", DEMO_ORG_ID)
+        .ilike("name", term)
+        .order("name")
+        .limit(5),
+    ]);
+
+    return {
+      incidents: incidents.data ?? [],
+      requests: requests.data ?? [],
+      changes: changes.data ?? [],
+      knowledge: knowledge.data ?? [],
+      assets: assets.data ?? [],
+    };
+  });
+
+export const listAttachments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { recordType: string; recordId: string }) =>
+    z.object({ recordType: z.string().min(2).max(40), recordId: uuid }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: rows } = await supabase
+      .from("attachments")
+      .select("id, file_name, mime_type, size_bytes, storage_path, created_at")
+      .eq("organization_id", DEMO_ORG_ID)
+      .eq("record_type", data.recordType)
+      .eq("record_id", data.recordId)
+      .order("created_at", { ascending: false });
+    return rows ?? [];
+  });
+
+export const registerAttachment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(
+    (input: {
+      recordType: string;
+      recordId: string;
+      storagePath: string;
+      fileName: string;
+      mimeType?: string;
+      sizeBytes?: number;
+    }) =>
+      z
+        .object({
+          recordType: z.string().min(2).max(40),
+          recordId: uuid,
+          storagePath: z.string().min(10).max(400),
+          fileName: z.string().trim().min(1).max(200),
+          mimeType: z.string().max(120).optional(),
+          sizeBytes: z.number().int().nonnegative().max(26_214_400).optional(),
+        })
+        .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    if (!data.storagePath.startsWith(`${DEMO_ORG_ID}/`)) {
+      throw new Error("Attachment path is not valid for this workspace.");
+    }
+    const { error } = await supabase.from("attachments").insert({
+      organization_id: DEMO_ORG_ID,
+      record_type: data.recordType,
+      record_id: data.recordId,
+      uploader_id: userId,
+      storage_path: data.storagePath,
+      file_name: data.fileName,
+      mime_type: data.mimeType ?? null,
+      size_bytes: data.sizeBytes ?? null,
+    });
+    if (error) throw new Error(error.message);
+    await writeAudit(supabase, userId, data.recordType, data.recordId, "attachment_added", {
+      file_name: data.fileName,
+    });
+    return { ok: true };
+  });
