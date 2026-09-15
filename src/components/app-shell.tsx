@@ -163,10 +163,13 @@ export function AppShell({
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="min-w-0 flex-1">
+          <div className="hidden min-w-0 sm:block sm:w-40 lg:w-52">
             <p className="truncate text-sm font-medium text-foreground">
               {workspace?.organization?.name ?? "Workspace"}
             </p>
+          </div>
+          <div className="min-w-0 flex-1">
+            <GlobalSearch />
           </div>
           <Button
             variant="outline"
