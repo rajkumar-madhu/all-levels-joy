@@ -101,7 +101,7 @@ function Approvals() {
                         decide.mutate({
                           id: approval.id,
                           decision: "approved",
-                          notes: notes[approval.id],
+                          notes: notes[approval.id] ?? "",
                         })
                       }
                       disabled={decide.isPending}
@@ -115,7 +115,7 @@ function Approvals() {
                         decide.mutate({
                           id: approval.id,
                           decision: "rejected",
-                          notes: notes[approval.id],
+                          notes: notes[approval.id] ?? "",
                         })
                       }
                       disabled={decide.isPending}
