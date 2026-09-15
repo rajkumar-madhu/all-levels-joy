@@ -21,6 +21,7 @@ import { bootstrapWorkspace, markNotificationsRead } from "@/lib/itsm.functions"
 import { workspaceQuery, type Workspace } from "@/lib/workspace-queries";
 import { ROLE_LABELS, canManage, type AppRole } from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
+import { GlobalSearch } from "@/components/global-search";
 import { cn } from "@/lib/utils";
 
 const nav = [
