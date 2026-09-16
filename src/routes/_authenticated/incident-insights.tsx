@@ -12,7 +12,6 @@ import {
   categoryLabel,
   formatHours,
   labelOf,
-  priorityLabel,
   type RecordState,
 } from "@/lib/itsm-shared";
 
@@ -260,7 +259,6 @@ function IncidentInsights() {
                             ) : null}
                           </td>
                           <td className="px-4 py-2.5">
-                            <span className="sr-only">{priorityLabel(row.priority)}</span>
                             <PriorityBadge priority={row.priority} />
                           </td>
                           <td className="px-4 py-2.5">
