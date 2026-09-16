@@ -11,11 +11,17 @@ import { RecordActivity } from "@/components/record-activity";
 import { createIncident, updateIncident } from "@/lib/itsm.functions";
 import { referenceQuery } from "@/lib/workspace-queries";
 import {
+  CLOSE_CODES,
+  CONTACT_TYPES,
+  HOLD_REASONS,
   IMPACT_URGENCY_LABELS,
+  INCIDENT_CATEGORIES,
   RECORD_STATES,
   STATE_LABELS,
   canManage,
+  categoryLabel,
   formatDateTime,
+  labelOf,
   type AppRole,
   type RecordState,
 } from "@/lib/itsm-shared";
@@ -55,8 +61,15 @@ function Incidents() {
     urgency: 2,
     serviceId: "",
     groupId: "",
+    category: "",
+    subcategory: "",
+    contactType: "self_service",
   });
   const [resolution, setResolution] = useState("");
+  const [closeCode, setCloseCode] = useState("solved_permanently");
+  const [holdReason, setHoldReason] = useState("awaiting_caller");
+  const subcategories =
+    INCIDENT_CATEGORIES.find((item) => item.value === form.category)?.subcategories ?? [];
 
   const data = workspace.data;
   const roles = (data?.roles ?? []) as AppRole[];
@@ -76,12 +89,25 @@ function Incidents() {
           urgency: form.urgency,
           serviceId: form.serviceId || null,
           groupId: form.groupId || null,
+          category: form.category || null,
+          subcategory: form.subcategory || null,
+          contactType: form.contactType || null,
         },
       }),
     onSuccess: async (incident) => {
       toast.success(`Incident ${incident.number} logged.`);
       setCreating(false);
-      setForm({ title: "", description: "", impact: 2, urgency: 2, serviceId: "", groupId: "" });
+      setForm({
+        title: "",
+        description: "",
+        impact: 2,
+        urgency: 2,
+        serviceId: "",
+        groupId: "",
+        category: "",
+        subcategory: "",
+        contactType: "self_service",
+      });
       await refresh();
       void navigate({ to: "/incidents", search: { record: incident.id } });
     },
@@ -205,6 +231,56 @@ function Incidents() {
               {(reference.data?.groups ?? []).map((group) => (
                 <option key={group.id} value={group.id}>
                   {group.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="category">Category</Label>
+            <select
+              id="category"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={form.category}
+              onChange={(event) =>
+                setForm({ ...form, category: event.target.value, subcategory: "" })
+              }
+            >
+              <option value="">Not classified</option>
+              {INCIDENT_CATEGORIES.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="subcategory">Subcategory</Label>
+            <select
+              id="subcategory"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={form.subcategory}
+              onChange={(event) => setForm({ ...form, subcategory: event.target.value })}
+              disabled={subcategories.length === 0}
+            >
+              <option value="">{subcategories.length === 0 ? "Pick a category first" : "None"}</option>
+              {subcategories.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="contactType">How it was reported</Label>
+            <select
+              id="contactType"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={form.contactType}
+              onChange={(event) => setForm({ ...form, contactType: event.target.value })}
+            >
+              {Object.entries(CONTACT_TYPES).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
                 </option>
               ))}
             </select>
