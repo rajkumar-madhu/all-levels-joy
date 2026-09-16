@@ -1,5 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getWorkspace, getReferenceData, getRecordActivity } from "@/lib/itsm.functions";
+import {
+  getWorkspace,
+  getReferenceData,
+  getRecordActivity,
+  getIncidentMetrics,
+} from "@/lib/itsm.functions";
 
 export const workspaceQuery = () =>
   queryOptions({
