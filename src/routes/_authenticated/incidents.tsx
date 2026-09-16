@@ -124,6 +124,10 @@ function Incidents() {
       state?: RecordState;
       assignToMe?: boolean;
       resolutionNotes?: string;
+      onHoldReason?: string | null;
+      closeCode?: string | null;
+      category?: string | null;
+      subcategory?: string | null;
     }) => updateIncident({ data: input }),
     onSuccess: async () => {
       toast.success("Incident updated.");
