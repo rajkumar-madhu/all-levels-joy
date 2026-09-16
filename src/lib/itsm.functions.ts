@@ -975,3 +975,131 @@ export const registerAttachment = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+export const getIncidentMetrics = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase } = context;
+    const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+
+    const [recent, openRows, services] = await Promise.all([
+      supabase
+        .from("incidents")
+        .select(
+          "id, number, title, state, priority, category, contact_type, close_code, reopen_count, service_id, created_at, resolved_at, first_responded_at, sla_due_at",
+        )
+        .eq("organization_id", DEMO_ORG_ID)
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(1000),
+      supabase
+        .from("incidents")
+        .select(
+          "id, number, title, state, priority, category, contact_type, service_id, created_at, sla_due_at, resolved_at, assignee_id, group_id",
+        )
+        .eq("organization_id", DEMO_ORG_ID)
+        .not("state", "in", "(resolved,closed,cancelled)")
+        .order("priority")
+        .limit(500),
+      supabase.from("services").select("id, name").eq("organization_id", DEMO_ORG_ID),
+    ]);
+
+    const recentRows = recent.data ?? [];
+    const open = openRows.data ?? [];
+    const serviceNames = new Map((services.data ?? []).map((s) => [s.id, s.name]));
+
+    const days: { day: string; opened: number; resolved: number }[] = [];
+    for (let index = 13; index >= 0; index -= 1) {
+      const key = new Date(Date.now() - index * 86_400_000).toISOString().slice(0, 10);
+      days.push({
+        day: key,
+        opened: recentRows.filter((row) => (row.created_at ?? "").slice(0, 10) === key).length,
+        resolved: recentRows.filter((row) => (row.resolved_at ?? "").slice(0, 10) === key).length,
+      });
+    }
+
+    const tally = (rows: typeof recentRows, key: "category" | "contact_type" | "close_code") => {
+      const map = new Map<string, number>();
+      rows.forEach((row) => {
+        const value = (row[key] as string | null) || "unspecified";
+        map.set(value, (map.get(value) ?? 0) + 1);
+      });
+      return [...map.entries()]
+        .map(([label, count]) => ({ label, count }))
+        .sort((a, b) => b.count - a.count);
+    };
+
+    const resolvedRows = recentRows.filter((row) => row.resolved_at);
+    const average = (values: number[]) =>
+      values.length === 0 ? null : values.reduce((sum, value) => sum + value, 0) / values.length;
+
+    const mttrHours = average(
+      resolvedRows.map(
+        (row) =>
+          (new Date(row.resolved_at as string).getTime() - new Date(row.created_at).getTime()) /
+          3_600_000,
+      ),
+    );
+    const responseHours = average(
+      recentRows
+        .filter((row) => row.first_responded_at)
+        .map(
+          (row) =>
+            (new Date(row.first_responded_at as string).getTime() -
+              new Date(row.created_at).getTime()) /
+            3_600_000,
+        ),
+    );
+
+    const metBySla = resolvedRows.filter(
+      (row) => !row.sla_due_at || new Date(row.resolved_at as string) <= new Date(row.sla_due_at),
+    ).length;
+
+    const serviceCounts = new Map<string, number>();
+    open.forEach((row) => {
+      const name = row.service_id ? serviceNames.get(row.service_id) ?? "Unknown" : "Unassigned";
+      serviceCounts.set(name, (serviceCounts.get(name) ?? 0) + 1);
+    });
+
+    return {
+      windowDays: 30,
+      opened: recentRows.length,
+      resolved: resolvedRows.length,
+      openTotal: open.length,
+      unassigned: open.filter((row) => !row.assignee_id).length,
+      reopened: recentRows.filter((row) => (row.reopen_count ?? 0) > 0).length,
+      mttrHours,
+      responseHours,
+      slaAttainment: resolvedRows.length === 0 ? null : (metBySla / resolvedRows.length) * 100,
+      byPriority: [1, 2, 3, 4, 5].map((priority) => ({
+        priority,
+        open: open.filter((row) => (row.priority ?? 5) === priority).length,
+      })),
+      byState: [...new Set(open.map((row) => row.state))].map((state) => ({
+        state: state as string,
+        count: open.filter((row) => row.state === state).length,
+      })),
+      byCategory: tally(recentRows, "category"),
+      byContactType: tally(recentRows, "contact_type"),
+      byCloseCode: tally(resolvedRows, "close_code"),
+      serviceLoad: [...serviceCounts.entries()]
+        .map(([label, count]) => ({ label, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 6),
+      days,
+      ageing: open
+        .map((row) => ({
+          id: row.id,
+          number: row.number,
+          title: row.title,
+          priority: row.priority,
+          state: row.state as string,
+          createdAt: row.created_at,
+          slaDueAt: row.sla_due_at,
+          service: row.service_id ? serviceNames.get(row.service_id) ?? null : null,
+          ageDays: Math.floor((Date.now() - new Date(row.created_at).getTime()) / 86_400_000),
+        }))
+        .sort((a, b) => b.ageDays - a.ageDays)
+        .slice(0, 8),
+    };
+  });
