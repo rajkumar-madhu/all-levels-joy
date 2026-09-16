@@ -445,60 +445,81 @@ export type Database = {
       incidents: {
         Row: {
           assignee_id: string | null
+          category: string | null
+          close_code: string | null
+          contact_type: string | null
           created_at: string
           description: string
+          first_responded_at: string | null
           group_id: string | null
           id: string
           impact: number
           number: string
+          on_hold_reason: string | null
           organization_id: string
           priority: number | null
+          reopen_count: number
           requester_id: string | null
           resolution_notes: string | null
           resolved_at: string | null
           service_id: string | null
           sla_due_at: string | null
           state: Database["public"]["Enums"]["record_state"]
+          subcategory: string | null
           title: string
           updated_at: string
           urgency: number
         }
         Insert: {
           assignee_id?: string | null
+          category?: string | null
+          close_code?: string | null
+          contact_type?: string | null
           created_at?: string
           description?: string
+          first_responded_at?: string | null
           group_id?: string | null
           id?: string
           impact?: number
           number: string
+          on_hold_reason?: string | null
           organization_id: string
           priority?: number | null
+          reopen_count?: number
           requester_id?: string | null
           resolution_notes?: string | null
           resolved_at?: string | null
           service_id?: string | null
           sla_due_at?: string | null
           state?: Database["public"]["Enums"]["record_state"]
+          subcategory?: string | null
           title: string
           updated_at?: string
           urgency?: number
         }
         Update: {
           assignee_id?: string | null
+          category?: string | null
+          close_code?: string | null
+          contact_type?: string | null
           created_at?: string
           description?: string
+          first_responded_at?: string | null
           group_id?: string | null
           id?: string
           impact?: number
           number?: string
+          on_hold_reason?: string | null
           organization_id?: string
           priority?: number | null
+          reopen_count?: number
           requester_id?: string | null
           resolution_notes?: string | null
           resolved_at?: string | null
           service_id?: string | null
           sla_due_at?: string | null
           state?: Database["public"]["Enums"]["record_state"]
+          subcategory?: string | null
           title?: string
           updated_at?: string
           urgency?: number

@@ -18,6 +18,7 @@ import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
 import { Route as AuthenticatedChangesRouteImport } from './routes/_authenticated/changes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedIncidentInsightsRouteImport } from './routes/_authenticated/incident-insights'
 import { Route as AuthenticatedIncidentsRouteImport } from './routes/_authenticated/incidents'
 import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -67,6 +68,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedIncidentInsightsRoute =
+  AuthenticatedIncidentInsightsRouteImport.update({
+    id: '/incident-insights',
+    path: '/incident-insights',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedIncidentsRoute = AuthenticatedIncidentsRouteImport.update({
   id: '/incidents',
   path: '/incidents',
@@ -97,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/audit': typeof AuthenticatedAuditRoute
   '/changes': typeof AuthenticatedChangesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/incident-insights': typeof AuthenticatedIncidentInsightsRoute
   '/incidents': typeof AuthenticatedIncidentsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -111,6 +119,7 @@ export interface FileRoutesByTo {
   '/audit': typeof AuthenticatedAuditRoute
   '/changes': typeof AuthenticatedChangesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/incident-insights': typeof AuthenticatedIncidentInsightsRoute
   '/incidents': typeof AuthenticatedIncidentsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -127,6 +136,7 @@ export interface FileRoutesById {
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
   '/_authenticated/changes': typeof AuthenticatedChangesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/incident-insights': typeof AuthenticatedIncidentInsightsRoute
   '/_authenticated/incidents': typeof AuthenticatedIncidentsRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/changes'
     | '/dashboard'
+    | '/incident-insights'
     | '/incidents'
     | '/knowledge'
     | '/profile'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/changes'
     | '/dashboard'
+    | '/incident-insights'
     | '/incidents'
     | '/knowledge'
     | '/profile'
@@ -172,6 +184,7 @@ export interface FileRouteTypes {
     | '/_authenticated/audit'
     | '/_authenticated/changes'
     | '/_authenticated/dashboard'
+    | '/_authenticated/incident-insights'
     | '/_authenticated/incidents'
     | '/_authenticated/knowledge'
     | '/_authenticated/profile'
@@ -250,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/incident-insights': {
+      id: '/_authenticated/incident-insights'
+      path: '/incident-insights'
+      fullPath: '/incident-insights'
+      preLoaderRoute: typeof AuthenticatedIncidentInsightsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/incidents': {
       id: '/_authenticated/incidents'
       path: '/incidents'
@@ -287,6 +307,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
   AuthenticatedChangesRoute: typeof AuthenticatedChangesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedIncidentInsightsRoute: typeof AuthenticatedIncidentInsightsRoute
   AuthenticatedIncidentsRoute: typeof AuthenticatedIncidentsRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
@@ -299,6 +320,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
   AuthenticatedChangesRoute: AuthenticatedChangesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedIncidentInsightsRoute: AuthenticatedIncidentInsightsRoute,
   AuthenticatedIncidentsRoute: AuthenticatedIncidentsRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,

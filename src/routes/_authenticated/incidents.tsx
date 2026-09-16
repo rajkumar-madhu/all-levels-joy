@@ -11,11 +11,17 @@ import { RecordActivity } from "@/components/record-activity";
 import { createIncident, updateIncident } from "@/lib/itsm.functions";
 import { referenceQuery } from "@/lib/workspace-queries";
 import {
+  CLOSE_CODES,
+  CONTACT_TYPES,
+  HOLD_REASONS,
   IMPACT_URGENCY_LABELS,
+  INCIDENT_CATEGORIES,
   RECORD_STATES,
   STATE_LABELS,
   canManage,
+  categoryLabel,
   formatDateTime,
+  labelOf,
   type AppRole,
   type RecordState,
 } from "@/lib/itsm-shared";
@@ -55,8 +61,15 @@ function Incidents() {
     urgency: 2,
     serviceId: "",
     groupId: "",
+    category: "",
+    subcategory: "",
+    contactType: "self_service",
   });
   const [resolution, setResolution] = useState("");
+  const [closeCode, setCloseCode] = useState("solved_permanently");
+  const [holdReason, setHoldReason] = useState("awaiting_caller");
+  const subcategories =
+    INCIDENT_CATEGORIES.find((item) => item.value === form.category)?.subcategories ?? [];
 
   const data = workspace.data;
   const roles = (data?.roles ?? []) as AppRole[];
@@ -64,7 +77,10 @@ function Incidents() {
   const incidents = data?.incidents ?? [];
   const selected = incidents.find((item) => item.id === search.record) ?? null;
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ["workspace"] });
+  const refresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["workspace"] });
+    await queryClient.invalidateQueries({ queryKey: ["incident-metrics"] });
+  };
 
   const create = useMutation({
     mutationFn: () =>
@@ -76,12 +92,25 @@ function Incidents() {
           urgency: form.urgency,
           serviceId: form.serviceId || null,
           groupId: form.groupId || null,
+          category: form.category || null,
+          subcategory: form.subcategory || null,
+          contactType: form.contactType || null,
         },
       }),
     onSuccess: async (incident) => {
       toast.success(`Incident ${incident.number} logged.`);
       setCreating(false);
-      setForm({ title: "", description: "", impact: 2, urgency: 2, serviceId: "", groupId: "" });
+      setForm({
+        title: "",
+        description: "",
+        impact: 2,
+        urgency: 2,
+        serviceId: "",
+        groupId: "",
+        category: "",
+        subcategory: "",
+        contactType: "self_service",
+      });
       await refresh();
       void navigate({ to: "/incidents", search: { record: incident.id } });
     },
@@ -95,6 +124,10 @@ function Incidents() {
       state?: RecordState;
       assignToMe?: boolean;
       resolutionNotes?: string;
+      onHoldReason?: string | null;
+      closeCode?: string | null;
+      category?: string | null;
+      subcategory?: string | null;
     }) => updateIncident({ data: input }),
     onSuccess: async () => {
       toast.success("Incident updated.");
@@ -209,6 +242,56 @@ function Incidents() {
               ))}
             </select>
           </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="category">Category</Label>
+            <select
+              id="category"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={form.category}
+              onChange={(event) =>
+                setForm({ ...form, category: event.target.value, subcategory: "" })
+              }
+            >
+              <option value="">Not classified</option>
+              {INCIDENT_CATEGORIES.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="subcategory">Subcategory</Label>
+            <select
+              id="subcategory"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={form.subcategory}
+              onChange={(event) => setForm({ ...form, subcategory: event.target.value })}
+              disabled={subcategories.length === 0}
+            >
+              <option value="">{subcategories.length === 0 ? "Pick a category first" : "None"}</option>
+              {subcategories.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="contactType">How it was reported</Label>
+            <select
+              id="contactType"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={form.contactType}
+              onChange={(event) => setForm({ ...form, contactType: event.target.value })}
+            >
+              {Object.entries(CONTACT_TYPES).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="sm:col-span-2">
             <Button type="submit" disabled={create.isPending}>
               Log incident
@@ -299,6 +382,45 @@ function Incidents() {
                     <dt className="text-muted-foreground">SLA due</dt>
                     <dd className="mt-0.5 text-foreground">{formatDateTime(selected.sla_due_at)}</dd>
                   </div>
+                  <div>
+                    <dt className="text-muted-foreground">Category</dt>
+                    <dd className="mt-0.5 text-foreground">
+                      {categoryLabel(selected.category)}
+                      {selected.subcategory ? ` · ${selected.subcategory}` : ""}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Reported via</dt>
+                    <dd className="mt-0.5 text-foreground">
+                      {labelOf(CONTACT_TYPES, selected.contact_type)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">First response</dt>
+                    <dd className="mt-0.5 text-foreground">
+                      {formatDateTime(selected.first_responded_at)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Reopened</dt>
+                    <dd className="mt-0.5 text-foreground">{selected.reopen_count ?? 0}×</dd>
+                  </div>
+                  {selected.state === "pending" ? (
+                    <div>
+                      <dt className="text-muted-foreground">On hold reason</dt>
+                      <dd className="mt-0.5 text-foreground">
+                        {labelOf(HOLD_REASONS, selected.on_hold_reason)}
+                      </dd>
+                    </div>
+                  ) : null}
+                  {selected.close_code ? (
+                    <div>
+                      <dt className="text-muted-foreground">Close code</dt>
+                      <dd className="mt-0.5 text-foreground">
+                        {labelOf(CLOSE_CODES, selected.close_code)}
+                      </dd>
+                    </div>
+                  ) : null}
                   <div className="col-span-2">
                     <dt className="text-muted-foreground">Description</dt>
                     <dd className="mt-0.5 whitespace-pre-wrap text-foreground">
@@ -332,12 +454,33 @@ function Incidents() {
                           key={state}
                           size="sm"
                           variant="outline"
-                          onClick={() => update.mutate({ id: selected.id, state })}
+                          onClick={() =>
+                            update.mutate({
+                              id: selected.id,
+                              state,
+                              ...(state === "pending" ? { onHoldReason: holdReason } : {}),
+                            })
+                          }
                           disabled={update.isPending}
                         >
                           {STATE_LABELS[state]}
                         </Button>
                       ))}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="holdReason">On hold reason (applied when set to pending)</Label>
+                      <select
+                        id="holdReason"
+                        className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        value={holdReason}
+                        onChange={(event) => setHoldReason(event.target.value)}
+                      >
+                        {Object.entries(HOLD_REASONS).map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="resolution">Resolution notes</Label>
@@ -348,6 +491,21 @@ function Incidents() {
                         onChange={(event) => setResolution(event.target.value)}
                         placeholder="Required before resolving or closing"
                       />
+                      <div className="space-y-1.5">
+                        <Label htmlFor="closeCode">Close code</Label>
+                        <select
+                          id="closeCode"
+                          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                          value={closeCode}
+                          onChange={(event) => setCloseCode(event.target.value)}
+                        >
+                          {Object.entries(CLOSE_CODES).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                       <div className="flex gap-2">
                         {(["resolved", "closed"] as RecordState[]).map((state) => (
                           <Button
@@ -357,6 +515,7 @@ function Incidents() {
                               update.mutate({
                                 id: selected.id,
                                 state,
+                                closeCode,
                                 resolutionNotes: resolution || selected.resolution_notes || "",
                               })
                             }

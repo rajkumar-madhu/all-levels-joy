@@ -1,5 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getWorkspace, getReferenceData, getRecordActivity } from "@/lib/itsm.functions";
+import {
+  getWorkspace,
+  getReferenceData,
+  getRecordActivity,
+  getIncidentMetrics,
+} from "@/lib/itsm.functions";
 
 export const workspaceQuery = () =>
   queryOptions({
@@ -23,3 +28,12 @@ export const activityQuery = (recordType: string, recordId: string) =>
 
 export type Workspace = Awaited<ReturnType<typeof getWorkspace>>;
 export type ReferenceData = Awaited<ReturnType<typeof getReferenceData>>;
+
+export const incidentMetricsQuery = () =>
+  queryOptions({
+    queryKey: ["incident-metrics"],
+    queryFn: () => getIncidentMetrics(),
+    staleTime: 30_000,
+  });
+
+export type IncidentMetrics = Awaited<ReturnType<typeof getIncidentMetrics>>;

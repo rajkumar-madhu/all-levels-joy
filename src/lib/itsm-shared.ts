@@ -128,3 +128,52 @@ export function safeRedirect(path: string | undefined | null) {
   if (!path || !path.startsWith("/") || path.startsWith("//")) return "/dashboard";
   return path;
 }
+
+export const INCIDENT_CATEGORIES: { value: string; label: string; subcategories: string[] }[] = [
+  { value: "network", label: "Network", subcategories: ["VPN", "Wi-Fi", "DNS", "Firewall"] },
+  { value: "hardware", label: "Hardware", subcategories: ["Laptop", "Printer", "Server", "Peripheral"] },
+  { value: "software", label: "Software", subcategories: ["Email", "Desktop app", "SaaS", "Operating system"] },
+  { value: "database", label: "Database", subcategories: ["Performance", "Availability", "Backup"] },
+  { value: "inquiry", label: "Inquiry / help", subcategories: ["How to", "Access", "Licensing"] },
+];
+
+export const CONTACT_TYPES: Record<string, string> = {
+  phone: "Phone",
+  email: "Email",
+  self_service: "Self-service",
+  chat: "Chat",
+  walk_up: "Walk-up",
+  monitoring: "Monitoring event",
+};
+
+export const HOLD_REASONS: Record<string, string> = {
+  awaiting_caller: "Awaiting caller",
+  awaiting_vendor: "Awaiting vendor",
+  awaiting_change: "Awaiting change",
+  awaiting_problem: "Awaiting problem",
+};
+
+export const CLOSE_CODES: Record<string, string> = {
+  solved_permanently: "Solved (permanently)",
+  solved_workaround: "Solved (workaround)",
+  solved_remotely: "Solved (remotely)",
+  not_solved: "Not solved (closed)",
+  duplicate: "Duplicate",
+};
+
+export function labelOf(map: Record<string, string>, value: string | null | undefined) {
+  if (!value) return "—";
+  return map[value] ?? value.replace(/_/g, " ");
+}
+
+export function categoryLabel(value: string | null | undefined) {
+  if (!value) return "—";
+  return INCIDENT_CATEGORIES.find((item) => item.value === value)?.label ?? value;
+}
+
+export function formatHours(value: number | null | undefined) {
+  if (value === null || value === undefined) return "—";
+  if (value < 1) return `${Math.round(value * 60)}m`;
+  if (value < 48) return `${value.toFixed(1)}h`;
+  return `${(value / 24).toFixed(1)}d`;
+}

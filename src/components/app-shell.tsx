@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   AlertTriangle,
+  BarChart3,
   BadgeCheck,
   BookOpen,
   Boxes,
@@ -27,6 +28,12 @@ import { cn } from "@/lib/utils";
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, requiresManage: false },
   { to: "/incidents", label: "Incidents", icon: AlertTriangle, requiresManage: false },
+  {
+    to: "/incident-insights",
+    label: "Incident dashboard",
+    icon: BarChart3,
+    requiresManage: false,
+  },
   { to: "/requests", label: "Service requests", icon: ClipboardList, requiresManage: false },
   { to: "/changes", label: "Changes", icon: GitBranch, requiresManage: false },
   { to: "/approvals", label: "Approvals", icon: BadgeCheck, requiresManage: false },
