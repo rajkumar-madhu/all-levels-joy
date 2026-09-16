@@ -375,6 +375,45 @@ function Incidents() {
                     <dt className="text-muted-foreground">SLA due</dt>
                     <dd className="mt-0.5 text-foreground">{formatDateTime(selected.sla_due_at)}</dd>
                   </div>
+                  <div>
+                    <dt className="text-muted-foreground">Category</dt>
+                    <dd className="mt-0.5 text-foreground">
+                      {categoryLabel(selected.category)}
+                      {selected.subcategory ? ` · ${selected.subcategory}` : ""}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Reported via</dt>
+                    <dd className="mt-0.5 text-foreground">
+                      {labelOf(CONTACT_TYPES, selected.contact_type)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">First response</dt>
+                    <dd className="mt-0.5 text-foreground">
+                      {formatDateTime(selected.first_responded_at)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Reopened</dt>
+                    <dd className="mt-0.5 text-foreground">{selected.reopen_count ?? 0}×</dd>
+                  </div>
+                  {selected.state === "pending" ? (
+                    <div>
+                      <dt className="text-muted-foreground">On hold reason</dt>
+                      <dd className="mt-0.5 text-foreground">
+                        {labelOf(HOLD_REASONS, selected.on_hold_reason)}
+                      </dd>
+                    </div>
+                  ) : null}
+                  {selected.close_code ? (
+                    <div>
+                      <dt className="text-muted-foreground">Close code</dt>
+                      <dd className="mt-0.5 text-foreground">
+                        {labelOf(CLOSE_CODES, selected.close_code)}
+                      </dd>
+                    </div>
+                  ) : null}
                   <div className="col-span-2">
                     <dt className="text-muted-foreground">Description</dt>
                     <dd className="mt-0.5 whitespace-pre-wrap text-foreground">
