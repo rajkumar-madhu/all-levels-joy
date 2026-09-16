@@ -283,6 +283,9 @@ export const createIncident = createServerFn({ method: "POST" })
       urgency: number;
       serviceId?: string | null;
       groupId?: string | null;
+      category?: string | null;
+      subcategory?: string | null;
+      contactType?: string | null;
     }) =>
       z
         .object({
@@ -292,6 +295,9 @@ export const createIncident = createServerFn({ method: "POST" })
           urgency: z.number().int().min(1).max(3),
           serviceId: uuid.nullish(),
           groupId: uuid.nullish(),
+          category: z.string().trim().max(40).nullish(),
+          subcategory: z.string().trim().max(60).nullish(),
+          contactType: z.string().trim().max(40).nullish(),
         })
         .parse(input),
   )
@@ -313,6 +319,9 @@ export const createIncident = createServerFn({ method: "POST" })
         requester_id: userId,
         service_id: data.serviceId ?? null,
         group_id: data.groupId ?? null,
+        category: data.category || null,
+        subcategory: data.subcategory || null,
+        contact_type: data.contactType || "self_service",
         sla_due_at: new Date(Date.now() + dueHours * 3600_000).toISOString(),
         state: "new",
       })
@@ -335,6 +344,10 @@ export const updateIncident = createServerFn({ method: "POST" })
       impact?: number;
       urgency?: number;
       resolutionNotes?: string;
+      category?: string | null;
+      subcategory?: string | null;
+      onHoldReason?: string | null;
+      closeCode?: string | null;
     }) =>
       z
         .object({
@@ -347,6 +360,10 @@ export const updateIncident = createServerFn({ method: "POST" })
           impact: z.number().int().min(1).max(3).optional(),
           urgency: z.number().int().min(1).max(3).optional(),
           resolutionNotes: z.string().trim().max(4000).optional(),
+          category: z.string().trim().max(40).nullish(),
+          subcategory: z.string().trim().max(60).nullish(),
+          onHoldReason: z.string().trim().max(40).nullish(),
+          closeCode: z.string().trim().max(40).nullish(),
         })
         .parse(input),
   )
@@ -355,6 +372,12 @@ export const updateIncident = createServerFn({ method: "POST" })
     const roles = await loadRoles(supabase, userId);
     requireRoles(roles, ["service_desk", "fulfiller", "manager", "admin"]);
 
+    const { data: current } = await supabase
+      .from("incidents")
+      .select("state, first_responded_at, reopen_count")
+      .eq("id", data.id)
+      .maybeSingle();
+
     const patch: IncidentUpdate = {};
     if (data.state) patch["state"] = data.state;
     if (data.assignToMe) patch["assignee_id"] = userId;
@@ -362,11 +385,28 @@ export const updateIncident = createServerFn({ method: "POST" })
     if (data.impact) patch["impact"] = data.impact;
     if (data.urgency) patch["urgency"] = data.urgency;
     if (data.resolutionNotes !== undefined) patch["resolution_notes"] = data.resolutionNotes;
+    if (data.category !== undefined) patch["category"] = data.category || null;
+    if (data.subcategory !== undefined) patch["subcategory"] = data.subcategory || null;
+    if (data.onHoldReason !== undefined) patch["on_hold_reason"] = data.onHoldReason || null;
+    if (data.closeCode !== undefined) patch["close_code"] = data.closeCode || null;
     if (data.state === "resolved" || data.state === "closed") {
       patch["resolved_at"] = new Date().toISOString();
       if (!data.resolutionNotes) {
         throw new Error("Add resolution notes before resolving or closing this incident.");
       }
+    }
+    if (data.state && data.state !== "pending") patch["on_hold_reason"] = null;
+    if (
+      current &&
+      ["resolved", "closed"].includes(current.state) &&
+      data.state &&
+      ["open", "in_progress", "new"].includes(data.state)
+    ) {
+      patch["reopen_count"] = (current.reopen_count ?? 0) + 1;
+      patch["resolved_at"] = null;
+    }
+    if (current && !current.first_responded_at) {
+      patch["first_responded_at"] = new Date().toISOString();
     }
 
     const { error } = await supabase.from("incidents").update(patch).eq("id", data.id);
