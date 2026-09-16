@@ -77,7 +77,10 @@ function Incidents() {
   const incidents = data?.incidents ?? [];
   const selected = incidents.find((item) => item.id === search.record) ?? null;
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ["workspace"] });
+  const refresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["workspace"] });
+    await queryClient.invalidateQueries({ queryKey: ["incident-metrics"] });
+  };
 
   const create = useMutation({
     mutationFn: () =>
