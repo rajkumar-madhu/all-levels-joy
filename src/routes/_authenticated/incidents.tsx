@@ -447,12 +447,33 @@ function Incidents() {
                           key={state}
                           size="sm"
                           variant="outline"
-                          onClick={() => update.mutate({ id: selected.id, state })}
+                          onClick={() =>
+                            update.mutate({
+                              id: selected.id,
+                              state,
+                              ...(state === "pending" ? { onHoldReason: holdReason } : {}),
+                            })
+                          }
                           disabled={update.isPending}
                         >
                           {STATE_LABELS[state]}
                         </Button>
                       ))}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="holdReason">On hold reason (applied when set to pending)</Label>
+                      <select
+                        id="holdReason"
+                        className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        value={holdReason}
+                        onChange={(event) => setHoldReason(event.target.value)}
+                      >
+                        {Object.entries(HOLD_REASONS).map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="resolution">Resolution notes</Label>
@@ -463,6 +484,21 @@ function Incidents() {
                         onChange={(event) => setResolution(event.target.value)}
                         placeholder="Required before resolving or closing"
                       />
+                      <div className="space-y-1.5">
+                        <Label htmlFor="closeCode">Close code</Label>
+                        <select
+                          id="closeCode"
+                          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                          value={closeCode}
+                          onChange={(event) => setCloseCode(event.target.value)}
+                        >
+                          {Object.entries(CLOSE_CODES).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                       <div className="flex gap-2">
                         {(["resolved", "closed"] as RecordState[]).map((state) => (
                           <Button
@@ -472,6 +508,7 @@ function Incidents() {
                               update.mutate({
                                 id: selected.id,
                                 state,
+                                closeCode,
                                 resolutionNotes: resolution || selected.resolution_notes || "",
                               })
                             }
