@@ -419,11 +419,6 @@ export const declareMajorIncident = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    await supabase
-      .from("major_incidents")
-      .update({})
-      .eq("id", major.id);
-
     await supabase.from("major_incident_updates").insert({
       organization_id: DEMO_ORG_ID,
       major_incident_id: major.id,
