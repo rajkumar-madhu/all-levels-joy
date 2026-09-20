@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquare,
   ScrollText,
   UserCircle,
   X,
@@ -27,6 +28,7 @@ import { cn } from "@/lib/utils";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, requiresManage: false },
+  { to: "/assistant", label: "Support assistant", icon: MessageSquare, requiresManage: false },
   { to: "/incidents", label: "Incidents", icon: AlertTriangle, requiresManage: false },
   {
     to: "/incident-insights",
