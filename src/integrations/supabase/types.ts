@@ -547,10 +547,12 @@ export type Database = {
           group_id: string | null
           id: string
           impact: number
+          major_incident: boolean
           number: string
           on_hold_reason: string | null
           organization_id: string
           priority: number | null
+          problem_id: string | null
           reopen_count: number
           requester_id: string | null
           resolution_notes: string | null
@@ -574,10 +576,12 @@ export type Database = {
           group_id?: string | null
           id?: string
           impact?: number
+          major_incident?: boolean
           number: string
           on_hold_reason?: string | null
           organization_id: string
           priority?: number | null
+          problem_id?: string | null
           reopen_count?: number
           requester_id?: string | null
           resolution_notes?: string | null
@@ -601,10 +605,12 @@ export type Database = {
           group_id?: string | null
           id?: string
           impact?: number
+          major_incident?: boolean
           number?: string
           on_hold_reason?: string | null
           organization_id?: string
           priority?: number | null
+          problem_id?: string | null
           reopen_count?: number
           requester_id?: string | null
           resolution_notes?: string | null
@@ -630,6 +636,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_problem_id_fkey"
+            columns: ["problem_id"]
+            isOneToOne: false
+            referencedRelation: "problems"
             referencedColumns: ["id"]
           },
           {
@@ -702,6 +715,145 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      major_incident_updates: {
+        Row: {
+          audience: string
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          major_incident_id: string
+          organization_id: string
+          update_type: string
+        }
+        Insert: {
+          audience?: string
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          major_incident_id: string
+          organization_id: string
+          update_type?: string
+        }
+        Update: {
+          audience?: string
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          major_incident_id?: string
+          organization_id?: string
+          update_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "major_incident_updates_major_incident_id_fkey"
+            columns: ["major_incident_id"]
+            isOneToOne: false
+            referencedRelation: "major_incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "major_incident_updates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      major_incidents: {
+        Row: {
+          bridge_state: string
+          bridge_url: string | null
+          commander_id: string | null
+          comms_lead_id: string | null
+          created_at: string
+          customer_impact: string | null
+          declared_at: string
+          declared_by: string | null
+          escalation_level: number
+          id: string
+          incident_id: string
+          mitigated_at: string | null
+          next_update_at: string | null
+          number: string
+          organization_id: string
+          problem_id: string | null
+          resolved_at: string | null
+          severity: number
+          situation_summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          bridge_state?: string
+          bridge_url?: string | null
+          commander_id?: string | null
+          comms_lead_id?: string | null
+          created_at?: string
+          customer_impact?: string | null
+          declared_at?: string
+          declared_by?: string | null
+          escalation_level?: number
+          id?: string
+          incident_id: string
+          mitigated_at?: string | null
+          next_update_at?: string | null
+          number: string
+          organization_id: string
+          problem_id?: string | null
+          resolved_at?: string | null
+          severity?: number
+          situation_summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bridge_state?: string
+          bridge_url?: string | null
+          commander_id?: string | null
+          comms_lead_id?: string | null
+          created_at?: string
+          customer_impact?: string | null
+          declared_at?: string
+          declared_by?: string | null
+          escalation_level?: number
+          id?: string
+          incident_id?: string
+          mitigated_at?: string | null
+          next_update_at?: string | null
+          number?: string
+          organization_id?: string
+          problem_id?: string | null
+          resolved_at?: string | null
+          severity?: number
+          situation_summary?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "major_incidents_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: true
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "major_incidents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "major_incidents_problem_id_fkey"
+            columns: ["problem_id"]
+            isOneToOne: false
+            referencedRelation: "problems"
             referencedColumns: ["id"]
           },
         ]
@@ -811,6 +963,152 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      problem_incidents: {
+        Row: {
+          created_at: string
+          id: string
+          incident_id: string
+          linked_by: string | null
+          organization_id: string
+          problem_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          incident_id: string
+          linked_by?: string | null
+          organization_id: string
+          problem_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          incident_id?: string
+          linked_by?: string | null
+          organization_id?: string
+          problem_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "problem_incidents_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "problem_incidents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "problem_incidents_problem_id_fkey"
+            columns: ["problem_id"]
+            isOneToOne: false
+            referencedRelation: "problems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      problems: {
+        Row: {
+          assignee_id: string | null
+          category: string | null
+          created_at: string
+          description: string
+          fix_plan: string | null
+          id: string
+          impact: number
+          knowledge_article_id: string | null
+          known_error: boolean
+          number: string
+          opened_by: string | null
+          organization_id: string
+          priority: number | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          root_cause: string | null
+          service_id: string | null
+          state: Database["public"]["Enums"]["record_state"]
+          title: string
+          updated_at: string
+          urgency: number
+          workaround: string | null
+        }
+        Insert: {
+          assignee_id?: string | null
+          category?: string | null
+          created_at?: string
+          description: string
+          fix_plan?: string | null
+          id?: string
+          impact?: number
+          knowledge_article_id?: string | null
+          known_error?: boolean
+          number: string
+          opened_by?: string | null
+          organization_id: string
+          priority?: number | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          root_cause?: string | null
+          service_id?: string | null
+          state?: Database["public"]["Enums"]["record_state"]
+          title: string
+          updated_at?: string
+          urgency?: number
+          workaround?: string | null
+        }
+        Update: {
+          assignee_id?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string
+          fix_plan?: string | null
+          id?: string
+          impact?: number
+          knowledge_article_id?: string | null
+          known_error?: boolean
+          number?: string
+          opened_by?: string | null
+          organization_id?: string
+          priority?: number | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          root_cause?: string | null
+          service_id?: string | null
+          state?: Database["public"]["Enums"]["record_state"]
+          title?: string
+          updated_at?: string
+          urgency?: number
+          workaround?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "problems_knowledge_article_id_fkey"
+            columns: ["knowledge_article_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "problems_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "problems_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
