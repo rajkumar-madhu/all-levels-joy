@@ -17,10 +17,12 @@ import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
 import { Route as AuthenticatedChangesRouteImport } from './routes/_authenticated/changes'
+import { Route as AuthenticatedCommandCenterRouteImport } from './routes/_authenticated/command-center'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedIncidentInsightsRouteImport } from './routes/_authenticated/incident-insights'
 import { Route as AuthenticatedIncidentsRouteImport } from './routes/_authenticated/incidents'
 import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
+import { Route as AuthenticatedProblemsRouteImport } from './routes/_authenticated/problems'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
 import { Route as AuthenticatedAssistantIndexRouteImport } from './routes/_authenticated/assistant.index'
@@ -65,6 +67,12 @@ const AuthenticatedChangesRoute = AuthenticatedChangesRouteImport.update({
   path: '/changes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCommandCenterRoute =
+  AuthenticatedCommandCenterRouteImport.update({
+    id: '/command-center',
+    path: '/command-center',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -84,6 +92,11 @@ const AuthenticatedIncidentsRoute = AuthenticatedIncidentsRouteImport.update({
 const AuthenticatedKnowledgeRoute = AuthenticatedKnowledgeRouteImport.update({
   id: '/knowledge',
   path: '/knowledge',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProblemsRoute = AuthenticatedProblemsRouteImport.update({
+  id: '/problems',
+  path: '/problems',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
@@ -117,10 +130,12 @@ export interface FileRoutesByFullPath {
   '/assets': typeof AuthenticatedAssetsRoute
   '/audit': typeof AuthenticatedAuditRoute
   '/changes': typeof AuthenticatedChangesRoute
+  '/command-center': typeof AuthenticatedCommandCenterRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/incident-insights': typeof AuthenticatedIncidentInsightsRoute
   '/incidents': typeof AuthenticatedIncidentsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
+  '/problems': typeof AuthenticatedProblemsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
   '/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
@@ -134,10 +149,12 @@ export interface FileRoutesByTo {
   '/assets': typeof AuthenticatedAssetsRoute
   '/audit': typeof AuthenticatedAuditRoute
   '/changes': typeof AuthenticatedChangesRoute
+  '/command-center': typeof AuthenticatedCommandCenterRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/incident-insights': typeof AuthenticatedIncidentInsightsRoute
   '/incidents': typeof AuthenticatedIncidentsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
+  '/problems': typeof AuthenticatedProblemsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
   '/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
@@ -153,10 +170,12 @@ export interface FileRoutesById {
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
   '/_authenticated/changes': typeof AuthenticatedChangesRoute
+  '/_authenticated/command-center': typeof AuthenticatedCommandCenterRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/incident-insights': typeof AuthenticatedIncidentInsightsRoute
   '/_authenticated/incidents': typeof AuthenticatedIncidentsRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
+  '/_authenticated/problems': typeof AuthenticatedProblemsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
   '/_authenticated/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
@@ -172,10 +191,12 @@ export interface FileRouteTypes {
     | '/assets'
     | '/audit'
     | '/changes'
+    | '/command-center'
     | '/dashboard'
     | '/incident-insights'
     | '/incidents'
     | '/knowledge'
+    | '/problems'
     | '/profile'
     | '/requests'
     | '/assistant/$threadId'
@@ -189,10 +210,12 @@ export interface FileRouteTypes {
     | '/assets'
     | '/audit'
     | '/changes'
+    | '/command-center'
     | '/dashboard'
     | '/incident-insights'
     | '/incidents'
     | '/knowledge'
+    | '/problems'
     | '/profile'
     | '/requests'
     | '/assistant/$threadId'
@@ -207,10 +230,12 @@ export interface FileRouteTypes {
     | '/_authenticated/assets'
     | '/_authenticated/audit'
     | '/_authenticated/changes'
+    | '/_authenticated/command-center'
     | '/_authenticated/dashboard'
     | '/_authenticated/incident-insights'
     | '/_authenticated/incidents'
     | '/_authenticated/knowledge'
+    | '/_authenticated/problems'
     | '/_authenticated/profile'
     | '/_authenticated/requests'
     | '/_authenticated/assistant/$threadId'
@@ -282,6 +307,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChangesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/command-center': {
+      id: '/_authenticated/command-center'
+      path: '/command-center'
+      fullPath: '/command-center'
+      preLoaderRoute: typeof AuthenticatedCommandCenterRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -308,6 +340,13 @@ declare module '@tanstack/react-router' {
       path: '/knowledge'
       fullPath: '/knowledge'
       preLoaderRoute: typeof AuthenticatedKnowledgeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/problems': {
+      id: '/_authenticated/problems'
+      path: '/problems'
+      fullPath: '/problems'
+      preLoaderRoute: typeof AuthenticatedProblemsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
@@ -346,10 +385,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
   AuthenticatedChangesRoute: typeof AuthenticatedChangesRoute
+  AuthenticatedCommandCenterRoute: typeof AuthenticatedCommandCenterRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedIncidentInsightsRoute: typeof AuthenticatedIncidentInsightsRoute
   AuthenticatedIncidentsRoute: typeof AuthenticatedIncidentsRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
+  AuthenticatedProblemsRoute: typeof AuthenticatedProblemsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
   AuthenticatedAssistantThreadIdRoute: typeof AuthenticatedAssistantThreadIdRoute
@@ -361,10 +402,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
   AuthenticatedChangesRoute: AuthenticatedChangesRoute,
+  AuthenticatedCommandCenterRoute: AuthenticatedCommandCenterRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedIncidentInsightsRoute: AuthenticatedIncidentInsightsRoute,
   AuthenticatedIncidentsRoute: AuthenticatedIncidentsRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
+  AuthenticatedProblemsRoute: AuthenticatedProblemsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
   AuthenticatedAssistantThreadIdRoute: AuthenticatedAssistantThreadIdRoute,

@@ -8,6 +8,13 @@
       "when": 1789939252400,
       "tag": "0000_create_ai_support_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789939635257,
+      "tag": "0001_create_problem_and_major_incident_management",
+      "breakpoints": true
     }
   ]
 }

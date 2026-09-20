@@ -177,3 +177,54 @@ export function formatHours(value: number | null | undefined) {
   if (value < 48) return `${value.toFixed(1)}h`;
   return `${(value / 24).toFixed(1)}d`;
 }
+
+export const BRIDGE_STATES = [
+  "declared",
+  "investigating",
+  "mitigating",
+  "monitoring",
+  "resolved",
+] as const;
+
+export type BridgeState = (typeof BRIDGE_STATES)[number];
+
+export const BRIDGE_STATE_LABELS: Record<BridgeState, string> = {
+  declared: "Declared",
+  investigating: "Investigating",
+  mitigating: "Mitigating",
+  monitoring: "Monitoring",
+  resolved: "Resolved",
+};
+
+export const SEVERITY_LABELS: Record<number, string> = {
+  1: "Sev 1 — critical outage",
+  2: "Sev 2 — major degradation",
+  3: "Sev 3 — limited impact",
+};
+
+export const UPDATE_TYPE_LABELS: Record<string, string> = {
+  declaration: "Declaration",
+  status: "Status",
+  action: "Action",
+  escalation: "Escalation",
+  comms: "Communication",
+  resolution: "Resolution",
+};
+
+export const AUDIENCE_LABELS: Record<string, string> = {
+  internal: "Internal",
+  customer: "Customer",
+  executive: "Executive",
+};
+
+export const PROBLEM_ROLES_ALLOWED = [
+  "service_desk",
+  "fulfiller",
+  "manager",
+  "admin",
+  "change_manager",
+] as const;
+
+export function canRunProblems(roles: AppRole[]) {
+  return roles.some((role) => (PROBLEM_ROLES_ALLOWED as readonly string[]).includes(role));
+}
