@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          created_incident_id: string | null
+          id: string
+          organization_id: string
+          role: string
+          suggested_ticket: Json | null
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          created_incident_id?: string | null
+          id?: string
+          organization_id: string
+          role: string
+          suggested_ticket?: Json | null
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_incident_id?: string | null
+          id?: string
+          organization_id?: string
+          role?: string
+          suggested_ticket?: Json | null
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_chat_messages_created_incident_id_fkey"
+            columns: ["created_incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_chat_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_chat_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "ai_chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_chat_threads: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_chat_threads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approvals: {
         Row: {
           approver_id: string
