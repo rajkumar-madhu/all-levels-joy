@@ -3,6 +3,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 import { DEMO_ORG_ID, type AppRole } from "@/lib/itsm-shared";
+import type { Database } from "@/integrations/supabase/types";
+
+type ProblemUpdate = Database["public"]["Tables"]["problems"]["Update"];
+type MajorIncidentUpdate = Database["public"]["Tables"]["major_incidents"]["Update"];
 
 const uuid = z.string().uuid();
 
@@ -277,7 +281,7 @@ export const updateProblem = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     await requireProblemRole(supabase, userId);
 
-    const patch: Record<string, unknown> = {};
+    const patch: ProblemUpdate = {};
     if (data.state) patch["state"] = data.state;
     if (data.assignToMe) patch["assignee_id"] = userId;
     if (data.knownError !== undefined) patch["known_error"] = data.knownError;
@@ -501,7 +505,7 @@ export const updateMajorIncident = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!current) throw new Error("That major incident no longer exists.");
 
-    const patch: Record<string, unknown> = {};
+    const patch: MajorIncidentUpdate = {};
     if (data.bridgeState) patch["bridge_state"] = data.bridgeState;
     if (data.escalationLevel) patch["escalation_level"] = data.escalationLevel;
     if (data.severity) patch["severity"] = data.severity;
