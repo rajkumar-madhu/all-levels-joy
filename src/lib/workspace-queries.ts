@@ -5,6 +5,7 @@ import {
   getRecordActivity,
   getIncidentMetrics,
 } from "@/lib/itsm.functions";
+import { getProblemBoard, getCommandCenter } from "@/lib/problem.functions";
 
 export const workspaceQuery = () =>
   queryOptions({
@@ -37,3 +38,20 @@ export const incidentMetricsQuery = () =>
   });
 
 export type IncidentMetrics = Awaited<ReturnType<typeof getIncidentMetrics>>;
+
+export const problemBoardQuery = () =>
+  queryOptions({
+    queryKey: ["problem-board"],
+    queryFn: () => getProblemBoard(),
+    staleTime: 15_000,
+  });
+
+export const commandCenterQuery = () =>
+  queryOptions({
+    queryKey: ["command-center"],
+    queryFn: () => getCommandCenter(),
+    staleTime: 10_000,
+  });
+
+export type ProblemBoard = Awaited<ReturnType<typeof getProblemBoard>>;
+export type CommandCenter = Awaited<ReturnType<typeof getCommandCenter>>;
