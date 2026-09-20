@@ -196,7 +196,7 @@ function AssistantThread() {
 
           <div className="border-t border-border p-3">
             <PromptInput
-              onSubmit={(event) => {
+              onSubmit={(_message, event) => {
                 event.preventDefault();
                 submit(input);
               }}
@@ -210,7 +210,7 @@ function AssistantThread() {
               />
               <PromptInputFooter className="justify-end">
                 <PromptInputSubmit
-                  status={busy ? "submitted" : undefined}
+                  {...(busy ? { status: "submitted" as const } : {})}
                   disabled={busy || input.trim().length === 0}
                 />
               </PromptInputFooter>
