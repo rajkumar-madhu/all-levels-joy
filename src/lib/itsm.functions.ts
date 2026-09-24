@@ -862,7 +862,7 @@ export const searchRecords = createServerFn({ method: "GET" })
         .from("incidents")
         .select("id, number, title, state, priority")
         .eq("organization_id", DEMO_ORG_ID)
-        .or(knowledgeMatch)
+        .or(match)
         .order("created_at", { ascending: false })
         .limit(5),
       supabase
@@ -883,7 +883,7 @@ export const searchRecords = createServerFn({ method: "GET" })
         .from("knowledge_articles")
         .select("id, number, title, status")
         .eq("organization_id", DEMO_ORG_ID)
-        .or(match)
+        .or(knowledgeMatch)
         .order("created_at", { ascending: false })
         .limit(5),
       supabase
