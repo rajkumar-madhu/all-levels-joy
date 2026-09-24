@@ -10,7 +10,7 @@ import { RiskBadge, StateBadge } from "@/components/status-badge";
 import { RecordActivity } from "@/components/record-activity";
 import { createChange, updateChange } from "@/lib/itsm.functions";
 import { referenceQuery } from "@/lib/workspace-queries";
-import { STATE_LABELS, formatDateTime, type AppRole, type RecordState } from "@/lib/itsm-shared";
+import { formatDateTime, type AppRole } from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
