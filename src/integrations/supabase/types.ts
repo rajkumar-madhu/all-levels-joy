@@ -300,11 +300,22 @@ export type Database = {
       }
       changes: {
         Row: {
+          actual_end_at: string | null
+          actual_start_at: string | null
+          affected_ci_ids: string[]
+          approval_status: string
+          business_justification: string | null
           change_type: string
+          closed_at: string | null
+          communication_plan: string | null
           created_at: string
+          delivered_at: string | null
+          delivery_outcome: string | null
           description: string
           end_at: string | null
+          expected_outage_minutes: number
           id: string
+          impact_assessment: string | null
           implementation_plan: string | null
           number: string
           organization_id: string
@@ -313,19 +324,34 @@ export type Database = {
           requester_id: string
           risk: string
           rollback_plan: string | null
+          rollback_trigger: string | null
+          rollback_used: boolean
           service_id: string | null
           start_at: string | null
           state: Database["public"]["Enums"]["record_state"]
           test_plan: string | null
           title: string
           updated_at: string
+          validation_plan: string | null
+          validation_results: string | null
         }
         Insert: {
+          actual_end_at?: string | null
+          actual_start_at?: string | null
+          affected_ci_ids?: string[]
+          approval_status?: string
+          business_justification?: string | null
           change_type: string
+          closed_at?: string | null
+          communication_plan?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_outcome?: string | null
           description?: string
           end_at?: string | null
+          expected_outage_minutes?: number
           id?: string
+          impact_assessment?: string | null
           implementation_plan?: string | null
           number: string
           organization_id: string
@@ -334,19 +360,34 @@ export type Database = {
           requester_id: string
           risk?: string
           rollback_plan?: string | null
+          rollback_trigger?: string | null
+          rollback_used?: boolean
           service_id?: string | null
           start_at?: string | null
           state?: Database["public"]["Enums"]["record_state"]
           test_plan?: string | null
           title: string
           updated_at?: string
+          validation_plan?: string | null
+          validation_results?: string | null
         }
         Update: {
+          actual_end_at?: string | null
+          actual_start_at?: string | null
+          affected_ci_ids?: string[]
+          approval_status?: string
+          business_justification?: string | null
           change_type?: string
+          closed_at?: string | null
+          communication_plan?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_outcome?: string | null
           description?: string
           end_at?: string | null
+          expected_outage_minutes?: number
           id?: string
+          impact_assessment?: string | null
           implementation_plan?: string | null
           number?: string
           organization_id?: string
@@ -355,12 +396,16 @@ export type Database = {
           requester_id?: string
           risk?: string
           rollback_plan?: string | null
+          rollback_trigger?: string | null
+          rollback_used?: boolean
           service_id?: string | null
           start_at?: string | null
           state?: Database["public"]["Enums"]["record_state"]
           test_plan?: string | null
           title?: string
           updated_at?: string
+          validation_plan?: string | null
+          validation_results?: string | null
         }
         Relationships: [
           {
