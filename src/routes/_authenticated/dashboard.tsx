@@ -238,9 +238,9 @@ function Dashboard() {
                     {upcomingChanges.slice(0, 4).map((change) => (
                       <li key={change.id} className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs text-muted-foreground">
+                          <Link to="/changes" search={{ record: change.id }} className="font-mono text-xs text-primary underline underline-offset-4">
                             {change.number}
-                          </span>
+                          </Link>
                           <StateBadge state={change.state} />
                         </div>
                         <p className="mt-1 font-medium text-foreground">{change.title}</p>
