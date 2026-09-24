@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell";
 import { PageHeader, EmptyState } from "@/components/page-header";
@@ -30,7 +32,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
+const commandCenterSearchSchema = z.object({
+  record: fallback(z.string(), "").default(""),
+});
+
 export const Route = createFileRoute("/_authenticated/command-center")({
+  validateSearch: zodValidator(commandCenterSearchSchema),
   head: () => ({
     meta: [
       { title: "Major incident command — WeCrew ITSM" },
@@ -57,9 +64,10 @@ function CommandCenter() {
   const workspace = useWorkspace();
   const center = useQuery(commandCenterQuery());
   const queryClient = useQueryClient();
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
 
   const [declaring, setDeclaring] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState({
     incidentId: "",
     severity: 1,
@@ -90,7 +98,7 @@ function CommandCenter() {
 
   const active = majors.filter((major) => major.bridge_state !== "resolved");
   const selected =
-    majors.find((major) => major.id === selectedId) ?? active[0] ?? majors[0] ?? null;
+    majors.find((major) => major.id === search.record) ?? active[0] ?? majors[0] ?? null;
   const timeline = updates.filter((update) => update.major_incident_id === selected?.id);
   const candidates = incidents
     .filter((incident) => !majors.some((major) => major.incident_id === incident.id))
@@ -118,7 +126,7 @@ function CommandCenter() {
     onSuccess: async (major) => {
       toast.success(`${major.number} declared. You are the incident commander.`);
       setDeclaring(false);
-      setSelectedId(major.id);
+      void navigate({ search: { record: major.id } });
       setDraft({
         incidentId: "",
         severity: 1,
@@ -314,7 +322,7 @@ function CommandCenter() {
                 <li key={major.id}>
                   <button
                     type="button"
-                    onClick={() => setSelectedId(major.id)}
+                    onClick={() => void navigate({ search: { record: major.id } })}
                     className={cn(
                       "w-full rounded-lg border p-4 text-left transition-colors",
                       major.id === selected?.id
