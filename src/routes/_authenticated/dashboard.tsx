@@ -75,7 +75,7 @@ function Dashboard() {
     { label: "SLA breached", value: breached.length, hint: "Needs immediate attention" },
     { label: "SLA at risk", value: atRisk.length, hint: "Due within the hour" },
     { label: "Open requests", value: openRequests.length, hint: "In fulfillment", to: "/requests" as const },
-    { label: "Awaiting approval", value: (data?.approvals ?? []).length, hint: "Assigned to you", to: "/approvals" as const },
+    { label: "Awaiting approval", value: (data?.approvals ?? []).filter((item) => item.status === "requested").length, hint: "Assigned to you", to: "/approvals" as const },
     { label: "Change approvals", value: changesPendingApproval.length, hint: "Awaiting CAB decisions", to: "/changes" as const },
     { label: "Implementing", value: activeImplementations.length, hint: "Changes being delivered", to: "/changes" as const },
     { label: "Change reviews", value: overdueReviews.length, hint: "Delivered, awaiting closure", to: "/changes" as const },

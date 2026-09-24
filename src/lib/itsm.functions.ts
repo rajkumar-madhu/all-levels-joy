@@ -269,6 +269,7 @@ export const createIncident = createServerFn({ method: "POST" })
       impact: number;
       urgency: number;
       serviceId?: string | null;
+      ownerId?: string | null;
       groupId?: string | null;
       category?: string | null;
       subcategory?: string | null;
@@ -281,6 +282,7 @@ export const createIncident = createServerFn({ method: "POST" })
           impact: z.number().int().min(1).max(3),
           urgency: z.number().int().min(1).max(3),
           serviceId: uuid.nullish(),
+          ownerId: uuid.nullish(),
           groupId: uuid.nullish(),
           category: z.string().trim().max(40).nullish(),
           subcategory: z.string().trim().max(60).nullish(),
@@ -564,7 +566,7 @@ export const createChange = createServerFn({ method: "POST" })
         change_type: data.changeType,
         risk: data.risk,
         requester_id: userId,
-        owner_id: userId,
+        owner_id: data.ownerId ?? userId,
         service_id: data.serviceId ?? null,
         implementation_plan: data.implementationPlan,
         test_plan: data.testPlan,

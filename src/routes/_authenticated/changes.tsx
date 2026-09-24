@@ -38,6 +38,7 @@ const emptyForm = {
   changeType: "normal",
   risk: "medium",
   serviceId: "",
+  ownerId: "",
   implementationPlan: "",
   testPlan: "",
   rollbackPlan: "",
@@ -75,6 +76,15 @@ function Changes() {
   const isChangeManager = roles.some((role) => ["change_manager", "admin"].includes(role));
   const changes = data?.changes ?? [];
   const selected = changes.find((item) => item.id === search.record) ?? null;
+  const scheduleConflict = form.serviceId && form.startAt && form.endAt
+    ? changes.find((change) =>
+        change.service_id === form.serviceId &&
+        !["closed", "cancelled"].includes(change.state) &&
+        Boolean(change.start_at && change.end_at) &&
+        new Date(form.startAt) < new Date(change.end_at ?? 0) &&
+        new Date(form.endAt) > new Date(change.start_at ?? 0),
+      )
+    : null;
 
   const create = useMutation({
     mutationFn: () =>
@@ -85,6 +95,7 @@ function Changes() {
           changeType: form.changeType,
           risk: form.risk,
           serviceId: form.serviceId || null,
+          ownerId: form.ownerId || data?.userId || null,
           implementationPlan: form.implementationPlan,
           testPlan: form.testPlan,
           rollbackPlan: form.rollbackPlan,
@@ -223,6 +234,13 @@ function Changes() {
             </select>
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="chg-owner">Implementation owner</Label>
+            <select id="chg-owner" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.ownerId} onChange={(event) => setForm({ ...form, ownerId: event.target.value })}>
+              <option value="">Assign to me</option>
+              {(reference.data?.people ?? []).map((person) => <option key={person.id} value={person.id}>{person.display_name}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1.5">
             <Label htmlFor="chg-start">Window start</Label>
             <Input
               id="chg-start"
@@ -252,6 +270,11 @@ function Changes() {
               required
             />
           </div>
+          {scheduleConflict ? (
+            <p className="rounded-md border border-warning/50 bg-warning/15 p-3 text-sm text-warning-foreground sm:col-span-2">
+              Schedule conflict: {scheduleConflict.number} overlaps this window for the same service.
+            </p>
+          ) : null}
           {(
             [
               ["implementationPlan", "Implementation plan"],
@@ -358,6 +381,18 @@ function Changes() {
                     <dt className="text-muted-foreground">Window</dt>
                     <dd className="mt-0.5 text-foreground">
                       {formatDateTime(selected.start_at)} → {formatDateTime(selected.end_at)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Expected outage</dt>
+                    <dd className="mt-0.5 text-foreground">{selected.expected_outage_minutes} minutes</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Affected configuration items</dt>
+                    <dd className="mt-0.5 text-foreground">
+                      {selected.affected_ci_ids.length
+                        ? selected.affected_ci_ids.map((id) => reference.data?.assets.find((asset) => asset.id === id)?.name ?? id).join(", ")
+                        : "None selected"}
                     </dd>
                   </div>
                   {(
