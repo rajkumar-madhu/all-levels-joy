@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/assistant/")({
 
 function AssistantIndex() {
   const workspace = useWorkspace();
-  const navigate = useNavigate();
+  const navigate = Route.useNavigate();
   const queryClient = useQueryClient();
 
   const start = useMutation({
