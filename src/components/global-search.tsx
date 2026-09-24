@@ -93,7 +93,7 @@ export function GlobalSearch() {
               key: `kb-${row.id}`,
               title: `${row.number} · ${row.title}`,
               meta: row.status,
-              onSelect: () => go("/knowledge"),
+              onSelect: () => go("/knowledge", row.id),
             })),
           },
           {

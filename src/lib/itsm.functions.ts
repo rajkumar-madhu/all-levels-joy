@@ -855,13 +855,14 @@ export const searchRecords = createServerFn({ method: "GET" })
     const escaped = data.query.replace(/[%_,]/g, " ").trim();
     const term = `%${escaped}%`;
     const match = `number.ilike.${term},title.ilike.${term}`;
+    const knowledgeMatch = `${match},summary.ilike.${term},category.ilike.${term},content.ilike.${term}`;
 
     const [incidents, requests, changes, knowledge, assets] = await Promise.all([
       supabase
         .from("incidents")
         .select("id, number, title, state, priority")
         .eq("organization_id", DEMO_ORG_ID)
-        .or(match)
+        .or(knowledgeMatch)
         .order("created_at", { ascending: false })
         .limit(5),
       supabase

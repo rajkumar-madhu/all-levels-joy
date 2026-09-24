@@ -1,7 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Search, X } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell";
 import { PageHeader, EmptyState } from "@/components/page-header";
@@ -13,7 +16,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+const knowledgeSearchSchema = z.object({
+  record: fallback(z.string(), "").default(""),
+  q: fallback(z.string(), "").default(""),
+  category: fallback(z.string(), "all").default("all"),
+  status: fallback(z.string(), "all").default("all"),
+});
+
 export const Route = createFileRoute("/_authenticated/knowledge")({
+  validateSearch: zodValidator(knowledgeSearchSchema),
   head: () => ({
     meta: [
       { title: "Knowledge base — WeCrew ITSM" },
@@ -41,16 +52,40 @@ function Knowledge() {
   const workspace = useWorkspace();
   const reference = useQuery(referenceQuery());
   const queryClient = useQueryClient();
+  const navigate = useNavigate({ from: "/knowledge" });
+  const search = Route.useSearch();
   const [editor, setEditor] = useState<typeof emptyArticle | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const data = workspace.data;
   const roles = (data?.roles ?? []) as AppRole[];
   const canAuthor = roles.some((role) =>
     ["service_desk", "fulfiller", "manager", "admin", "change_manager"].includes(role),
   );
-  const articles = reference.data?.knowledge ?? [];
-  const selected = articles.find((item) => item.id === selectedId) ?? null;
+  const allArticles = reference.data?.knowledge ?? [];
+  const visibleArticles = canAuthor
+    ? allArticles
+    : allArticles.filter((article) => article.status === "published");
+  const categories = [...new Set(visibleArticles.map((article) => article.category))].sort();
+  const safeStatus = ["all", "draft", "review", "published", "retired"].includes(search.status)
+    ? search.status
+    : "all";
+  const normalizedQuery = search.q.trim().toLocaleLowerCase();
+  const articles = visibleArticles.filter((article) => {
+    const matchesQuery =
+      normalizedQuery.length === 0 ||
+      [article.number, article.title, article.summary, article.category, article.content]
+        .filter(Boolean)
+        .some((value) => String(value).toLocaleLowerCase().includes(normalizedQuery));
+    const matchesCategory = search.category === "all" || article.category === search.category;
+    const matchesStatus = safeStatus === "all" || article.status === safeStatus;
+    return matchesQuery && matchesCategory && matchesStatus;
+  });
+  const selected = visibleArticles.find((item) => item.id === search.record) ?? null;
+  const hasFilters = search.q.length > 0 || search.category !== "all" || safeStatus !== "all";
+
+  const updateSearch = (patch: Partial<typeof search>) => {
+    void navigate({ search: (previous) => ({ ...previous, ...patch }) });
+  };
 
   const save = useMutation({
     mutationFn: () =>
@@ -87,6 +122,61 @@ function Knowledge() {
           ) : null
         }
       />
+
+      <section className="mt-6 border-y border-border bg-muted/25 px-4 py-4 sm:px-5">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_200px_180px_auto]">
+          <div className="relative">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
+            <Input
+              type="search"
+              aria-label="Search knowledge articles"
+              placeholder="Search articles, topics, or article numbers"
+              value={search.q}
+              onChange={(event) => updateSearch({ q: event.target.value, record: "" })}
+              className="pl-9"
+            />
+          </div>
+          <select
+            aria-label="Filter by category"
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            value={search.category}
+            onChange={(event) => updateSearch({ category: event.target.value, record: "" })}
+          >
+            <option value="all">All categories</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+          {canAuthor ? (
+            <select
+              aria-label="Filter by publication status"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={safeStatus}
+              onChange={(event) => updateSearch({ status: event.target.value, record: "" })}
+            >
+              <option value="all">All statuses</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+              <option value="review">In review</option>
+              <option value="retired">Retired</option>
+            </select>
+          ) : null}
+          {hasFilters ? (
+            <Button
+              variant="outline"
+              onClick={() => void navigate({ search: { record: "", q: "", category: "all", status: "all" } })}
+            >
+              <X className="h-4 w-4" aria-hidden /> Clear
+            </Button>
+          ) : null}
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          {articles.length} {articles.length === 1 ? "article" : "articles"} found
+        </p>
+      </section>
 
       {editor ? (
         <form
@@ -161,9 +251,13 @@ function Knowledge() {
         <div className="mt-6">
           <WorkspaceLoading />
         </div>
-      ) : articles.length === 0 ? (
+      ) : visibleArticles.length === 0 ? (
         <div className="mt-6">
           <EmptyState title="No articles yet" hint="Write the first article to start the knowledge base." />
+        </div>
+      ) : articles.length === 0 ? (
+        <div className="mt-6">
+          <EmptyState title="No matching articles" hint="Try a different term or clear the filters." />
         </div>
       ) : (
         <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1.2fr]">
@@ -172,9 +266,9 @@ function Knowledge() {
               <li key={article.id}>
                 <button
                   type="button"
-                  onClick={() => setSelectedId(article.id)}
+                  onClick={() => updateSearch({ record: article.id })}
                   className={`w-full rounded-lg border p-4 text-left transition-colors ${
-                    article.id === selectedId
+                    article.id === search.record
                       ? "border-primary/50 bg-accent/40"
                       : "border-border bg-card hover:bg-muted/60"
                   }`}
@@ -184,6 +278,9 @@ function Knowledge() {
                     <span className="capitalize">{article.status}</span>
                   </div>
                   <p className="mt-1 text-sm font-medium text-foreground">{article.title}</p>
+                  {article.summary ? (
+                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{article.summary}</p>
+                  ) : null}
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {article.category} · updated {formatDateTime(article.updated_at)}
                   </p>
@@ -194,7 +291,7 @@ function Knowledge() {
 
           <article className="rounded-lg border border-border bg-card p-5">
             {!selected ? (
-              <p className="text-sm text-muted-foreground">Select an article to read it.</p>
+              <p className="text-sm text-muted-foreground">Select an article from the results to read it.</p>
             ) : (
               <>
                 <div className="flex flex-wrap items-center justify-between gap-2">
