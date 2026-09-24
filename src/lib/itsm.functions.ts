@@ -509,6 +509,7 @@ export const createChange = createServerFn({ method: "POST" })
       changeType: string;
       risk: string;
       serviceId?: string | null;
+      ownerId?: string | null;
       implementationPlan: string;
       testPlan: string;
       rollbackPlan: string;
@@ -529,6 +530,7 @@ export const createChange = createServerFn({ method: "POST" })
           changeType: z.enum(["standard", "normal", "emergency"]),
           risk: z.enum(["low", "medium", "high", "critical"]),
           serviceId: uuid.nullish(),
+          ownerId: uuid.nullish(),
           implementationPlan: z.string().trim().min(5).max(6000),
           testPlan: z.string().trim().min(5).max(6000),
           rollbackPlan: z.string().trim().min(5).max(6000),
