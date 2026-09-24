@@ -53,6 +53,11 @@ function Dashboard() {
   const upcomingChanges = (data?.changes ?? []).filter(
     (item) => !["closed", "cancelled"].includes(item.state),
   );
+  const changesPendingApproval = upcomingChanges.filter((item) => item.approval_status === "requested");
+  const activeImplementations = upcomingChanges.filter((item) => item.state === "in_progress");
+  const overdueReviews = (data?.changes ?? []).filter(
+    (item) => item.state === "resolved" && !item.closed_at,
+  );
   const roles = (data?.roles ?? []) as AppRole[];
   const openProblems = (problemBoard.data?.problems ?? [])
     .filter((item) => !["resolved", "closed", "cancelled"].includes(item.state))
@@ -70,8 +75,10 @@ function Dashboard() {
     { label: "SLA breached", value: breached.length, hint: "Needs immediate attention" },
     { label: "SLA at risk", value: atRisk.length, hint: "Due within the hour" },
     { label: "Open requests", value: openRequests.length, hint: "In fulfillment", to: "/requests" as const },
-    { label: "Awaiting approval", value: (data?.approvals ?? []).length, hint: "Assigned to you", to: "/approvals" as const },
-    { label: "Scheduled changes", value: upcomingChanges.length, hint: "Current window", to: "/changes" as const },
+    { label: "Awaiting approval", value: (data?.approvals ?? []).filter((item) => item.status === "requested").length, hint: "Assigned to you", to: "/approvals" as const },
+    { label: "Change approvals", value: changesPendingApproval.length, hint: "Awaiting CAB decisions", to: "/changes" as const },
+    { label: "Implementing", value: activeImplementations.length, hint: "Changes being delivered", to: "/changes" as const },
+    { label: "Change reviews", value: overdueReviews.length, hint: "Delivered, awaiting closure", to: "/changes" as const },
   ];
 
   return (
@@ -231,9 +238,9 @@ function Dashboard() {
                     {upcomingChanges.slice(0, 4).map((change) => (
                       <li key={change.id} className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs text-muted-foreground">
+                          <Link to="/changes" search={{ record: change.id }} className="font-mono text-xs text-primary underline underline-offset-4">
                             {change.number}
-                          </span>
+                          </Link>
                           <StateBadge state={change.state} />
                         </div>
                         <p className="mt-1 font-medium text-foreground">{change.title}</p>

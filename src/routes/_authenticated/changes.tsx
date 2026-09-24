@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
@@ -10,7 +10,7 @@ import { RiskBadge, StateBadge } from "@/components/status-badge";
 import { RecordActivity } from "@/components/record-activity";
 import { createChange, updateChange } from "@/lib/itsm.functions";
 import { referenceQuery } from "@/lib/workspace-queries";
-import { STATE_LABELS, formatDateTime, type AppRole, type RecordState } from "@/lib/itsm-shared";
+import { formatDateTime, type AppRole } from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,9 +38,17 @@ const emptyForm = {
   changeType: "normal",
   risk: "medium",
   serviceId: "",
+  ownerId: "",
   implementationPlan: "",
   testPlan: "",
   rollbackPlan: "",
+  businessJustification: "",
+  impactAssessment: "",
+  expectedOutageMinutes: 0,
+  affectedCiIds: [] as string[],
+  validationPlan: "",
+  rollbackTrigger: "",
+  communicationPlan: "",
   startAt: "",
   endAt: "",
 };
@@ -49,11 +57,16 @@ function Changes() {
   const workspace = useWorkspace();
   const reference = useQuery(referenceQuery());
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const [form, setForm] = useState(emptyForm);
   const [raising, setRaising] = useState(false);
-  const [pir, setPir] = useState("");
+  const [delivery, setDelivery] = useState({
+    outcome: "successful" as "successful" | "successful_with_issues" | "failed" | "rolled_back",
+    validationResults: "",
+    rollbackUsed: false,
+    pirNotes: "",
+  });
 
   const data = workspace.data;
   const roles = (data?.roles ?? []) as AppRole[];
@@ -63,6 +76,19 @@ function Changes() {
   const isChangeManager = roles.some((role) => ["change_manager", "admin"].includes(role));
   const changes = data?.changes ?? [];
   const selected = changes.find((item) => item.id === search.record) ?? null;
+  const pendingApprovalCount = changes.filter((item) => item.approval_status === "requested").length;
+  const scheduledCount = changes.filter((item) => item.state === "open").length;
+  const implementingCount = changes.filter((item) => item.state === "in_progress").length;
+  const reviewCount = changes.filter((item) => item.state === "resolved" && !item.closed_at).length;
+  const scheduleConflict = form.serviceId && form.startAt && form.endAt
+    ? changes.find((change) =>
+        change.service_id === form.serviceId &&
+        !["closed", "cancelled"].includes(change.state) &&
+        Boolean(change.start_at && change.end_at) &&
+        new Date(form.startAt) < new Date(change.end_at ?? 0) &&
+        new Date(form.endAt) > new Date(change.start_at ?? 0),
+      )
+    : null;
 
   const create = useMutation({
     mutationFn: () =>
@@ -73,15 +99,27 @@ function Changes() {
           changeType: form.changeType,
           risk: form.risk,
           serviceId: form.serviceId || null,
+          ownerId: form.ownerId || data?.userId || null,
           implementationPlan: form.implementationPlan,
           testPlan: form.testPlan,
           rollbackPlan: form.rollbackPlan,
+          businessJustification: form.businessJustification,
+          impactAssessment: form.impactAssessment,
+          expectedOutageMinutes: form.expectedOutageMinutes,
+          affectedCiIds: form.affectedCiIds,
+          validationPlan: form.validationPlan,
+          rollbackTrigger: form.rollbackTrigger,
+          communicationPlan: form.communicationPlan,
           startAt: form.startAt,
           endAt: form.endAt,
         },
       }),
     onSuccess: async (change) => {
-      toast.success(`Change ${change.number} raised and sent to CAB.`);
+      toast.success(
+        form.changeType === "standard"
+          ? `Change ${change.number} scheduled on its pre-approved path.`
+          : `Change ${change.number} raised and sent for approval.`,
+      );
       setForm(emptyForm);
       setRaising(false);
       await queryClient.invalidateQueries({ queryKey: ["workspace"] });
@@ -92,11 +130,11 @@ function Changes() {
   });
 
   const update = useMutation({
-    mutationFn: (input: { id: string; state?: RecordState; pirNotes?: string }) =>
+    mutationFn: (input: Parameters<typeof updateChange>[0]["data"]) =>
       updateChange({ data: input }),
     onSuccess: async () => {
       toast.success("Change updated.");
-      setPir("");
+      setDelivery({ outcome: "successful", validationResults: "", rollbackUsed: false, pirNotes: "" });
       await queryClient.invalidateQueries({ queryKey: ["workspace"] });
     },
     onError: (error) =>
@@ -117,6 +155,21 @@ function Changes() {
           ) : null
         }
       />
+
+      <section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          ["Pending approval", pendingApprovalCount, "CAB decisions outstanding"],
+          ["Scheduled", scheduledCount, "Approved for a change window"],
+          ["Implementing", implementingCount, "Currently being delivered"],
+          ["Awaiting closure", reviewCount, "Review evidence recorded"],
+        ].map(([label, value, hint]) => (
+          <div key={label} className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs uppercase text-muted-foreground">{label}</p>
+            <p className="mt-2 font-mono text-2xl font-semibold text-foreground">{value}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+          </div>
+        ))}
+      </section>
 
       {raising ? (
         <form
@@ -146,6 +199,14 @@ function Changes() {
               minLength={5}
               required
             />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="chg-justification">Business justification</Label>
+            <Textarea id="chg-justification" rows={2} value={form.businessJustification} onChange={(event) => setForm({ ...form, businessJustification: event.target.value })} minLength={5} required />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="chg-impact">Impact assessment</Label>
+            <Textarea id="chg-impact" rows={3} value={form.impactAssessment} onChange={(event) => setForm({ ...form, impactAssessment: event.target.value })} minLength={5} required />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="chg-type">Change type</Label>
@@ -192,6 +253,13 @@ function Changes() {
             </select>
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="chg-owner">Implementation owner</Label>
+            <select id="chg-owner" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.ownerId} onChange={(event) => setForm({ ...form, ownerId: event.target.value })}>
+              <option value="">Assign to me</option>
+              {(reference.data?.people ?? []).map((person) => <option key={person.id} value={person.id}>{person.display_name}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1.5">
             <Label htmlFor="chg-start">Window start</Label>
             <Input
               id="chg-start"
@@ -200,6 +268,16 @@ function Changes() {
               onChange={(event) => setForm({ ...form, startAt: event.target.value })}
               required
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="chg-outage">Expected outage (minutes)</Label>
+            <Input id="chg-outage" type="number" min={0} max={10080} value={form.expectedOutageMinutes} onChange={(event) => setForm({ ...form, expectedOutageMinutes: Number(event.target.value) })} required />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="chg-assets">Affected configuration items</Label>
+            <select id="chg-assets" multiple className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.affectedCiIds} onChange={(event) => setForm({ ...form, affectedCiIds: Array.from(event.target.selectedOptions, (option) => option.value) })}>
+              {(reference.data?.assets ?? []).map((asset) => <option key={asset.id} value={asset.id}>{asset.name} · {asset.ci_class}</option>)}
+            </select>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="chg-end">Window end</Label>
@@ -211,11 +289,19 @@ function Changes() {
               required
             />
           </div>
+          {scheduleConflict ? (
+            <p className="rounded-md border border-warning/50 bg-warning/15 p-3 text-sm text-warning-foreground sm:col-span-2">
+              Schedule conflict: {scheduleConflict.number} overlaps this window for the same service.
+            </p>
+          ) : null}
           {(
             [
               ["implementationPlan", "Implementation plan"],
               ["testPlan", "Test plan"],
               ["rollbackPlan", "Rollback plan"],
+              ["validationPlan", "Validation plan"],
+              ["rollbackTrigger", "Rollback trigger"],
+              ["communicationPlan", "Communication plan"],
             ] as const
           ).map(([field, label]) => (
             <div key={field} className="space-y-1.5 sm:col-span-2">
@@ -303,6 +389,9 @@ function Changes() {
                   <div className="mt-2 flex flex-wrap gap-2">
                     <StateBadge state={selected.state} />
                     <RiskBadge risk={selected.risk} />
+                    <span className="rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium capitalize text-secondary-foreground">
+                      Approval: {selected.approval_status.replaceAll("_", " ")}
+                    </span>
                   </div>
                 </div>
 
@@ -313,12 +402,39 @@ function Changes() {
                       {formatDateTime(selected.start_at)} → {formatDateTime(selected.end_at)}
                     </dd>
                   </div>
+                  <div>
+                    <dt className="text-muted-foreground">Expected outage</dt>
+                    <dd className="mt-0.5 text-foreground">{selected.expected_outage_minutes} minutes</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Implementation owner</dt>
+                    <dd className="mt-0.5 text-foreground">
+                      {reference.data?.people.find((person) => person.id === selected.owner_id)?.display_name ?? "Unassigned"}
+                    </dd>
+                  </div>
+                  {selected.actual_start_at ? <div><dt className="text-muted-foreground">Actual implementation</dt><dd className="mt-0.5 text-foreground">{formatDateTime(selected.actual_start_at)} → {formatDateTime(selected.actual_end_at)}</dd></div> : null}
+                  {selected.rollback_used ? <div><dt className="text-muted-foreground">Rollback</dt><dd className="mt-0.5 text-foreground">Rollback plan was used during delivery.</dd></div> : null}
+                  <div>
+                    <dt className="text-muted-foreground">Affected configuration items</dt>
+                    <dd className="mt-0.5 text-foreground">
+                      {selected.affected_ci_ids.length
+                        ? selected.affected_ci_ids.map((id) => reference.data?.assets.find((asset) => asset.id === id)?.name ?? id).join(", ")
+                        : "None selected"}
+                    </dd>
+                  </div>
                   {(
                     [
                       ["Reason", selected.description],
+                      ["Business justification", selected.business_justification],
+                      ["Impact assessment", selected.impact_assessment],
                       ["Implementation plan", selected.implementation_plan],
                       ["Test plan", selected.test_plan],
                       ["Rollback plan", selected.rollback_plan],
+                      ["Validation plan", selected.validation_plan],
+                      ["Rollback trigger", selected.rollback_trigger],
+                      ["Communication plan", selected.communication_plan],
+                      ["Validation results", selected.validation_results],
+                      ["Delivery outcome", selected.delivery_outcome?.replaceAll("_", " ")],
                       ["Post-implementation review", selected.pir_notes],
                     ] as const
                   ).map(([label, value]) =>
@@ -331,41 +447,35 @@ function Changes() {
                   )}
                 </dl>
 
+                <div className="rounded-md border border-border bg-background p-3 text-xs">
+                  <p className="font-semibold text-foreground">Approval progress</p>
+                  {data?.approvals.filter((item) => item.record_type === "change" && item.record_id === selected.id).length ? (
+                    <ul className="mt-2 space-y-1 text-muted-foreground">
+                      {data.approvals.filter((item) => item.record_type === "change" && item.record_id === selected.id).map((item) => (
+                        <li key={item.id} className="flex justify-between gap-3"><span className="capitalize">{item.status}</span><span>{item.decision_notes || "No decision notes"}</span></li>
+                      ))}
+                    </ul>
+                  ) : <p className="mt-1 text-muted-foreground">No CAB decision required for this change.</p>}
+                </div>
+
                 {isChangeManager ? (
                   <div className="space-y-3 rounded-md border border-border bg-background p-3">
                     <h3 className="text-sm font-semibold text-foreground">Change manager actions</h3>
                     <div className="flex flex-wrap gap-2">
-                      {(["in_progress", "resolved", "closed", "cancelled"] as RecordState[]).map(
-                        (state) => (
-                          <Button
-                            key={state}
-                            size="sm"
-                            variant="outline"
-                            onClick={() => update.mutate({ id: selected.id, state })}
-                            disabled={update.isPending}
-                          >
-                            {STATE_LABELS[state]}
-                          </Button>
-                        ),
-                      )}
+                      {selected.state === "open" ? <Button size="sm" onClick={() => update.mutate({ id: selected.id, action: "start" })} disabled={update.isPending}>Start implementation</Button> : null}
+                      {selected.state === "resolved" ? <Button size="sm" onClick={() => update.mutate({ id: selected.id, action: "close" })} disabled={update.isPending}>Close change</Button> : null}
+                      {!['resolved', 'closed', 'cancelled'].includes(selected.state) ? <Button size="sm" variant="outline" onClick={() => update.mutate({ id: selected.id, action: "cancel" })} disabled={update.isPending}>Cancel change</Button> : null}
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="pir">Post-implementation review</Label>
-                      <Textarea
-                        id="pir"
-                        rows={3}
-                        value={pir}
-                        onChange={(event) => setPir(event.target.value)}
-                        placeholder="Outcome, deviations, follow-up actions"
-                      />
-                      <Button
-                        size="sm"
-                        onClick={() => update.mutate({ id: selected.id, pirNotes: pir })}
-                        disabled={update.isPending || pir.trim().length === 0}
-                      >
-                        Save review
-                      </Button>
-                    </div>
+                    {selected.state === "in_progress" ? <div className="space-y-3 border-t border-border pt-3">
+                      <Label htmlFor="delivery-outcome">Delivery outcome</Label>
+                      <select id="delivery-outcome" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={delivery.outcome} onChange={(event) => setDelivery({ ...delivery, outcome: event.target.value as typeof delivery.outcome })}>
+                        <option value="successful">Successful</option><option value="successful_with_issues">Successful with issues</option><option value="failed">Failed</option><option value="rolled_back">Rolled back</option>
+                      </select>
+                      <Textarea rows={3} value={delivery.validationResults} onChange={(event) => setDelivery({ ...delivery, validationResults: event.target.value })} placeholder="Validation results" />
+                      <Textarea rows={3} value={delivery.pirNotes} onChange={(event) => setDelivery({ ...delivery, pirNotes: event.target.value })} placeholder="Post-implementation review" />
+                      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={delivery.rollbackUsed} onChange={(event) => setDelivery({ ...delivery, rollbackUsed: event.target.checked })} /> Rollback was used</label>
+                      <Button size="sm" onClick={() => update.mutate({ id: selected.id, action: "deliver", deliveryOutcome: delivery.outcome, validationResults: delivery.validationResults, rollbackUsed: delivery.rollbackUsed, pirNotes: delivery.pirNotes })} disabled={update.isPending || !delivery.validationResults.trim() || !delivery.pirNotes.trim()}>Record delivery</Button>
+                    </div> : null}
                   </div>
                 ) : null}
 
