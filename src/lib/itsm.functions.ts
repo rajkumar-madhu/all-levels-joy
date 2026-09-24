@@ -651,7 +651,7 @@ export const updateChange = createServerFn({ method: "POST" })
     const { data: current } = await supabase.from("changes").select("*").eq("id", data.id).maybeSingle();
     if (!current) throw new Error("That change no longer exists.");
     const patch: ChangeUpdate = {};
-    let auditAction = data.action;
+    let auditAction: string = data.action;
     if (data.action === "start") {
       if (current.state !== "open" || !["approved", "not_required"].includes(current.approval_status)) {
         throw new Error("The change must be approved and scheduled before implementation starts.");

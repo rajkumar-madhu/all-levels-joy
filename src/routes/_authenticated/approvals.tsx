@@ -74,6 +74,9 @@ function Approvals() {
         <ul className="mt-6 space-y-4">
           {mine.map((approval) => {
             const record = records.find((item) => item.id === approval.record_id);
+            const change = approval.record_type === "change"
+              ? (data?.changes ?? []).find((item) => item.id === approval.record_id)
+              : null;
             return (
               <li key={approval.id} className="rounded-lg border border-border bg-card p-5">
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -86,17 +89,17 @@ function Approvals() {
                 <h2 className="mt-2 text-base font-semibold text-foreground">
                   {record?.title ?? "Awaiting record details"}
                 </h2>
-                {approval.record_type === "change" && record ? (
+                {change ? (
                   <div className="mt-3 grid gap-3 rounded-md border border-border bg-background p-3 text-xs sm:grid-cols-2">
-                    <Detail label="Risk" value={record.risk} />
-                    <Detail label="Window" value={`${formatDateTime(record.start_at)} → ${formatDateTime(record.end_at)}`} />
-                    <Detail label="Impact assessment" value={record.impact_assessment} />
-                    <Detail label="Expected outage" value={`${record.expected_outage_minutes} minutes`} />
-                    <Detail label="Implementation plan" value={record.implementation_plan} />
-                    <Detail label="Validation plan" value={record.validation_plan} />
-                    <Detail label="Rollback plan" value={record.rollback_plan} />
-                    <Detail label="Rollback trigger" value={record.rollback_trigger} />
-                    <Link to="/changes" search={{ record: record.id }} className="text-primary underline underline-offset-4 sm:col-span-2">Open full change record</Link>
+                    <Detail label="Risk" value={change.risk} />
+                    <Detail label="Window" value={`${formatDateTime(change.start_at)} → ${formatDateTime(change.end_at)}`} />
+                    <Detail label="Impact assessment" value={change.impact_assessment} />
+                    <Detail label="Expected outage" value={`${change.expected_outage_minutes} minutes`} />
+                    <Detail label="Implementation plan" value={change.implementation_plan} />
+                    <Detail label="Validation plan" value={change.validation_plan} />
+                    <Detail label="Rollback plan" value={change.rollback_plan} />
+                    <Detail label="Rollback trigger" value={change.rollback_trigger} />
+                    <Link to="/changes" search={{ record: change.id }} className="text-primary underline underline-offset-4 sm:col-span-2">Open full change record</Link>
                   </div>
                 ) : null}
                 {record?.description ? (
