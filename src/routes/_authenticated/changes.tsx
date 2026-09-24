@@ -388,6 +388,14 @@ function Changes() {
                     <dd className="mt-0.5 text-foreground">{selected.expected_outage_minutes} minutes</dd>
                   </div>
                   <div>
+                    <dt className="text-muted-foreground">Implementation owner</dt>
+                    <dd className="mt-0.5 text-foreground">
+                      {reference.data?.people.find((person) => person.id === selected.owner_id)?.display_name ?? "Unassigned"}
+                    </dd>
+                  </div>
+                  {selected.actual_start_at ? <div><dt className="text-muted-foreground">Actual implementation</dt><dd className="mt-0.5 text-foreground">{formatDateTime(selected.actual_start_at)} → {formatDateTime(selected.actual_end_at)}</dd></div> : null}
+                  {selected.rollback_used ? <div><dt className="text-muted-foreground">Rollback</dt><dd className="mt-0.5 text-foreground">Rollback plan was used during delivery.</dd></div> : null}
+                  <div>
                     <dt className="text-muted-foreground">Affected configuration items</dt>
                     <dd className="mt-0.5 text-foreground">
                       {selected.affected_ci_ids.length

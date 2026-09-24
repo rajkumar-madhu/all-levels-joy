@@ -596,7 +596,8 @@ export const createChange = createServerFn({ method: "POST" })
       .eq("organization_id", DEMO_ORG_ID)
       .in("role", ["cab_member", "change_manager", "admin"])
       .limit(8);
-    const unique = [...new Set((cab ?? []).map((row: { user_id: string }) => row.user_id))];
+    const availableApprovers = [...new Set((cab ?? []).map((row: { user_id: string }) => row.user_id))];
+    const unique = data.changeType === "emergency" ? availableApprovers.slice(0, 1) : availableApprovers;
     if (data.changeType !== "standard" && unique.length > 0) {
       await supabaseAdmin.from("approvals").insert(
         unique.map((approverId) => ({
