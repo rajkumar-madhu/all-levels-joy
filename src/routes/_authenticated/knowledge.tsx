@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -52,7 +52,7 @@ function Knowledge() {
   const workspace = useWorkspace();
   const reference = useQuery(referenceQuery());
   const queryClient = useQueryClient();
-  const navigate = useNavigate({ from: "/knowledge" });
+  const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const [editor, setEditor] = useState<typeof emptyArticle | null>(null);
 
