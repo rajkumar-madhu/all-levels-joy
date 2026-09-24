@@ -76,6 +76,10 @@ function Changes() {
   const isChangeManager = roles.some((role) => ["change_manager", "admin"].includes(role));
   const changes = data?.changes ?? [];
   const selected = changes.find((item) => item.id === search.record) ?? null;
+  const pendingApprovalCount = changes.filter((item) => item.approval_status === "requested").length;
+  const scheduledCount = changes.filter((item) => item.state === "open").length;
+  const implementingCount = changes.filter((item) => item.state === "in_progress").length;
+  const reviewCount = changes.filter((item) => item.state === "resolved" && !item.closed_at).length;
   const scheduleConflict = form.serviceId && form.startAt && form.endAt
     ? changes.find((change) =>
         change.service_id === form.serviceId &&
@@ -151,6 +155,21 @@ function Changes() {
           ) : null
         }
       />
+
+      <section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          ["Pending approval", pendingApprovalCount, "CAB decisions outstanding"],
+          ["Scheduled", scheduledCount, "Approved for a change window"],
+          ["Implementing", implementingCount, "Currently being delivered"],
+          ["Awaiting closure", reviewCount, "Review evidence recorded"],
+        ].map(([label, value, hint]) => (
+          <div key={label} className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs uppercase text-muted-foreground">{label}</p>
+            <p className="mt-2 font-mono text-2xl font-semibold text-foreground">{value}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+          </div>
+        ))}
+      </section>
 
       {raising ? (
         <form

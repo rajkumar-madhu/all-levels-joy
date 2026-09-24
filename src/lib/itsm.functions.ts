@@ -719,6 +719,9 @@ export const decideApproval = createServerFn({ method: "POST" })
     if (!approval) throw new Error("That approval is no longer available.");
     if (approval.approver_id !== userId) throw new Error("This approval is assigned to someone else.");
     if (approval.status !== "requested") throw new Error("This approval has already been decided.");
+    if (approval.record_type === "change" && data.decision === "rejected" && !data.notes?.trim()) {
+      throw new Error("Decision notes are required when rejecting a change.");
+    }
 
     const { error } = await supabase
       .from("approvals")
