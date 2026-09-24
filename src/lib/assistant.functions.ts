@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { DEMO_ORG_ID } from "@/lib/itsm-shared";
+import { nextRecordNumber } from "@/lib/record-number";
 
 const uuid = z.string().uuid();
 
@@ -287,11 +288,7 @@ export const createTicketFromChat = createServerFn({ method: "POST" })
     const suggestion = message.suggested_ticket as SuggestedTicket | null;
     if (!suggestion) throw new Error("There is no ticket proposal on this message.");
 
-    const { count } = await supabase
-      .from("incidents")
-      .select("id", { count: "exact", head: true })
-      .eq("organization_id", DEMO_ORG_ID);
-    const number = `INC${String((count ?? 0) + 1001).padStart(7, "0")}`;
+    const number = await nextRecordNumber(supabase, DEMO_ORG_ID, "INC");
     const severity = suggestion.impact + suggestion.urgency;
     const dueHours = severity <= 2 ? 2 : severity <= 4 ? 8 : 24;
 

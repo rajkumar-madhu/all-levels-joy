@@ -1196,6 +1196,35 @@ export type Database = {
           },
         ]
       }
+      record_counters: {
+        Row: {
+          current_value: number
+          organization_id: string
+          prefix: string
+          updated_at: string
+        }
+        Insert: {
+          current_value?: number
+          organization_id: string
+          prefix: string
+          updated_at?: string
+        }
+        Update: {
+          current_value?: number
+          organization_id?: string
+          prefix?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "record_counters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       request_tasks: {
         Row: {
           assignee_id: string | null
@@ -1469,6 +1498,10 @@ export type Database = {
       is_org_member: {
         Args: { _org_id: string; _user_id?: string }
         Returns: boolean
+      }
+      next_record_number: {
+        Args: { _org_id: string; _prefix: string }
+        Returns: string
       }
     }
     Enums: {
