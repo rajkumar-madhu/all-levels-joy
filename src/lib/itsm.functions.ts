@@ -137,9 +137,8 @@ export const getWorkspace = createServerFn({ method: "GET" })
           .from("approvals")
           .select("*")
           .eq("organization_id", DEMO_ORG_ID)
-          .eq("status", "requested")
           .order("created_at", { ascending: false })
-          .limit(50),
+          .limit(200),
         supabase
           .from("notifications")
           .select("*")
@@ -511,6 +510,13 @@ export const createChange = createServerFn({ method: "POST" })
       implementationPlan: string;
       testPlan: string;
       rollbackPlan: string;
+      businessJustification: string;
+      impactAssessment: string;
+      expectedOutageMinutes: number;
+      affectedCiIds: string[];
+      validationPlan: string;
+      rollbackTrigger: string;
+      communicationPlan: string;
       startAt: string;
       endAt: string;
     }) =>
@@ -524,6 +530,13 @@ export const createChange = createServerFn({ method: "POST" })
           implementationPlan: z.string().trim().min(5).max(6000),
           testPlan: z.string().trim().min(5).max(6000),
           rollbackPlan: z.string().trim().min(5).max(6000),
+          businessJustification: z.string().trim().min(5).max(6000),
+          impactAssessment: z.string().trim().min(5).max(6000),
+          expectedOutageMinutes: z.number().int().min(0).max(10080),
+          affectedCiIds: z.array(uuid).max(100),
+          validationPlan: z.string().trim().min(5).max(6000),
+          rollbackTrigger: z.string().trim().min(5).max(6000),
+          communicationPlan: z.string().trim().min(5).max(6000),
           startAt: z.string().min(1),
           endAt: z.string().min(1),
         })
@@ -533,6 +546,12 @@ export const createChange = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const roles = await loadRoles(supabase, userId);
     requireRoles(roles, ["fulfiller", "change_manager", "manager", "admin"]);
+
+    const startAt = new Date(data.startAt);
+    const endAt = new Date(data.endAt);
+    if (!Number.isFinite(startAt.getTime()) || !Number.isFinite(endAt.getTime()) || endAt <= startAt) {
+      throw new Error("The change window must end after it starts.");
+    }
 
     const number = await nextRecordNumber(supabase, DEMO_ORG_ID, "CHG");
     const { data: change, error } = await supabase
@@ -550,9 +569,17 @@ export const createChange = createServerFn({ method: "POST" })
         implementation_plan: data.implementationPlan,
         test_plan: data.testPlan,
         rollback_plan: data.rollbackPlan,
-        start_at: new Date(data.startAt).toISOString(),
-        end_at: new Date(data.endAt).toISOString(),
-        state: "pending",
+        business_justification: data.businessJustification,
+        impact_assessment: data.impactAssessment,
+        expected_outage_minutes: data.expectedOutageMinutes,
+        affected_ci_ids: data.affectedCiIds,
+        validation_plan: data.validationPlan,
+        rollback_trigger: data.rollbackTrigger,
+        communication_plan: data.communicationPlan,
+        start_at: startAt.toISOString(),
+        end_at: endAt.toISOString(),
+        approval_status: data.changeType === "standard" ? "not_required" : "requested",
+        state: data.changeType === "standard" ? "open" : "pending",
       })
       .select("id, number")
       .single();
@@ -566,7 +593,7 @@ export const createChange = createServerFn({ method: "POST" })
       .in("role", ["cab_member", "change_manager", "admin"])
       .limit(8);
     const unique = [...new Set((cab ?? []).map((row: { user_id: string }) => row.user_id))];
-    if (unique.length > 0) {
+    if (data.changeType !== "standard" && unique.length > 0) {
       await supabaseAdmin.from("approvals").insert(
         unique.map((approverId) => ({
           organization_id: DEMO_ORG_ID,
@@ -587,20 +614,33 @@ export const createChange = createServerFn({ method: "POST" })
       );
     }
 
-    await writeAudit(supabase, userId, "change", change.id, "created", { number });
+    await writeAudit(supabase, userId, "change", change.id, "created", {
+      number,
+      change_type: data.changeType,
+      approval_status: data.changeType === "standard" ? "not_required" : "requested",
+      affected_ci_count: data.affectedCiIds.length,
+    });
     return change;
   });
 
 export const updateChange = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input: { id: string; state?: string; pirNotes?: string }) =>
+  .validator((input: {
+    id: string;
+    action: "start" | "deliver" | "close" | "cancel";
+    pirNotes?: string;
+    deliveryOutcome?: "successful" | "successful_with_issues" | "failed" | "rolled_back";
+    validationResults?: string;
+    rollbackUsed?: boolean;
+  }) =>
     z
       .object({
         id: uuid,
-        state: z
-          .enum(["new", "open", "in_progress", "pending", "resolved", "closed", "cancelled"])
-          .optional(),
+        action: z.enum(["start", "deliver", "close", "cancel"]),
         pirNotes: z.string().trim().max(6000).optional(),
+        deliveryOutcome: z.enum(["successful", "successful_with_issues", "failed", "rolled_back"]).optional(),
+        validationResults: z.string().trim().max(6000).optional(),
+        rollbackUsed: z.boolean().optional(),
       })
       .parse(input),
   )
@@ -608,12 +648,48 @@ export const updateChange = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const roles = await loadRoles(supabase, userId);
     requireRoles(roles, ["change_manager", "admin"]);
+    const { data: current } = await supabase.from("changes").select("*").eq("id", data.id).maybeSingle();
+    if (!current) throw new Error("That change no longer exists.");
     const patch: ChangeUpdate = {};
-    if (data.state) patch["state"] = data.state;
-    if (data.pirNotes !== undefined) patch["pir_notes"] = data.pirNotes;
+    let auditAction = data.action;
+    if (data.action === "start") {
+      if (current.state !== "open" || !["approved", "not_required"].includes(current.approval_status)) {
+        throw new Error("The change must be approved and scheduled before implementation starts.");
+      }
+      if (current.start_at && new Date(current.start_at) > new Date()) {
+        throw new Error("Implementation cannot start before the scheduled window.");
+      }
+      patch["state"] = "in_progress";
+      patch["actual_start_at"] = new Date().toISOString();
+      auditAction = "implementation_started";
+    } else if (data.action === "deliver") {
+      if (current.state !== "in_progress") throw new Error("Start implementation before recording delivery.");
+      if (!data.deliveryOutcome || !data.validationResults?.trim() || !data.pirNotes?.trim()) {
+        throw new Error("Delivery outcome, validation results, and review notes are required.");
+      }
+      patch["state"] = "resolved";
+      patch["actual_end_at"] = new Date().toISOString();
+      patch["delivered_at"] = new Date().toISOString();
+      patch["delivery_outcome"] = data.deliveryOutcome;
+      patch["validation_results"] = data.validationResults;
+      patch["rollback_used"] = data.rollbackUsed ?? false;
+      patch["pir_notes"] = data.pirNotes;
+      auditAction = data.rollbackUsed ? "rollback_completed" : "change_delivered";
+    } else if (data.action === "close") {
+      if (current.state !== "resolved" || !current.pir_notes || !current.validation_results) {
+        throw new Error("Delivery evidence and a post-implementation review are required before closure.");
+      }
+      patch["state"] = "closed";
+      patch["closed_at"] = new Date().toISOString();
+      auditAction = "change_closed";
+    } else {
+      if (["resolved", "closed"].includes(current.state)) throw new Error("A delivered change cannot be cancelled.");
+      patch["state"] = "cancelled";
+      auditAction = "change_cancelled";
+    }
     const { error } = await supabase.from("changes").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
-    await writeAudit(supabase, userId, "change", data.id, "updated", patch);
+    await writeAudit(supabase, userId, "change", data.id, auditAction, patch);
     return { ok: true };
   });
 
@@ -649,11 +725,23 @@ export const decideApproval = createServerFn({ method: "POST" })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
 
-    const nextState = data.decision === "approved" ? "open" : "cancelled";
     if (approval.record_type === "request") {
+      const nextState = data.decision === "approved" ? "open" : "cancelled";
       await supabase.from("service_requests").update({ state: nextState }).eq("id", approval.record_id);
     } else if (approval.record_type === "change") {
-      await supabase.from("changes").update({ state: nextState }).eq("id", approval.record_id);
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: decisions } = await supabaseAdmin
+        .from("approvals")
+        .select("status")
+        .eq("record_type", "change")
+        .eq("record_id", approval.record_id);
+      const rejected = (decisions ?? []).some((item) => item.status === "rejected");
+      const fullyApproved = (decisions ?? []).length > 0 && (decisions ?? []).every((item) => item.status === "approved");
+      if (rejected) {
+        await supabaseAdmin.from("changes").update({ state: "cancelled", approval_status: "rejected" }).eq("id", approval.record_id);
+      } else if (fullyApproved) {
+        await supabaseAdmin.from("changes").update({ state: "open", approval_status: "approved" }).eq("id", approval.record_id);
+      }
     }
 
     await writeAudit(supabase, userId, approval.record_type, approval.record_id, `approval_${data.decision}`, {
