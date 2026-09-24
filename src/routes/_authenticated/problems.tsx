@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell";
 import { PageHeader, EmptyState } from "@/components/page-header";
@@ -27,7 +29,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+const problemSearchSchema = z.object({
+  record: fallback(z.string(), "").default(""),
+});
+
 export const Route = createFileRoute("/_authenticated/problems")({
+  validateSearch: zodValidator(problemSearchSchema),
   head: () => ({
     meta: [
       { title: "Problem management — WeCrew ITSM" },
@@ -54,9 +61,10 @@ function Problems() {
   const workspace = useWorkspace();
   const board = useQuery(problemBoardQuery());
   const queryClient = useQueryClient();
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
 
   const [creating, setCreating] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState({
     title: "",
     description: "",
@@ -95,6 +103,7 @@ function Problems() {
   const visible = problems.filter((problem) =>
     filter === "all" ? true : !["resolved", "closed", "cancelled"].includes(problem.state),
   );
+  const selectedId = search.record || null;
   const selected = problems.find((problem) => problem.id === selectedId) ?? null;
   const linkedIncidentIds = new Set(
     links.filter((link) => link.problem_id === selectedId).map((link) => link.incident_id),
@@ -135,7 +144,7 @@ function Problems() {
         serviceId: "",
         fromIncidentId: "",
       });
-      setSelectedId(problem.id);
+      void navigate({ search: { record: problem.id } });
       await refresh();
     },
     onError: (error) =>
@@ -165,7 +174,7 @@ function Problems() {
 
   function startInvestigation(problemId: string) {
     const problem = problems.find((item) => item.id === problemId);
-    setSelectedId(problemId);
+    void navigate({ search: { record: problemId } });
     setInvestigation({
       workaround: problem?.workaround ?? "",
       rootCause: problem?.root_cause ?? "",
