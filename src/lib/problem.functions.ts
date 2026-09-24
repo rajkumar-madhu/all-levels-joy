@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { DEMO_ORG_ID, type AppRole } from "@/lib/itsm-shared";
 import type { Database } from "@/integrations/supabase/types";
+import { nextRecordNumber } from "@/lib/record-number";
 
 type ProblemUpdate = Database["public"]["Tables"]["problems"]["Update"];
 type MajorIncidentUpdate = Database["public"]["Tables"]["major_incidents"]["Update"];
@@ -21,15 +22,6 @@ const RECORD_STATE = z.enum([
 ]);
 
 const BRIDGE_STATE = z.enum(["declared", "investigating", "mitigating", "monitoring", "resolved"]);
-
-async function nextNumber(supabase: any, table: string, prefix: string) {
-  const { count } = await supabase
-    .from(table)
-    .select("id", { count: "exact", head: true })
-    .eq("organization_id", DEMO_ORG_ID);
-  const next = (count ?? 0) + 1001;
-  return `${prefix}${String(next).padStart(7, "0")}`;
-}
 
 async function writeAudit(
   supabase: any,
@@ -206,7 +198,7 @@ export const createProblem = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     await requireProblemRole(supabase, userId);
 
-    const number = await nextNumber(supabase, "problems", "PRB");
+    const number = await nextRecordNumber(supabase, DEMO_ORG_ID, "PRB");
     const { data: problem, error } = await supabase
       .from("problems")
       .insert({
@@ -400,7 +392,7 @@ export const declareMajorIncident = createServerFn({ method: "POST" })
       throw new Error(`This incident is already under major incident command (${existing.number}).`);
     }
 
-    const number = await nextNumber(supabase, "major_incidents", "MI");
+    const number = await nextRecordNumber(supabase, DEMO_ORG_ID, "MI");
     const cadence = data.nextUpdateMinutes ?? 30;
 
     const { data: major, error } = await supabase

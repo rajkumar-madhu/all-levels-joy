@@ -2,25 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
+import { nextRecordNumber } from "@/lib/record-number";
 
 type IncidentUpdate = Database["public"]["Tables"]["incidents"]["Update"];
 type ChangeUpdate = Database["public"]["Tables"]["changes"]["Update"];
 import { DEMO_ORG_ID, type AppRole } from "@/lib/itsm-shared";
 
 const uuid = z.string().uuid();
-
-async function nextNumber(
-  supabase: { from: (table: string) => any },
-  table: string,
-  prefix: string,
-) {
-  const { count } = await supabase
-    .from(table)
-    .select("id", { count: "exact", head: true })
-    .eq("organization_id", DEMO_ORG_ID);
-  const next = (count ?? 0) + 1001;
-  return `${prefix}${String(next).padStart(7, "0")}`;
-}
 
 async function writeAudit(
   supabase: any,
@@ -303,7 +291,7 @@ export const createIncident = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const number = await nextNumber(supabase, "incidents", "INC");
+    const number = await nextRecordNumber(supabase, DEMO_ORG_ID, "INC");
     const severity = data.impact + data.urgency;
     const dueHours = severity <= 2 ? 2 : severity <= 4 ? 8 : 24;
 
@@ -435,7 +423,7 @@ export const createServiceRequest = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!item) throw new Error("That catalog item is not available.");
 
-    const number = await nextNumber(supabase, "service_requests", "REQ");
+    const number = await nextRecordNumber(supabase, DEMO_ORG_ID, "REQ");
     const { data: request, error } = await supabase
       .from("service_requests")
       .insert({
@@ -546,7 +534,7 @@ export const createChange = createServerFn({ method: "POST" })
     const roles = await loadRoles(supabase, userId);
     requireRoles(roles, ["fulfiller", "change_manager", "manager", "admin"]);
 
-    const number = await nextNumber(supabase, "changes", "CHG");
+    const number = await nextRecordNumber(supabase, DEMO_ORG_ID, "CHG");
     const { data: change, error } = await supabase
       .from("changes")
       .insert({
@@ -718,7 +706,7 @@ export const saveKnowledgeArticle = createServerFn({ method: "POST" })
       return { id: data.id };
     }
 
-    const number = await nextNumber(supabase, "knowledge_articles", "KB");
+    const number = await nextRecordNumber(supabase, DEMO_ORG_ID, "KB");
     const { data: article, error } = await supabase
       .from("knowledge_articles")
       .insert({
