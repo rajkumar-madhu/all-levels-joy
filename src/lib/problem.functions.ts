@@ -527,7 +527,13 @@ export const updateMajorIncident = createServerFn({ method: "POST" })
       const linkedProblemId = data.problemId || null;
       const { error: incidentLinkError } = await supabase
         .from("incidents")
-        .update({ problem_id: linkedProblemId, major_incident: true })
+        .update({
+          problem_id: linkedProblemId,
+          major_incident: true,
+          impact: 1,
+          urgency: 1,
+          priority: 1,
+        })
         .eq("id", current.incident_id);
       if (incidentLinkError) throw new Error(incidentLinkError.message);
 
@@ -561,6 +567,9 @@ export const updateMajorIncident = createServerFn({ method: "POST" })
           state: "resolved",
           resolved_at: new Date().toISOString(),
           major_incident: true,
+          impact: 1,
+          urgency: 1,
+          priority: 1,
           problem_id: data.problemId ?? current.problem_id,
         })
         .eq("id", current.incident_id)
