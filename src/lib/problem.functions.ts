@@ -424,10 +424,11 @@ export const declareMajorIncident = createServerFn({ method: "POST" })
       body: data.situationSummary,
     });
 
-    await supabase
+    const { error: incidentUpdateError } = await supabase
       .from("incidents")
       .update({ major_incident: true, impact: 1, urgency: 1, priority: 1, state: "in_progress" })
       .eq("id", data.incidentId);
+    if (incidentUpdateError) throw new Error(incidentUpdateError.message);
 
     const { data: managers } = await supabase
       .from("user_roles")
@@ -492,7 +493,7 @@ export const updateMajorIncident = createServerFn({ method: "POST" })
 
     const { data: current } = await supabase
       .from("major_incidents")
-      .select("id, number, incident_id, bridge_state")
+      .select("id, number, incident_id, bridge_state, problem_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!current) throw new Error("That major incident no longer exists.");
@@ -522,12 +523,49 @@ export const updateMajorIncident = createServerFn({ method: "POST" })
     const { error } = await supabase.from("major_incidents").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
 
-    if (data.bridgeState === "resolved") {
-      await supabase
+    if (data.problemId !== undefined) {
+      const linkedProblemId = data.problemId || null;
+      const { error: incidentLinkError } = await supabase
         .from("incidents")
-        .update({ state: "resolved", resolved_at: new Date().toISOString() })
+        .update({ problem_id: linkedProblemId })
+        .eq("id", current.incident_id);
+      if (incidentLinkError) throw new Error(incidentLinkError.message);
+
+      if (current.problem_id && current.problem_id !== linkedProblemId) {
+        const { error: unlinkError } = await supabase
+          .from("problem_incidents")
+          .delete()
+          .eq("problem_id", current.problem_id)
+          .eq("incident_id", current.incident_id);
+        if (unlinkError) throw new Error(unlinkError.message);
+      }
+
+      if (linkedProblemId) {
+        const { error: linkError } = await supabase.from("problem_incidents").upsert(
+          {
+            organization_id: DEMO_ORG_ID,
+            problem_id: linkedProblemId,
+            incident_id: current.incident_id,
+            linked_by: userId,
+          },
+          { onConflict: "problem_id,incident_id" },
+        );
+        if (linkError) throw new Error(linkError.message);
+      }
+    }
+
+    if (data.bridgeState === "resolved") {
+      const { error: resolveError } = await supabase
+        .from("incidents")
+        .update({
+          state: "resolved",
+          resolved_at: new Date().toISOString(),
+          major_incident: true,
+          problem_id: data.problemId ?? current.problem_id,
+        })
         .eq("id", current.incident_id)
         .in("state", ["new", "open", "in_progress", "pending"]);
+      if (resolveError) throw new Error(resolveError.message);
     }
 
     await writeAudit(supabase, userId, "major_incident", data.id, "updated", patch);
