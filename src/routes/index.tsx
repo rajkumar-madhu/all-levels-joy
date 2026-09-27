@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Incident, request, change, knowledge, and CMDB management with role-based access, SLA tracking, and immutable audit history.",
+          "Incident, request, change, knowledge, and CMDB management with role-based access, SLA tracking, and audit evidence for core workflows.",
       },
       { property: "og:title", content: "WeCrew ITSM — Governed Service Management Platform" },
       {
@@ -41,7 +41,7 @@ const capabilities = [
   {
     icon: ClipboardList,
     title: "Service request & catalog",
-    text: "Catalog items with entitlement rules, approvals, fulfillment tasks, and requester visibility.",
+    text: "Catalog items, independent approvals, fulfillment tasks, and requester visibility.",
   },
   {
     icon: GitBranch,
@@ -61,7 +61,7 @@ const capabilities = [
   {
     icon: ShieldCheck,
     title: "Governance & audit",
-    text: "Role-based access enforced on the server, with immutable activity history on every record.",
+    text: "Role-based access enforced on the server, with protected audit evidence for incidents, requests, changes, and approvals.",
   },
 ];
 
@@ -125,7 +125,7 @@ function Landing() {
             <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
               WeCrew ITSM brings the service desk, engineering, change advisory, asset owners, and
               leadership into a single governed workspace, with permissions enforced on the server
-              and every state change recorded for audit.
+              and audit evidence for incident, request, change, and approval workflows.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
@@ -140,11 +140,16 @@ function Landing() {
                 <a href="#capabilities">See capabilities</a>
               </Button>
             </div>
+            {!signedIn && (
+              <p className="mt-3 text-sm text-muted-foreground">
+                Workspace access requires an invitation from your administrator.
+              </p>
+            )}
             <dl className="mt-10 grid grid-cols-3 gap-6 border-t border-border pt-6">
               {[
                 ["Priority model", "Impact x urgency"],
                 ["Approvals", "Request & CAB"],
-                ["Evidence", "Immutable audit"],
+                ["Evidence", "Core workflow audit"],
               ].map(([label, value]) => (
                 <div key={label}>
                   <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
@@ -156,7 +161,10 @@ function Landing() {
 
           <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
             <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              Operations snapshot
+              Example workspace
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Sample records illustrating service workflows.
             </p>
             <div className="mt-4 space-y-3">
               {[
