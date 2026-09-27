@@ -70,7 +70,7 @@ Same-state metadata updates are allowed. Pending requires a recognized hold reas
 
 See [validation instructions](./itsm-validation.md) for repeatable checks and the completed evidence.
 
-The complete migration chain through `0007` is exercised in disposable PostgreSQL and a real local Supabase stack. It has **not** been applied to a remote database. Deploy the migration and matching server/UI together in a reviewed environment; old clients without the required version token must be upgraded. This migration tightens direct incident writes, so integration clients need the same lifecycle contract.
+The complete migration chain through `0007` is exercised in disposable PostgreSQL and a real local Supabase stack. Migrations `0004`–`0007` were also applied to the connected hosted database for the 28 September release; all eight migration hashes and the resulting functions, triggers, permissions and existing record counts were verified. The release report records the published revision and live checks. Future deployments must keep the migration and matching server/UI together; old clients without the required version token must be upgraded. This migration tightens direct incident writes, so integration clients need the same lifecycle contract.
 
 Before rollout, validate against a staging copy: legacy pending/resolved records, old integration clients, requester/operator personas, cross-organization isolation, bridge operations, record activity, and backups/rollback. The repository uses both `supabase/migrations` and `drizzle/migrations`; follow the existing migration runner in the target environment rather than applying only the Supabase directory. Do not roll back by fabricating timestamps or resolution notes.
 
