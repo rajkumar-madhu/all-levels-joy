@@ -12,4 +12,11 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Self-hosted (wecrew-k8s) target: plain Node server instead of the Cloudflare Worker
+  // default. Lovable's own cloud build/preview forces `cloudflare-module` regardless of
+  // this setting (see isSandboxEnvironment() in @lovable.dev/vite-tanstack-config), so this
+  // only takes effect for builds run outside Lovable's sandbox, e.g. the Docker image below.
+  nitro: {
+    preset: "node-server",
+  },
 });

@@ -1,0 +1,23 @@
+# TLS/cert-manager annotations are cluster-specific and not visible from this repo.
+# Before applying, diff this against the working ingress for wecrew-research:
+#   kubectl -n wecrew-research get ingress -o yaml
+# and copy over whatever annotations/TLS block it uses, so itsm.wecrew.in terminates
+# the same way research.wecrew.in does.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: itsm
+  namespace: itsm
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: itsm.wecrew.in
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: itsm
+                port:
+                  number: 80

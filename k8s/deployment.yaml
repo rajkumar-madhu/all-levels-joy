@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: itsm
+  namespace: itsm
+  labels:
+    app: itsm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: itsm
+  template:
+    metadata:
+      labels:
+        app: itsm
+    spec:
+      containers:
+        - name: itsm
+          # Replace with the actual Harbor path once pushed, e.g.
+          # harbor.wecrew.in/wecrew/all-levels-joy:<tag>
+          image: REPLACE_ME/wecrew/all-levels-joy:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+          envFrom:
+            - secretRef:
+                name: itsm-supabase
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20

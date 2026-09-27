@@ -1,0 +1,11 @@
+node_modules
+.output
+.vinxi
+.nitro
+.wrangler
+dist
+dist-ssr
+.git
+.claude
+*.log
+.DS_Store
