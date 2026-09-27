@@ -1,6 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { AlertTriangle, ClipboardList, GitBranch, BookOpen, Boxes, ShieldCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  ClipboardList,
+  GitBranch,
+  BookOpen,
+  Boxes,
+  ShieldCheck,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -117,8 +124,8 @@ function Landing() {
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
               WeCrew ITSM brings the service desk, engineering, change advisory, asset owners, and
-              leadership into a single governed workspace, with permissions enforced on the server and
-              every state change recorded for audit.
+              leadership into a single governed workspace, with permissions enforced on the server
+              and every state change recorded for audit.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
@@ -183,7 +190,9 @@ function Landing() {
                 <div key={item.title} className="rounded-lg border border-border bg-card p-5">
                   <item.icon className="h-5 w-5 text-primary" aria-hidden />
                   <h3 className="mt-3 text-sm font-semibold text-foreground">{item.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.text}</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    {item.text}
+                  </p>
                 </div>
               ))}
             </div>

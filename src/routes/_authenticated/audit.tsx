@@ -10,10 +10,14 @@ export const Route = createFileRoute("/_authenticated/audit")({
       { title: "Audit trail — WeCrew ITSM" },
       {
         name: "description",
-        content: "Immutable record of every create, update, approval, and comment across the workspace.",
+        content:
+          "Immutable record of every create, update, approval, and comment across the workspace.",
       },
       { property: "og:title", content: "Audit trail — WeCrew ITSM" },
-      { property: "og:description", content: "Immutable workspace activity history for compliance review." },
+      {
+        property: "og:description",
+        content: "Immutable workspace activity history for compliance review.",
+      },
     ],
   }),
   component: Audit,
@@ -38,7 +42,10 @@ function Audit() {
         </div>
       ) : events.length === 0 ? (
         <div className="mt-6">
-          <EmptyState title="No audit entries yet" hint="Activity appears here as records are worked." />
+          <EmptyState
+            title="No audit entries yet"
+            hint="Activity appears here as records are worked."
+          />
         </div>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-card">
@@ -59,7 +66,9 @@ function Audit() {
                   </td>
                   <td className="px-4 py-2.5 capitalize text-foreground">{event.record_type}</td>
                   <td className="px-4 py-2.5 font-mono text-xs text-foreground">{event.action}</td>
-                  <td className="px-4 py-2.5 text-xs capitalize text-muted-foreground">{event.source}</td>
+                  <td className="px-4 py-2.5 text-xs capitalize text-muted-foreground">
+                    {event.source}
+                  </td>
                 </tr>
               ))}
             </tbody>

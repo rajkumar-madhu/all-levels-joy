@@ -16,7 +16,8 @@ export const Route = createFileRoute("/_authenticated/approvals")({
       { title: "Approvals — WeCrew ITSM" },
       {
         name: "description",
-        content: "Decide the request and change approvals assigned to you, with decision notes kept on record.",
+        content:
+          "Decide the request and change approvals assigned to you, with decision notes kept on record.",
       },
       { property: "og:title", content: "Approvals — WeCrew ITSM" },
       { property: "og:description", content: "Request and CAB approvals assigned to you." },
@@ -74,9 +75,10 @@ function Approvals() {
         <ul className="mt-6 space-y-4">
           {mine.map((approval) => {
             const record = records.find((item) => item.id === approval.record_id);
-            const change = approval.record_type === "change"
-              ? (data?.changes ?? []).find((item) => item.id === approval.record_id)
-              : null;
+            const change =
+              approval.record_type === "change"
+                ? (data?.changes ?? []).find((item) => item.id === approval.record_id)
+                : null;
             return (
               <li key={approval.id} className="rounded-lg border border-border bg-card p-5">
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -92,14 +94,26 @@ function Approvals() {
                 {change ? (
                   <div className="mt-3 grid gap-3 rounded-md border border-border bg-background p-3 text-xs sm:grid-cols-2">
                     <Detail label="Risk" value={change.risk} />
-                    <Detail label="Window" value={`${formatDateTime(change.start_at)} → ${formatDateTime(change.end_at)}`} />
+                    <Detail
+                      label="Window"
+                      value={`${formatDateTime(change.start_at)} → ${formatDateTime(change.end_at)}`}
+                    />
                     <Detail label="Impact assessment" value={change.impact_assessment} />
-                    <Detail label="Expected outage" value={`${change.expected_outage_minutes} minutes`} />
+                    <Detail
+                      label="Expected outage"
+                      value={`${change.expected_outage_minutes} minutes`}
+                    />
                     <Detail label="Implementation plan" value={change.implementation_plan} />
                     <Detail label="Validation plan" value={change.validation_plan} />
                     <Detail label="Rollback plan" value={change.rollback_plan} />
                     <Detail label="Rollback trigger" value={change.rollback_trigger} />
-                    <Link to="/changes" search={{ record: change.id }} className="text-primary underline underline-offset-4 sm:col-span-2">Open full change record</Link>
+                    <Link
+                      to="/changes"
+                      search={{ record: change.id }}
+                      className="text-primary underline underline-offset-4 sm:col-span-2"
+                    >
+                      Open full change record
+                    </Link>
                   </div>
                 ) : null}
                 {record?.description ? (
@@ -112,9 +126,7 @@ function Approvals() {
                     rows={2}
                     placeholder="Decision notes (optional)"
                     value={notes[approval.id] ?? ""}
-                    onChange={(event) =>
-                      setNotes({ ...notes, [approval.id]: event.target.value })
-                    }
+                    onChange={(event) => setNotes({ ...notes, [approval.id]: event.target.value })}
                   />
                   <div className="flex gap-2">
                     <Button
@@ -156,5 +168,10 @@ function Approvals() {
 }
 
 function Detail({ label, value }: { label: string; value: string | null | undefined }) {
-  return <div><p className="text-muted-foreground">{label}</p><p className="mt-0.5 whitespace-pre-wrap text-foreground">{value || "—"}</p></div>;
+  return (
+    <div>
+      <p className="text-muted-foreground">{label}</p>
+      <p className="mt-0.5 whitespace-pre-wrap text-foreground">{value || "—"}</p>
+    </div>
+  );
 }

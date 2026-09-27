@@ -44,10 +44,17 @@ export function GlobalSearch() {
 
   const data = results.data;
   const total = data
-    ? data.incidents.length + data.requests.length + data.changes.length + data.knowledge.length + data.assets.length
+    ? data.incidents.length +
+      data.requests.length +
+      data.changes.length +
+      data.knowledge.length +
+      data.assets.length
     : 0;
 
-  const go = (to: "/incidents" | "/requests" | "/changes" | "/knowledge" | "/assets", recordId?: string) => {
+  const go = (
+    to: "/incidents" | "/requests" | "/changes" | "/knowledge" | "/assets",
+    recordId?: string,
+  ) => {
     setOpen(false);
     setQuery("");
     if (recordId) {
@@ -57,56 +64,58 @@ export function GlobalSearch() {
     }
   };
 
-  const groups: { label: string; items: { key: string; title: string; meta: string; onSelect: () => void }[] }[] =
-    data
-      ? [
-          {
-            label: "Incidents",
-            items: data.incidents.map((row) => ({
-              key: `inc-${row.id}`,
-              title: `${row.number} · ${row.title}`,
-              meta: STATE_LABELS[row.state as RecordState] ?? row.state,
-              onSelect: () => go("/incidents", row.id),
-            })),
-          },
-          {
-            label: "Service requests",
-            items: data.requests.map((row) => ({
-              key: `req-${row.id}`,
-              title: `${row.number} · ${row.title}`,
-              meta: STATE_LABELS[row.state as RecordState] ?? row.state,
-              onSelect: () => go("/requests", row.id),
-            })),
-          },
-          {
-            label: "Changes",
-            items: data.changes.map((row) => ({
-              key: `chg-${row.id}`,
-              title: `${row.number} · ${row.title}`,
-              meta: STATE_LABELS[row.state as RecordState] ?? row.state,
-              onSelect: () => go("/changes", row.id),
-            })),
-          },
-          {
-            label: "Knowledge",
-            items: data.knowledge.map((row) => ({
-              key: `kb-${row.id}`,
-              title: `${row.number} · ${row.title}`,
-              meta: row.status,
-              onSelect: () => go("/knowledge", row.id),
-            })),
-          },
-          {
-            label: "Assets",
-            items: data.assets.map((row) => ({
-              key: `ci-${row.id}`,
-              title: row.name,
-              meta: "Configuration item",
-              onSelect: () => go("/assets"),
-            })),
-          },
-        ].filter((group) => group.items.length > 0)
-      : [];
+  const groups: {
+    label: string;
+    items: { key: string; title: string; meta: string; onSelect: () => void }[];
+  }[] = data
+    ? [
+        {
+          label: "Incidents",
+          items: data.incidents.map((row) => ({
+            key: `inc-${row.id}`,
+            title: `${row.number} · ${row.title}`,
+            meta: STATE_LABELS[row.state as RecordState] ?? row.state,
+            onSelect: () => go("/incidents", row.id),
+          })),
+        },
+        {
+          label: "Service requests",
+          items: data.requests.map((row) => ({
+            key: `req-${row.id}`,
+            title: `${row.number} · ${row.title}`,
+            meta: STATE_LABELS[row.state as RecordState] ?? row.state,
+            onSelect: () => go("/requests", row.id),
+          })),
+        },
+        {
+          label: "Changes",
+          items: data.changes.map((row) => ({
+            key: `chg-${row.id}`,
+            title: `${row.number} · ${row.title}`,
+            meta: STATE_LABELS[row.state as RecordState] ?? row.state,
+            onSelect: () => go("/changes", row.id),
+          })),
+        },
+        {
+          label: "Knowledge",
+          items: data.knowledge.map((row) => ({
+            key: `kb-${row.id}`,
+            title: `${row.number} · ${row.title}`,
+            meta: row.status,
+            onSelect: () => go("/knowledge", row.id),
+          })),
+        },
+        {
+          label: "Assets",
+          items: data.assets.map((row) => ({
+            key: `ci-${row.id}`,
+            title: row.name,
+            meta: "Configuration item",
+            onSelect: () => go("/assets"),
+          })),
+        },
+      ].filter((group) => group.items.length > 0)
+    : [];
 
   return (
     <div ref={boxRef} className="relative w-full max-w-md">
@@ -134,9 +143,7 @@ export function GlobalSearch() {
           {results.isPending ? (
             <p className="px-3 py-2 text-sm text-muted-foreground">Searching…</p>
           ) : total === 0 ? (
-            <p className="px-3 py-2 text-sm text-muted-foreground">
-              No matches for “{debounced}”.
-            </p>
+            <p className="px-3 py-2 text-sm text-muted-foreground">No matches for “{debounced}”.</p>
           ) : (
             groups.map((group) => (
               <div key={group.label} className="py-1">

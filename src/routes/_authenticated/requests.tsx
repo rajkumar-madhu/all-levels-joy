@@ -10,7 +10,13 @@ import { StateBadge } from "@/components/status-badge";
 import { RecordActivity } from "@/components/record-activity";
 import { createServiceRequest, updateServiceRequest } from "@/lib/itsm.functions";
 import { referenceQuery } from "@/lib/workspace-queries";
-import { STATE_LABELS, canManage, formatDateTime, type AppRole, type RecordState } from "@/lib/itsm-shared";
+import {
+  STATE_LABELS,
+  canManage,
+  formatDateTime,
+  type AppRole,
+  type RecordState,
+} from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,10 +29,14 @@ export const Route = createFileRoute("/_authenticated/requests")({
       { title: "Service requests — WeCrew ITSM" },
       {
         name: "description",
-        content: "Order from the service catalog and track approvals, fulfillment tasks, and delivery dates.",
+        content:
+          "Order from the service catalog and track approvals, fulfillment tasks, and delivery dates.",
       },
       { property: "og:title", content: "Service requests — WeCrew ITSM" },
-      { property: "og:description", content: "Catalog ordering with approvals and fulfillment tracking." },
+      {
+        property: "og:description",
+        content: "Catalog ordering with approvals and fulfillment tracking.",
+      },
     ],
   }),
   component: Requests,
@@ -66,7 +76,8 @@ function Requests() {
   });
 
   const update = useMutation({
-    mutationFn: (input: { id: string; state: RecordState }) => updateServiceRequest({ data: input }),
+    mutationFn: (input: { id: string; state: RecordState }) =>
+      updateServiceRequest({ data: input }),
     onSuccess: async () => {
       toast.success("Request updated.");
       await queryClient.invalidateQueries({ queryKey: ["workspace"] });
@@ -213,7 +224,9 @@ function Requests() {
                 <dl className="grid grid-cols-2 gap-3 text-xs">
                   <div>
                     <dt className="text-muted-foreground">Submitted</dt>
-                    <dd className="mt-0.5 text-foreground">{formatDateTime(selected.created_at)}</dd>
+                    <dd className="mt-0.5 text-foreground">
+                      {formatDateTime(selected.created_at)}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-muted-foreground">Committed by</dt>
@@ -229,21 +242,27 @@ function Requests() {
 
                 {manager ? (
                   <div className="flex flex-wrap gap-2 rounded-md border border-border bg-background p-3">
-                    {(["open", "in_progress", "resolved", "closed"] as RecordState[]).map((state) => (
-                      <Button
-                        key={state}
-                        size="sm"
-                        variant="outline"
-                        onClick={() => update.mutate({ id: selected.id, state })}
-                        disabled={update.isPending}
-                      >
-                        {STATE_LABELS[state]}
-                      </Button>
-                    ))}
+                    {(["open", "in_progress", "resolved", "closed"] as RecordState[]).map(
+                      (state) => (
+                        <Button
+                          key={state}
+                          size="sm"
+                          variant="outline"
+                          onClick={() => update.mutate({ id: selected.id, state })}
+                          disabled={update.isPending}
+                        >
+                          {STATE_LABELS[state]}
+                        </Button>
+                      ),
+                    )}
                   </div>
                 ) : null}
 
-                <RecordActivity recordType="request" recordId={selected.id} canPostInternal={manager} />
+                <RecordActivity
+                  recordType="request"
+                  recordId={selected.id}
+                  canPostInternal={manager}
+                />
               </div>
             )}
           </aside>

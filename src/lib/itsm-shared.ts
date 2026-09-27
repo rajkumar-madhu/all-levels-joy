@@ -11,13 +11,7 @@ export type AppRole =
   | "admin";
 
 export type RecordState =
-  | "new"
-  | "open"
-  | "in_progress"
-  | "pending"
-  | "resolved"
-  | "closed"
-  | "cancelled";
+  "new" | "open" | "in_progress" | "pending" | "resolved" | "closed" | "cancelled";
 
 export const RECORD_STATES: RecordState[] = [
   "new",
@@ -71,14 +65,25 @@ export function priorityLabel(priority: number | null | undefined) {
   }
 }
 
-export type SlaState = "none" | "breached" | "at_risk" | "on_track" | "completed";
+export type SlaState =
+  "none" | "breached" | "at_risk" | "on_track" | "completed" | "completed_late";
 
-export function slaState(dueAt: string | null, resolvedAt: string | null): SlaState {
-  if (resolvedAt) return "completed";
+export function slaState(
+  dueAt: string | null,
+  resolvedAt: string | null,
+  now = Date.now(),
+): SlaState {
   if (!dueAt) return "none";
-  const remainingMinutes = (new Date(dueAt).getTime() - Date.now()) / 60000;
+  const due = Date.parse(dueAt);
+  if (!Number.isFinite(due)) return "none";
+  if (resolvedAt) {
+    const resolved = Date.parse(resolvedAt);
+    if (!Number.isFinite(resolved)) return "none";
+    return resolved <= due ? "completed" : "completed_late";
+  }
+  const remainingMinutes = (due - now) / 60000;
   if (remainingMinutes < 0) return "breached";
-  if (remainingMinutes < 60) return "at_risk";
+  if (remainingMinutes <= 60) return "at_risk";
   return "on_track";
 }
 
@@ -88,6 +93,7 @@ export const SLA_LABELS: Record<SlaState, string> = {
   at_risk: "At risk",
   on_track: "On track",
   completed: "Met",
+  completed_late: "Resolved late",
 };
 
 export function formatDateTime(value: string | null | undefined) {
@@ -103,7 +109,8 @@ export function formatDateTime(value: string | null | undefined) {
 export function relativeTime(value: string | null | undefined) {
   if (!value) return "—";
   const diffMinutes = Math.round((Date.now() - new Date(value).getTime()) / 60000);
-  if (Math.abs(diffMinutes) < 60) return `${Math.abs(diffMinutes)}m ${diffMinutes >= 0 ? "ago" : "ahead"}`;
+  if (Math.abs(diffMinutes) < 60)
+    return `${Math.abs(diffMinutes)}m ${diffMinutes >= 0 ? "ago" : "ahead"}`;
   const hours = Math.round(diffMinutes / 60);
   if (Math.abs(hours) < 48) return `${Math.abs(hours)}h ${hours >= 0 ? "ago" : "ahead"}`;
   const days = Math.round(hours / 24);
@@ -131,9 +138,21 @@ export function safeRedirect(path: string | undefined | null) {
 
 export const INCIDENT_CATEGORIES: { value: string; label: string; subcategories: string[] }[] = [
   { value: "network", label: "Network", subcategories: ["VPN", "Wi-Fi", "DNS", "Firewall"] },
-  { value: "hardware", label: "Hardware", subcategories: ["Laptop", "Printer", "Server", "Peripheral"] },
-  { value: "software", label: "Software", subcategories: ["Email", "Desktop app", "SaaS", "Operating system"] },
-  { value: "database", label: "Database", subcategories: ["Performance", "Availability", "Backup"] },
+  {
+    value: "hardware",
+    label: "Hardware",
+    subcategories: ["Laptop", "Printer", "Server", "Peripheral"],
+  },
+  {
+    value: "software",
+    label: "Software",
+    subcategories: ["Email", "Desktop app", "SaaS", "Operating system"],
+  },
+  {
+    value: "database",
+    label: "Database",
+    subcategories: ["Performance", "Availability", "Backup"],
+  },
   { value: "inquiry", label: "Inquiry / help", subcategories: ["How to", "Access", "Licensing"] },
 ];
 

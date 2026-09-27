@@ -56,7 +56,9 @@ function ResetPassword() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Choose a new password</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          Choose a new password
+        </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
           {recovery
             ? "Enter a new password to finish signing back in."

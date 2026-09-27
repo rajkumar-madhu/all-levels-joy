@@ -43,23 +43,26 @@ export function PriorityBadge({ priority }: { priority: number | null }) {
 export function SlaBadge({
   dueAt,
   resolvedAt,
+  recordState,
+  now,
 }: {
   dueAt: string | null;
   resolvedAt: string | null;
+  recordState?: RecordState;
+  now?: number;
 }) {
-  const state = slaState(dueAt, resolvedAt);
+  const state = slaState(dueAt, resolvedAt, now);
   const tone: Record<string, string> = {
     none: "border-border bg-muted text-muted-foreground",
     breached: "border-destructive/40 bg-destructive/10 text-destructive",
     at_risk: "border-warning/50 bg-warning/15 text-warning-foreground",
     on_track: "border-success/40 bg-success/10 text-success",
     completed: "border-border bg-secondary text-secondary-foreground",
+    completed_late: "border-destructive/40 bg-destructive/10 text-destructive",
   };
-  return (
-    <span className={cn(base, tone[state])}>
-      SLA: {SLA_LABELS[state]}
-    </span>
-  );
+  if (recordState === "cancelled")
+    return <span className={cn(base, tone["none"])}>SLA: Cancelled</span>;
+  return <span className={cn(base, tone[state])}>SLA: {SLA_LABELS[state]}</span>;
 }
 
 export function RiskBadge({ risk }: { risk: string }) {

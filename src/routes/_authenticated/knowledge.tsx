@@ -30,10 +30,14 @@ export const Route = createFileRoute("/_authenticated/knowledge")({
       { title: "Knowledge base — WeCrew ITSM" },
       {
         name: "description",
-        content: "Draft, review, and publish knowledge articles that resolve repeat demand and support self-service.",
+        content:
+          "Draft, review, and publish knowledge articles that resolve repeat demand and support self-service.",
       },
       { property: "og:title", content: "Knowledge base — WeCrew ITSM" },
-      { property: "og:description", content: "Knowledge articles with draft, review, and published states." },
+      {
+        property: "og:description",
+        content: "Knowledge articles with draft, review, and published states.",
+      },
     ],
   }),
   component: Knowledge,
@@ -147,7 +151,9 @@ function Knowledge() {
           >
             <option value="all">All categories</option>
             {categories.map((category) => (
-              <option key={category} value={category}>{category}</option>
+              <option key={category} value={category}>
+                {category}
+              </option>
             ))}
           </select>
           {canAuthor ? (
@@ -167,7 +173,9 @@ function Knowledge() {
           {hasFilters ? (
             <Button
               variant="outline"
-              onClick={() => void navigate({ search: { record: "", q: "", category: "all", status: "all" } })}
+              onClick={() =>
+                void navigate({ search: { record: "", q: "", category: "all", status: "all" } })
+              }
             >
               <X className="h-4 w-4" aria-hidden /> Clear
             </Button>
@@ -253,11 +261,17 @@ function Knowledge() {
         </div>
       ) : visibleArticles.length === 0 ? (
         <div className="mt-6">
-          <EmptyState title="No articles yet" hint="Write the first article to start the knowledge base." />
+          <EmptyState
+            title="No articles yet"
+            hint="Write the first article to start the knowledge base."
+          />
         </div>
       ) : articles.length === 0 ? (
         <div className="mt-6">
-          <EmptyState title="No matching articles" hint="Try a different term or clear the filters." />
+          <EmptyState
+            title="No matching articles"
+            hint="Try a different term or clear the filters."
+          />
         </div>
       ) : (
         <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1.2fr]">
@@ -279,7 +293,9 @@ function Knowledge() {
                   </div>
                   <p className="mt-1 text-sm font-medium text-foreground">{article.title}</p>
                   {article.summary ? (
-                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{article.summary}</p>
+                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                      {article.summary}
+                    </p>
                   ) : null}
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {article.category} · updated {formatDateTime(article.updated_at)}
@@ -291,7 +307,9 @@ function Knowledge() {
 
           <article className="rounded-lg border border-border bg-card p-5">
             {!selected ? (
-              <p className="text-sm text-muted-foreground">Select an article from the results to read it.</p>
+              <p className="text-sm text-muted-foreground">
+                Select an article from the results to read it.
+              </p>
             ) : (
               <>
                 <div className="flex flex-wrap items-center justify-between gap-2">

@@ -8,11 +8,7 @@ import { z } from "zod";
 import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell";
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { StateBadge, PriorityBadge } from "@/components/status-badge";
-import {
-  createProblem,
-  linkIncidentToProblem,
-  updateProblem,
-} from "@/lib/problem.functions";
+import { createProblem, linkIncidentToProblem, updateProblem } from "@/lib/problem.functions";
 import { problemBoardQuery } from "@/lib/workspace-queries";
 import {
   INCIDENT_CATEGORIES,
@@ -46,7 +42,8 @@ export const Route = createFileRoute("/_authenticated/problems")({
       { property: "og:title", content: "Problem management — WeCrew ITSM" },
       {
         property: "og:description",
-        content: "Root cause investigations fed by linked incidents, workarounds, and known errors.",
+        content:
+          "Root cause investigations fed by linked incidents, workarounds, and known errors.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -86,7 +83,7 @@ function Problems() {
   const canRun = canRunProblems(roles);
 
   const problems = board.data?.problems ?? [];
-  const links = board.data?.links ?? [];
+  const links = useMemo(() => board.data?.links ?? [], [board.data?.links]);
   const incidents = board.data?.incidents ?? [];
   const services = board.data?.services ?? [];
   const profiles = board.data?.profiles ?? [];
@@ -165,7 +162,11 @@ function Problems() {
   const link = useMutation({
     mutationFn: (payload: { incidentId: string; linked: boolean }) =>
       linkIncidentToProblem({
-        data: { problemId: selectedId ?? "", incidentId: payload.incidentId, linked: payload.linked },
+        data: {
+          problemId: selectedId ?? "",
+          incidentId: payload.incidentId,
+          linked: payload.linked,
+        },
       }),
     onSuccess: async () => refresh(),
     onError: (error) =>

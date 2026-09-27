@@ -1,22 +1,31 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
 import { nextRecordNumber } from "@/lib/record-number";
-
-type IncidentUpdate = Database["public"]["Tables"]["incidents"]["Update"];
-type ChangeUpdate = Database["public"]["Tables"]["changes"]["Update"];
 import { DEMO_ORG_ID, type AppRole } from "@/lib/itsm-shared";
+import {
+  buildIncidentWorkflowPatch,
+  canManageIncidents,
+  INCIDENT_CONFLICT_MESSAGE,
+  incidentSlaAttainment,
+  incidentUpdateSchema,
+  type IncidentWorkflowInput,
+} from "@/lib/incident-workflow";
+
+type ChangeUpdate = Database["public"]["Tables"]["changes"]["Update"];
+type TypedSupabaseClient = SupabaseClient<Database>;
 
 const uuid = z.string().uuid();
 
 async function writeAudit(
-  supabase: any,
+  supabase: TypedSupabaseClient,
   actorId: string,
   recordType: string,
   recordId: string | null,
   action: string,
-  after?: Record<string, unknown>,
+  after?: Json,
 ) {
   await supabase.from("audit_events").insert({
     organization_id: DEMO_ORG_ID,
@@ -28,7 +37,7 @@ async function writeAudit(
   });
 }
 
-async function loadRoles(supabase: any, userId: string): Promise<AppRole[]> {
+async function loadRoles(supabase: TypedSupabaseClient, userId: string): Promise<AppRole[]> {
   const { data } = await supabase
     .from("user_roles")
     .select("role")
@@ -55,7 +64,9 @@ export const bootstrapWorkspace = createServerFn({ method: "POST" })
 
     const fallbackName =
       data.displayName?.trim() ||
-      (typeof claims["email"] === "string" ? (claims["email"] as string).split("@")[0] : "New user");
+      (typeof claims["email"] === "string"
+        ? (claims["email"] as string).split("@")[0]
+        : "New user");
 
     const { data: existingProfile } = await supabase
       .from("profiles")
@@ -64,7 +75,9 @@ export const bootstrapWorkspace = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!existingProfile) {
-      await supabase.from("profiles").insert({ id: userId, display_name: fallbackName || "New user" });
+      await supabase
+        .from("profiles")
+        .insert({ id: userId, display_name: fallbackName || "New user" });
     }
 
     await supabaseAdmin
@@ -96,9 +109,9 @@ export const bootstrapWorkspace = createServerFn({ method: "POST" })
             ]
           : ["requester", "service_desk"];
 
-      await supabaseAdmin.from("user_roles").insert(
-        roles.map((role) => ({ organization_id: DEMO_ORG_ID, user_id: userId, role })),
-      );
+      await supabaseAdmin
+        .from("user_roles")
+        .insert(roles.map((role) => ({ organization_id: DEMO_ORG_ID, user_id: userId, role })));
     }
 
     return { ok: true };
@@ -171,30 +184,32 @@ export const getReferenceData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase } = context;
-    const [services, groups, catalog, knowledge, assets, relationships, people] = await Promise.all([
-      supabase.from("services").select("*").eq("organization_id", DEMO_ORG_ID).order("name"),
-      supabase.from("groups").select("*").eq("organization_id", DEMO_ORG_ID).order("name"),
-      supabase
-        .from("catalog_items")
-        .select("*")
-        .eq("organization_id", DEMO_ORG_ID)
-        .eq("active", true)
-        .order("category"),
-      supabase
-        .from("knowledge_articles")
-        .select("*")
-        .eq("organization_id", DEMO_ORG_ID)
-        .order("updated_at", { ascending: false }),
-      supabase
-        .from("configuration_items")
-        .select(
-          "id, organization_id, name, ci_class, asset_tag, environment, status, criticality, owner_id, service_id, location, last_discovered_at, created_at, updated_at",
-        )
-        .eq("organization_id", DEMO_ORG_ID)
-        .order("ci_class"),
-      supabase.from("ci_relationships").select("*").eq("organization_id", DEMO_ORG_ID),
-      supabase.from("profiles").select("id, display_name, department, job_title").limit(200),
-    ]);
+    const [services, groups, catalog, knowledge, assets, relationships, people] = await Promise.all(
+      [
+        supabase.from("services").select("*").eq("organization_id", DEMO_ORG_ID).order("name"),
+        supabase.from("groups").select("*").eq("organization_id", DEMO_ORG_ID).order("name"),
+        supabase
+          .from("catalog_items")
+          .select("*")
+          .eq("organization_id", DEMO_ORG_ID)
+          .eq("active", true)
+          .order("category"),
+        supabase
+          .from("knowledge_articles")
+          .select("*")
+          .eq("organization_id", DEMO_ORG_ID)
+          .order("updated_at", { ascending: false }),
+        supabase
+          .from("configuration_items")
+          .select(
+            "id, organization_id, name, ci_class, asset_tag, environment, status, criticality, owner_id, service_id, location, last_discovered_at, created_at, updated_at",
+          )
+          .eq("organization_id", DEMO_ORG_ID)
+          .order("ci_class"),
+        supabase.from("ci_relationships").select("*").eq("organization_id", DEMO_ORG_ID),
+        supabase.from("profiles").select("id, display_name, department, job_title").limit(200),
+      ],
+    );
 
     return {
       services: services.data ?? [],
@@ -324,84 +339,48 @@ export const createIncident = createServerFn({ method: "POST" })
 
 export const updateIncident = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator(
-    (input: {
-      id: string;
-      state?: string;
-      assignToMe?: boolean;
-      groupId?: string | null;
-      impact?: number;
-      urgency?: number;
-      resolutionNotes?: string;
-      category?: string | null;
-      subcategory?: string | null;
-      onHoldReason?: string | null;
-      closeCode?: string | null;
-    }) =>
-      z
-        .object({
-          id: uuid,
-          state: z
-            .enum(["new", "open", "in_progress", "pending", "resolved", "closed", "cancelled"])
-            .optional(),
-          assignToMe: z.boolean().optional(),
-          groupId: uuid.nullish(),
-          impact: z.number().int().min(1).max(3).optional(),
-          urgency: z.number().int().min(1).max(3).optional(),
-          resolutionNotes: z.string().trim().max(4000).optional(),
-          category: z.string().trim().max(40).nullish(),
-          subcategory: z.string().trim().max(60).nullish(),
-          onHoldReason: z.string().trim().max(40).nullish(),
-          closeCode: z.string().trim().max(40).nullish(),
-        })
-        .parse(input),
-  )
+  .validator((input: IncidentWorkflowInput) => incidentUpdateSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const roles = await loadRoles(supabase, userId);
-    requireRoles(roles, ["service_desk", "fulfiller", "manager", "admin"]);
+    if (!canManageIncidents(roles)) {
+      throw new Error("You do not have permission to manage incidents.");
+    }
 
-    const { data: current } = await supabase
+    const { data: current, error: currentError } = await supabase
       .from("incidents")
-      .select("state, first_responded_at, reopen_count")
+      .select("state, updated_at, first_responded_at, reopen_count, resolved_at, resolution_notes, close_code, on_hold_reason")
+      .eq("organization_id", DEMO_ORG_ID)
       .eq("id", data.id)
       .maybeSingle();
+    if (currentError) throw new Error(currentError.message);
+    if (!current) throw new Error("This incident was not found or is no longer accessible.");
 
-    const patch: IncidentUpdate = {};
-    if (data.state) patch["state"] = data.state;
-    if (data.assignToMe) patch["assignee_id"] = userId;
-    if (data.groupId !== undefined) patch["group_id"] = data.groupId;
-    if (data.impact) patch["impact"] = data.impact;
-    if (data.urgency) patch["urgency"] = data.urgency;
-    if (data.resolutionNotes !== undefined) patch["resolution_notes"] = data.resolutionNotes;
-    if (data.category !== undefined) patch["category"] = data.category || null;
-    if (data.subcategory !== undefined) patch["subcategory"] = data.subcategory || null;
-    if (data.onHoldReason !== undefined) patch["on_hold_reason"] = data.onHoldReason || null;
-    if (data.closeCode !== undefined) patch["close_code"] = data.closeCode || null;
-    if (data.state === "resolved" || data.state === "closed") {
-      patch["resolved_at"] = new Date().toISOString();
-      if (!data.resolutionNotes) {
-        throw new Error("Add resolution notes before resolving or closing this incident.");
-      }
+    const patch = buildIncidentWorkflowPatch(current, data, userId);
+    if (data.groupId) {
+      const { data: group, error: groupError } = await supabase
+        .from("groups")
+        .select("id")
+        .eq("organization_id", DEMO_ORG_ID)
+        .eq("id", data.groupId)
+        .maybeSingle();
+      if (groupError) throw new Error(groupError.message);
+      if (!group) throw new Error("The selected group is not available in this organization.");
     }
-    if (data.state && data.state !== "pending") patch["on_hold_reason"] = null;
-    if (
-      current &&
-      ["resolved", "closed"].includes(current.state) &&
-      data.state &&
-      ["open", "in_progress", "new"].includes(data.state)
-    ) {
-      patch["reopen_count"] = (current.reopen_count ?? 0) + 1;
-      patch["resolved_at"] = null;
-    }
-    if (current && !current.first_responded_at) {
-      patch["first_responded_at"] = new Date().toISOString();
-    }
+    if (Object.keys(patch).length === 0) return { ok: true, updatedAt: current.updated_at };
 
-    const { error } = await supabase.from("incidents").update(patch).eq("id", data.id);
+    const { data: updated, error } = await supabase
+      .from("incidents")
+      .update(patch)
+      .eq("organization_id", DEMO_ORG_ID)
+      .eq("id", data.id)
+      .eq("updated_at", data.expectedUpdatedAt)
+      .select("id, updated_at")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!updated) throw new Error(INCIDENT_CONFLICT_MESSAGE);
     await writeAudit(supabase, userId, "incident", data.id, "updated", patch);
-    return { ok: true };
+    return { ok: true, updatedAt: updated.updated_at };
   });
 
 export const createServiceRequest = createServerFn({ method: "POST" })
@@ -553,7 +532,11 @@ export const createChange = createServerFn({ method: "POST" })
 
     const startAt = new Date(data.startAt);
     const endAt = new Date(data.endAt);
-    if (!Number.isFinite(startAt.getTime()) || !Number.isFinite(endAt.getTime()) || endAt <= startAt) {
+    if (
+      !Number.isFinite(startAt.getTime()) ||
+      !Number.isFinite(endAt.getTime()) ||
+      endAt <= startAt
+    ) {
       throw new Error("The change window must end after it starts.");
     }
 
@@ -596,8 +579,11 @@ export const createChange = createServerFn({ method: "POST" })
       .eq("organization_id", DEMO_ORG_ID)
       .in("role", ["cab_member", "change_manager", "admin"])
       .limit(8);
-    const availableApprovers = [...new Set((cab ?? []).map((row: { user_id: string }) => row.user_id))];
-    const unique = data.changeType === "emergency" ? availableApprovers.slice(0, 1) : availableApprovers;
+    const availableApprovers = [
+      ...new Set((cab ?? []).map((row: { user_id: string }) => row.user_id)),
+    ];
+    const unique =
+      data.changeType === "emergency" ? availableApprovers.slice(0, 1) : availableApprovers;
     if (data.changeType !== "standard" && unique.length > 0) {
       await supabaseAdmin.from("approvals").insert(
         unique.map((approverId) => ({
@@ -630,35 +616,45 @@ export const createChange = createServerFn({ method: "POST" })
 
 export const updateChange = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input: {
-    id: string;
-    action: "start" | "deliver" | "close" | "cancel";
-    pirNotes?: string;
-    deliveryOutcome?: "successful" | "successful_with_issues" | "failed" | "rolled_back";
-    validationResults?: string;
-    rollbackUsed?: boolean;
-  }) =>
-    z
-      .object({
-        id: uuid,
-        action: z.enum(["start", "deliver", "close", "cancel"]),
-        pirNotes: z.string().trim().max(6000).optional(),
-        deliveryOutcome: z.enum(["successful", "successful_with_issues", "failed", "rolled_back"]).optional(),
-        validationResults: z.string().trim().max(6000).optional(),
-        rollbackUsed: z.boolean().optional(),
-      })
-      .parse(input),
+  .validator(
+    (input: {
+      id: string;
+      action: "start" | "deliver" | "close" | "cancel";
+      pirNotes?: string;
+      deliveryOutcome?: "successful" | "successful_with_issues" | "failed" | "rolled_back";
+      validationResults?: string;
+      rollbackUsed?: boolean;
+    }) =>
+      z
+        .object({
+          id: uuid,
+          action: z.enum(["start", "deliver", "close", "cancel"]),
+          pirNotes: z.string().trim().max(6000).optional(),
+          deliveryOutcome: z
+            .enum(["successful", "successful_with_issues", "failed", "rolled_back"])
+            .optional(),
+          validationResults: z.string().trim().max(6000).optional(),
+          rollbackUsed: z.boolean().optional(),
+        })
+        .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const roles = await loadRoles(supabase, userId);
     requireRoles(roles, ["change_manager", "admin"]);
-    const { data: current } = await supabase.from("changes").select("*").eq("id", data.id).maybeSingle();
+    const { data: current } = await supabase
+      .from("changes")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
     if (!current) throw new Error("That change no longer exists.");
     const patch: ChangeUpdate = {};
     let auditAction: string = data.action;
     if (data.action === "start") {
-      if (current.state !== "open" || !["approved", "not_required"].includes(current.approval_status)) {
+      if (
+        current.state !== "open" ||
+        !["approved", "not_required"].includes(current.approval_status)
+      ) {
         throw new Error("The change must be approved and scheduled before implementation starts.");
       }
       if (current.start_at && new Date(current.start_at) > new Date()) {
@@ -668,7 +664,8 @@ export const updateChange = createServerFn({ method: "POST" })
       patch["actual_start_at"] = new Date().toISOString();
       auditAction = "implementation_started";
     } else if (data.action === "deliver") {
-      if (current.state !== "in_progress") throw new Error("Start implementation before recording delivery.");
+      if (current.state !== "in_progress")
+        throw new Error("Start implementation before recording delivery.");
       if (!data.deliveryOutcome || !data.validationResults?.trim() || !data.pirNotes?.trim()) {
         throw new Error("Delivery outcome, validation results, and review notes are required.");
       }
@@ -682,13 +679,16 @@ export const updateChange = createServerFn({ method: "POST" })
       auditAction = data.rollbackUsed ? "rollback_completed" : "change_delivered";
     } else if (data.action === "close") {
       if (current.state !== "resolved" || !current.pir_notes || !current.validation_results) {
-        throw new Error("Delivery evidence and a post-implementation review are required before closure.");
+        throw new Error(
+          "Delivery evidence and a post-implementation review are required before closure.",
+        );
       }
       patch["state"] = "closed";
       patch["closed_at"] = new Date().toISOString();
       auditAction = "change_closed";
     } else {
-      if (["resolved", "closed"].includes(current.state)) throw new Error("A delivered change cannot be cancelled.");
+      if (["resolved", "closed"].includes(current.state))
+        throw new Error("A delivered change cannot be cancelled.");
       patch["state"] = "cancelled";
       auditAction = "change_cancelled";
     }
@@ -717,7 +717,8 @@ export const decideApproval = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (!approval) throw new Error("That approval is no longer available.");
-    if (approval.approver_id !== userId) throw new Error("This approval is assigned to someone else.");
+    if (approval.approver_id !== userId)
+      throw new Error("This approval is assigned to someone else.");
     if (approval.status !== "requested") throw new Error("This approval has already been decided.");
     if (approval.record_type === "change" && data.decision === "rejected" && !data.notes?.trim()) {
       throw new Error("Decision notes are required when rejecting a change.");
@@ -735,7 +736,10 @@ export const decideApproval = createServerFn({ method: "POST" })
 
     if (approval.record_type === "request") {
       const nextState = data.decision === "approved" ? "open" : "cancelled";
-      await supabase.from("service_requests").update({ state: nextState }).eq("id", approval.record_id);
+      await supabase
+        .from("service_requests")
+        .update({ state: nextState })
+        .eq("id", approval.record_id);
     } else if (approval.record_type === "change") {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: decisions } = await supabaseAdmin
@@ -744,17 +748,32 @@ export const decideApproval = createServerFn({ method: "POST" })
         .eq("record_type", "change")
         .eq("record_id", approval.record_id);
       const rejected = (decisions ?? []).some((item) => item.status === "rejected");
-      const fullyApproved = (decisions ?? []).length > 0 && (decisions ?? []).every((item) => item.status === "approved");
+      const fullyApproved =
+        (decisions ?? []).length > 0 &&
+        (decisions ?? []).every((item) => item.status === "approved");
       if (rejected) {
-        await supabaseAdmin.from("changes").update({ state: "cancelled", approval_status: "rejected" }).eq("id", approval.record_id);
+        await supabaseAdmin
+          .from("changes")
+          .update({ state: "cancelled", approval_status: "rejected" })
+          .eq("id", approval.record_id);
       } else if (fullyApproved) {
-        await supabaseAdmin.from("changes").update({ state: "open", approval_status: "approved" }).eq("id", approval.record_id);
+        await supabaseAdmin
+          .from("changes")
+          .update({ state: "open", approval_status: "approved" })
+          .eq("id", approval.record_id);
       }
     }
 
-    await writeAudit(supabase, userId, approval.record_type, approval.record_id, `approval_${data.decision}`, {
-      notes: data.notes ?? null,
-    });
+    await writeAudit(
+      supabase,
+      userId,
+      approval.record_type,
+      approval.record_id,
+      `approval_${data.decision}`,
+      {
+        notes: data.notes ?? null,
+      },
+    );
     return { ok: true };
   });
 
@@ -867,7 +886,10 @@ export const saveConfigurationItem = createServerFn({ method: "POST" })
     };
 
     if (data.id) {
-      const { error } = await supabase.from("configuration_items").update(payload).eq("id", data.id);
+      const { error } = await supabase
+        .from("configuration_items")
+        .update(payload)
+        .eq("id", data.id);
       if (error) throw new Error(error.message);
       await writeAudit(supabase, userId, "asset", data.id, "updated", { name: data.name });
       return { id: data.id };
@@ -933,11 +955,12 @@ export const markNotificationsRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    await supabase
+    const { error } = await supabase
       .from("notifications")
       .update({ read_at: new Date().toISOString() })
       .eq("user_id", userId)
       .is("read_at", null);
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
 
@@ -1089,6 +1112,10 @@ export const getIncidentMetrics = createServerFn({ method: "GET" })
       supabase.from("services").select("id, name").eq("organization_id", DEMO_ORG_ID),
     ]);
 
+    for (const result of [recent, openRows, services]) {
+      if (result.error) throw new Error(result.error.message);
+    }
+
     const recentRows = recent.data ?? [];
     const open = openRows.data ?? [];
     const serviceNames = new Map((services.data ?? []).map((s) => [s.id, s.name]));
@@ -1136,13 +1163,9 @@ export const getIncidentMetrics = createServerFn({ method: "GET" })
         ),
     );
 
-    const metBySla = resolvedRows.filter(
-      (row) => !row.sla_due_at || new Date(row.resolved_at as string) <= new Date(row.sla_due_at),
-    ).length;
-
     const serviceCounts = new Map<string, number>();
     open.forEach((row) => {
-      const name = row.service_id ? serviceNames.get(row.service_id) ?? "Unknown" : "Unassigned";
+      const name = row.service_id ? (serviceNames.get(row.service_id) ?? "Unknown") : "Unassigned";
       serviceCounts.set(name, (serviceCounts.get(name) ?? 0) + 1);
     });
 
@@ -1155,7 +1178,7 @@ export const getIncidentMetrics = createServerFn({ method: "GET" })
       reopened: recentRows.filter((row) => (row.reopen_count ?? 0) > 0).length,
       mttrHours,
       responseHours,
-      slaAttainment: resolvedRows.length === 0 ? null : (metBySla / resolvedRows.length) * 100,
+      slaAttainment: incidentSlaAttainment(resolvedRows),
       byPriority: [1, 2, 3, 4, 5].map((priority) => ({
         priority,
         open: open.filter((row) => (row.priority ?? 5) === priority).length,
@@ -1181,7 +1204,7 @@ export const getIncidentMetrics = createServerFn({ method: "GET" })
           state: row.state as string,
           createdAt: row.created_at,
           slaDueAt: row.sla_due_at,
-          service: row.service_id ? serviceNames.get(row.service_id) ?? null : null,
+          service: row.service_id ? (serviceNames.get(row.service_id) ?? null) : null,
           ageDays: Math.floor((Date.now() - new Date(row.created_at).getTime()) / 86_400_000),
         }))
         .sort((a, b) => b.ageDays - a.ageDays)

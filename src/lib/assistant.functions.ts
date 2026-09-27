@@ -258,8 +258,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       .single();
     if (assistantError) throw new Error(assistantError.message);
 
-    const title =
-      thread.title === "New conversation" ? data.text.slice(0, 60) : thread.title;
+    const title = thread.title === "New conversation" ? data.text.slice(0, 60) : thread.title;
     await supabase
       .from("ai_chat_threads")
       .update({ title, updated_at: new Date().toISOString() })

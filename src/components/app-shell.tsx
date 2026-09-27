@@ -154,7 +154,10 @@ export function AppShell({
           </p>
           <p className="mt-1 text-sidebar-foreground/70">
             {roles.length > 0
-              ? roles.map((role) => ROLE_LABELS[role]).slice(0, 3).join(", ")
+              ? roles
+                  .map((role) => ROLE_LABELS[role])
+                  .slice(0, 3)
+                  .join(", ")
               : "No roles assigned"}
           </p>
           <button

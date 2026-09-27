@@ -29,6 +29,13 @@
       "when": 1790285978624,
       "tag": "0003_extend_change_delivery_workflow",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790532294058,
+      "tag": "0004_enforce_incident_workflow",
+      "breakpoints": true
     }
   ]
 }

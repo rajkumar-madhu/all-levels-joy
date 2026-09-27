@@ -22,10 +22,14 @@ export const Route = createFileRoute("/auth")({
       { title: "Sign in — WeCrew ITSM" },
       {
         name: "description",
-        content: "Sign in or create your WeCrew ITSM account to reach your service management workspace.",
+        content:
+          "Sign in or create your WeCrew ITSM account to reach your service management workspace.",
       },
       { property: "og:title", content: "Sign in — WeCrew ITSM" },
-      { property: "og:description", content: "Access the WeCrew ITSM service management workspace." },
+      {
+        property: "og:description",
+        content: "Access the WeCrew ITSM service management workspace.",
+      },
     ],
   }),
   component: AuthPage,
@@ -180,7 +184,11 @@ function AuthPage() {
             ) : null}
 
             <Button type="submit" className="w-full" disabled={busy}>
-              {mode === "signup" ? "Create account" : mode === "reset" ? "Send reset link" : "Sign in"}
+              {mode === "signup"
+                ? "Create account"
+                : mode === "reset"
+                  ? "Send reset link"
+                  : "Sign in"}
             </Button>
           </form>
 

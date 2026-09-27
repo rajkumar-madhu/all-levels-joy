@@ -18,10 +18,14 @@ export const Route = createFileRoute("/_authenticated/assets")({
       { title: "Assets & CMDB — WeCrew ITSM" },
       {
         name: "description",
-        content: "Configuration items with class, environment, criticality, service mapping, and relationships.",
+        content:
+          "Configuration items with class, environment, criticality, service mapping, and relationships.",
       },
       { property: "og:title", content: "Assets & CMDB — WeCrew ITSM" },
-      { property: "og:description", content: "Configuration items, ownership, and service relationships." },
+      {
+        property: "og:description",
+        content: "Configuration items, ownership, and service relationships.",
+      },
     ],
   }),
   component: Assets,
@@ -192,7 +196,10 @@ function Assets() {
         </div>
       ) : assets.length === 0 ? (
         <div className="mt-6">
-          <EmptyState title="No configuration items" hint="Add the infrastructure that supports your services." />
+          <EmptyState
+            title="No configuration items"
+            hint="Add the infrastructure that supports your services."
+          />
         </div>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-card">
@@ -220,9 +227,13 @@ function Assets() {
                   <tr key={asset.id} className="hover:bg-muted/60">
                     <td className="px-4 py-2.5 font-medium text-foreground">{asset.name}</td>
                     <td className="px-4 py-2.5 text-muted-foreground">{asset.ci_class}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{asset.environment ?? "—"}</td>
+                    <td className="px-4 py-2.5 text-muted-foreground">
+                      {asset.environment ?? "—"}
+                    </td>
                     <td className="px-4 py-2.5 capitalize text-muted-foreground">{asset.status}</td>
-                    <td className="px-4 py-2.5 capitalize text-muted-foreground">{asset.criticality}</td>
+                    <td className="px-4 py-2.5 capitalize text-muted-foreground">
+                      {asset.criticality}
+                    </td>
                     <td className="px-4 py-2.5 text-muted-foreground">{service?.name ?? "—"}</td>
                     <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">{links}</td>
                     <td className="px-4 py-2.5 text-xs text-muted-foreground">

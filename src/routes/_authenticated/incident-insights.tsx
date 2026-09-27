@@ -27,7 +27,8 @@ export const Route = createFileRoute("/_authenticated/incident-insights")({
       { property: "og:title", content: "Incident dashboard — WeCrew ITSM" },
       {
         property: "og:description",
-        content: "Incident KPIs: volume trend, backlog by priority, SLA attainment, MTTR, and ageing queue.",
+        content:
+          "Incident KPIs: volume trend, backlog by priority, SLA attainment, MTTR, and ageing queue.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -91,17 +92,29 @@ function IncidentInsights() {
     { label: "Unassigned", value: data?.unassigned ?? 0, hint: "No owner yet" },
     {
       label: "SLA attainment",
-      value: data?.slaAttainment === null || data?.slaAttainment === undefined
-        ? "—"
-        : `${data.slaAttainment.toFixed(0)}%`,
+      value:
+        data?.slaAttainment === null || data?.slaAttainment === undefined
+          ? "—"
+          : `${data.slaAttainment.toFixed(0)}%`,
       hint: "Resolved within target",
     },
-    { label: "Mean time to resolve", value: formatHours(data?.mttrHours), hint: "Logged to resolved" },
-    { label: "First response", value: formatHours(data?.responseHours), hint: "Average time to action" },
+    {
+      label: "Mean time to resolve",
+      value: formatHours(data?.mttrHours),
+      hint: "Logged to resolved",
+    },
+    {
+      label: "First response",
+      value: formatHours(data?.responseHours),
+      hint: "Average time to action",
+    },
     { label: "Reopened", value: data?.reopened ?? 0, hint: "Came back after resolution" },
   ];
 
-  const maxDay = Math.max(...(data?.days ?? []).map((day) => Math.max(day.opened, day.resolved)), 1);
+  const maxDay = Math.max(
+    ...(data?.days ?? []).map((day) => Math.max(day.opened, day.resolved)),
+    1,
+  );
 
   return (
     <AppShell workspace={workspace.data}>
@@ -255,7 +268,9 @@ function IncidentInsights() {
                           <td className="px-4 py-2.5 text-foreground">
                             {row.title}
                             {row.service ? (
-                              <span className="ml-2 text-xs text-muted-foreground">{row.service}</span>
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                {row.service}
+                              </span>
                             ) : null}
                           </td>
                           <td className="px-4 py-2.5">

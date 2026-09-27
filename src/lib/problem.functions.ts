@@ -1,13 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 import { DEMO_ORG_ID, type AppRole } from "@/lib/itsm-shared";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
 import { nextRecordNumber } from "@/lib/record-number";
 
 type ProblemUpdate = Database["public"]["Tables"]["problems"]["Update"];
 type MajorIncidentUpdate = Database["public"]["Tables"]["major_incidents"]["Update"];
+type TypedSupabaseClient = SupabaseClient<Database>;
 
 const uuid = z.string().uuid();
 
@@ -24,12 +26,12 @@ const RECORD_STATE = z.enum([
 const BRIDGE_STATE = z.enum(["declared", "investigating", "mitigating", "monitoring", "resolved"]);
 
 async function writeAudit(
-  supabase: any,
+  supabase: TypedSupabaseClient,
   actorId: string,
   recordType: string,
   recordId: string | null,
   action: string,
-  after?: Record<string, unknown>,
+  after?: Json,
 ) {
   await supabase.from("audit_events").insert({
     organization_id: DEMO_ORG_ID,
@@ -41,7 +43,7 @@ async function writeAudit(
   });
 }
 
-async function loadRoles(supabase: any, userId: string): Promise<AppRole[]> {
+async function loadRoles(supabase: TypedSupabaseClient, userId: string): Promise<AppRole[]> {
   const { data } = await supabase
     .from("user_roles")
     .select("role")
@@ -50,9 +52,15 @@ async function loadRoles(supabase: any, userId: string): Promise<AppRole[]> {
   return (data ?? []).map((row: { role: AppRole }) => row.role);
 }
 
-const PROBLEM_ROLES: AppRole[] = ["service_desk", "fulfiller", "manager", "admin", "change_manager"];
+const PROBLEM_ROLES: AppRole[] = [
+  "service_desk",
+  "fulfiller",
+  "manager",
+  "admin",
+  "change_manager",
+];
 
-async function requireProblemRole(supabase: any, userId: string) {
+async function requireProblemRole(supabase: TypedSupabaseClient, userId: string) {
   const roles = await loadRoles(supabase, userId);
   if (!roles.some((role) => PROBLEM_ROLES.includes(role))) {
     throw new Error("You do not have permission to manage problems or major incidents.");
@@ -60,7 +68,13 @@ async function requireProblemRole(supabase: any, userId: string) {
   return roles;
 }
 
-function notify(supabase: any, userIds: string[], title: string, body: string, recordId: string) {
+function notify(
+  supabase: TypedSupabaseClient,
+  userIds: string[],
+  title: string,
+  body: string,
+  recordId: string,
+) {
   const unique = Array.from(new Set(userIds.filter(Boolean)));
   if (unique.length === 0) return Promise.resolve();
   return supabase.from("notifications").insert(
@@ -280,7 +294,8 @@ export const updateProblem = createServerFn({ method: "POST" })
     if (data.workaround !== undefined) patch["workaround"] = data.workaround || null;
     if (data.rootCause !== undefined) patch["root_cause"] = data.rootCause || null;
     if (data.fixPlan !== undefined) patch["fix_plan"] = data.fixPlan || null;
-    if (data.resolutionNotes !== undefined) patch["resolution_notes"] = data.resolutionNotes || null;
+    if (data.resolutionNotes !== undefined)
+      patch["resolution_notes"] = data.resolutionNotes || null;
     if (data.impact) patch["impact"] = data.impact;
     if (data.urgency) patch["urgency"] = data.urgency;
     if (data.impact || data.urgency) {
@@ -383,13 +398,27 @@ export const declareMajorIncident = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     await requireProblemRole(supabase, userId);
 
+    const { data: incident, error: incidentError } = await supabase
+      .from("incidents")
+      .select("id, state, updated_at")
+      .eq("organization_id", DEMO_ORG_ID)
+      .eq("id", data.incidentId)
+      .maybeSingle();
+    if (incidentError) throw new Error(incidentError.message);
+    if (!incident) throw new Error("The linked incident was not found.");
+    if (["resolved", "closed", "cancelled"].includes(incident.state)) {
+      throw new Error("Reopen the incident before declaring a major incident.");
+    }
+
     const { data: existing } = await supabase
       .from("major_incidents")
       .select("id, number")
       .eq("incident_id", data.incidentId)
       .maybeSingle();
     if (existing) {
-      throw new Error(`This incident is already under major incident command (${existing.number}).`);
+      throw new Error(
+        `This incident is already under major incident command (${existing.number}).`,
+      );
     }
 
     const number = await nextRecordNumber(supabase, DEMO_ORG_ID, "MI");
@@ -424,11 +453,21 @@ export const declareMajorIncident = createServerFn({ method: "POST" })
       body: data.situationSummary,
     });
 
-    const { error: incidentUpdateError } = await supabase
+    // The command bridge has its own severity. Declaring it must not overwrite
+    // the linked incident's lifecycle, hold reason, or concurrent triage changes.
+    const { data: flaggedIncident, error: incidentUpdateError } = await supabase
       .from("incidents")
-      .update({ major_incident: true, impact: 1, urgency: 1, state: "in_progress" })
-      .eq("id", data.incidentId);
-    if (incidentUpdateError) throw new Error(incidentUpdateError.message);
+      .update({ major_incident: true })
+      .eq("organization_id", DEMO_ORG_ID)
+      .eq("id", data.incidentId)
+      .eq("updated_at", incident.updated_at)
+      .select("id")
+      .maybeSingle();
+    if (incidentUpdateError || !flaggedIncident) {
+      throw new Error(
+        `Major incident ${major.number} was created, but the linked incident could not be flagged. Refresh both records before continuing. ${incidentUpdateError?.message ?? "The incident changed during declaration."}`,
+      );
+    }
 
     const { data: managers } = await supabase
       .from("user_roles")
@@ -510,7 +549,9 @@ export const updateMajorIncident = createServerFn({ method: "POST" })
     if (data.takeComms) patch["comms_lead_id"] = userId;
     if (data.problemId !== undefined) patch["problem_id"] = data.problemId || null;
     if (data.nextUpdateMinutes) {
-      patch["next_update_at"] = new Date(Date.now() + data.nextUpdateMinutes * 60_000).toISOString();
+      patch["next_update_at"] = new Date(
+        Date.now() + data.nextUpdateMinutes * 60_000,
+      ).toISOString();
     }
     if (data.bridgeState === "mitigating") patch["mitigated_at"] = new Date().toISOString();
     if (data.bridgeState === "resolved") {
@@ -530,9 +571,8 @@ export const updateMajorIncident = createServerFn({ method: "POST" })
         .update({
           problem_id: linkedProblemId,
           major_incident: true,
-          impact: 1,
-          urgency: 1,
         })
+        .eq("organization_id", DEMO_ORG_ID)
         .eq("id", current.incident_id);
       if (incidentLinkError) throw new Error(incidentLinkError.message);
 
@@ -559,21 +599,8 @@ export const updateMajorIncident = createServerFn({ method: "POST" })
       }
     }
 
-    if (data.bridgeState === "resolved") {
-      const { error: resolveError } = await supabase
-        .from("incidents")
-        .update({
-          state: "resolved",
-          resolved_at: new Date().toISOString(),
-          major_incident: true,
-          impact: 1,
-          urgency: 1,
-          problem_id: data.problemId ?? current.problem_id,
-        })
-        .eq("id", current.incident_id)
-        .in("state", ["new", "open", "in_progress", "pending"]);
-      if (resolveError) throw new Error(resolveError.message);
-    }
+    // Bridge recovery and ticket resolution are separate decisions. The incident
+    // workflow records the required resolution evidence and checks its version.
 
     await writeAudit(supabase, userId, "major_incident", data.id, "updated", patch);
     return { ok: true };

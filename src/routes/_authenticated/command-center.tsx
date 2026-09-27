@@ -342,8 +342,9 @@ function CommandCenter() {
                         Sev {major.severity}
                       </span>
                       <span className="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 font-medium text-secondary-foreground">
-                        {BRIDGE_STATE_LABELS[major.bridge_state as keyof typeof BRIDGE_STATE_LABELS] ??
-                          major.bridge_state}
+                        {BRIDGE_STATE_LABELS[
+                          major.bridge_state as keyof typeof BRIDGE_STATE_LABELS
+                        ] ?? major.bridge_state}
                       </span>
                       {overdue && major.bridge_state !== "resolved" ? (
                         <span className="inline-flex items-center rounded-md border border-warning/50 bg-warning/15 px-2 py-0.5 font-medium text-warning-foreground">
@@ -369,9 +370,7 @@ function CommandCenter() {
                       {selected.number} · {incidentOf(selected.incident_id)?.number ?? "—"}
                     </p>
                     {incidentOf(selected.incident_id) ? (
-                      <StateBadge
-                        state={incidentOf(selected.incident_id)!.state as RecordState}
-                      />
+                      <StateBadge state={incidentOf(selected.incident_id)!.state as RecordState} />
                     ) : null}
                   </div>
                   <h2 className="mt-1 text-lg font-semibold text-foreground">
@@ -397,10 +396,7 @@ function CommandCenter() {
                       label="Customer impact"
                       value={selected.customer_impact ?? "Not recorded"}
                     />
-                    <Field
-                      label="Bridge"
-                      value={selected.bridge_url ?? "No bridge link"}
-                    />
+                    <Field label="Bridge" value={selected.bridge_url ?? "No bridge link"} />
                   </dl>
 
                   {canRun ? (

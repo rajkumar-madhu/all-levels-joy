@@ -18,10 +18,14 @@ export const Route = createFileRoute("/_authenticated/profile")({
       { title: "My profile — WeCrew ITSM" },
       {
         name: "description",
-        content: "Update your name, contact details, department, locale, timezone, and notification preferences.",
+        content:
+          "Update your name, contact details, department, locale, timezone, and notification preferences.",
       },
       { property: "og:title", content: "My profile — WeCrew ITSM" },
-      { property: "og:description", content: "Personal details, preferences, and password management." },
+      {
+        property: "og:description",
+        content: "Personal details, preferences, and password management.",
+      },
     ],
   }),
   component: Profile,

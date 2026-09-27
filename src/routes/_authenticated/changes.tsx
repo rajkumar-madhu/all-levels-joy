@@ -23,10 +23,14 @@ export const Route = createFileRoute("/_authenticated/changes")({
       { title: "Change enablement — WeCrew ITSM" },
       {
         name: "description",
-        content: "Raise standard, normal, and emergency changes with risk, CAB approval, windows, and rollback plans.",
+        content:
+          "Raise standard, normal, and emergency changes with risk, CAB approval, windows, and rollback plans.",
       },
       { property: "og:title", content: "Change enablement — WeCrew ITSM" },
-      { property: "og:description", content: "Change records with CAB approval and post-implementation review." },
+      {
+        property: "og:description",
+        content: "Change records with CAB approval and post-implementation review.",
+      },
     ],
   }),
   component: Changes,
@@ -76,19 +80,23 @@ function Changes() {
   const isChangeManager = roles.some((role) => ["change_manager", "admin"].includes(role));
   const changes = data?.changes ?? [];
   const selected = changes.find((item) => item.id === search.record) ?? null;
-  const pendingApprovalCount = changes.filter((item) => item.approval_status === "requested").length;
+  const pendingApprovalCount = changes.filter(
+    (item) => item.approval_status === "requested",
+  ).length;
   const scheduledCount = changes.filter((item) => item.state === "open").length;
   const implementingCount = changes.filter((item) => item.state === "in_progress").length;
   const reviewCount = changes.filter((item) => item.state === "resolved" && !item.closed_at).length;
-  const scheduleConflict = form.serviceId && form.startAt && form.endAt
-    ? changes.find((change) =>
-        change.service_id === form.serviceId &&
-        !["closed", "cancelled"].includes(change.state) &&
-        Boolean(change.start_at && change.end_at) &&
-        new Date(form.startAt) < new Date(change.end_at ?? 0) &&
-        new Date(form.endAt) > new Date(change.start_at ?? 0),
-      )
-    : null;
+  const scheduleConflict =
+    form.serviceId && form.startAt && form.endAt
+      ? changes.find(
+          (change) =>
+            change.service_id === form.serviceId &&
+            !["closed", "cancelled"].includes(change.state) &&
+            Boolean(change.start_at && change.end_at) &&
+            new Date(form.startAt) < new Date(change.end_at ?? 0) &&
+            new Date(form.endAt) > new Date(change.start_at ?? 0),
+        )
+      : null;
 
   const create = useMutation({
     mutationFn: () =>
@@ -134,7 +142,12 @@ function Changes() {
       updateChange({ data: input }),
     onSuccess: async () => {
       toast.success("Change updated.");
-      setDelivery({ outcome: "successful", validationResults: "", rollbackUsed: false, pirNotes: "" });
+      setDelivery({
+        outcome: "successful",
+        validationResults: "",
+        rollbackUsed: false,
+        pirNotes: "",
+      });
       await queryClient.invalidateQueries({ queryKey: ["workspace"] });
     },
     onError: (error) =>
@@ -202,11 +215,25 @@ function Changes() {
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="chg-justification">Business justification</Label>
-            <Textarea id="chg-justification" rows={2} value={form.businessJustification} onChange={(event) => setForm({ ...form, businessJustification: event.target.value })} minLength={5} required />
+            <Textarea
+              id="chg-justification"
+              rows={2}
+              value={form.businessJustification}
+              onChange={(event) => setForm({ ...form, businessJustification: event.target.value })}
+              minLength={5}
+              required
+            />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="chg-impact">Impact assessment</Label>
-            <Textarea id="chg-impact" rows={3} value={form.impactAssessment} onChange={(event) => setForm({ ...form, impactAssessment: event.target.value })} minLength={5} required />
+            <Textarea
+              id="chg-impact"
+              rows={3}
+              value={form.impactAssessment}
+              onChange={(event) => setForm({ ...form, impactAssessment: event.target.value })}
+              minLength={5}
+              required
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="chg-type">Change type</Label>
@@ -254,9 +281,18 @@ function Changes() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="chg-owner">Implementation owner</Label>
-            <select id="chg-owner" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.ownerId} onChange={(event) => setForm({ ...form, ownerId: event.target.value })}>
+            <select
+              id="chg-owner"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={form.ownerId}
+              onChange={(event) => setForm({ ...form, ownerId: event.target.value })}
+            >
               <option value="">Assign to me</option>
-              {(reference.data?.people ?? []).map((person) => <option key={person.id} value={person.id}>{person.display_name}</option>)}
+              {(reference.data?.people ?? []).map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.display_name}
+                </option>
+              ))}
             </select>
           </div>
           <div className="space-y-1.5">
@@ -271,12 +307,37 @@ function Changes() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="chg-outage">Expected outage (minutes)</Label>
-            <Input id="chg-outage" type="number" min={0} max={10080} value={form.expectedOutageMinutes} onChange={(event) => setForm({ ...form, expectedOutageMinutes: Number(event.target.value) })} required />
+            <Input
+              id="chg-outage"
+              type="number"
+              min={0}
+              max={10080}
+              value={form.expectedOutageMinutes}
+              onChange={(event) =>
+                setForm({ ...form, expectedOutageMinutes: Number(event.target.value) })
+              }
+              required
+            />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="chg-assets">Affected configuration items</Label>
-            <select id="chg-assets" multiple className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.affectedCiIds} onChange={(event) => setForm({ ...form, affectedCiIds: Array.from(event.target.selectedOptions, (option) => option.value) })}>
-              {(reference.data?.assets ?? []).map((asset) => <option key={asset.id} value={asset.id}>{asset.name} · {asset.ci_class}</option>)}
+            <select
+              id="chg-assets"
+              multiple
+              className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={form.affectedCiIds}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  affectedCiIds: Array.from(event.target.selectedOptions, (option) => option.value),
+                })
+              }
+            >
+              {(reference.data?.assets ?? []).map((asset) => (
+                <option key={asset.id} value={asset.id}>
+                  {asset.name} · {asset.ci_class}
+                </option>
+              ))}
             </select>
           </div>
           <div className="space-y-1.5">
@@ -291,7 +352,8 @@ function Changes() {
           </div>
           {scheduleConflict ? (
             <p className="rounded-md border border-warning/50 bg-warning/15 p-3 text-sm text-warning-foreground sm:col-span-2">
-              Schedule conflict: {scheduleConflict.number} overlaps this window for the same service.
+              Schedule conflict: {scheduleConflict.number} overlaps this window for the same
+              service.
             </p>
           ) : null}
           {(
@@ -330,7 +392,10 @@ function Changes() {
         </div>
       ) : changes.length === 0 ? (
         <div className="mt-6">
-          <EmptyState title="No changes recorded" hint="Raise a change to start the CAB workflow." />
+          <EmptyState
+            title="No changes recorded"
+            hint="Raise a change to start the CAB workflow."
+          />
         </div>
       ) : (
         <div className="mt-6 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
@@ -355,7 +420,9 @@ function Changes() {
                       <button
                         type="button"
                         className="font-mono text-xs text-primary underline underline-offset-4"
-                        onClick={() => void navigate({ to: "/changes", search: { record: change.id } })}
+                        onClick={() =>
+                          void navigate({ to: "/changes", search: { record: change.id } })
+                        }
                       >
                         {change.number}
                       </button>
@@ -404,21 +471,44 @@ function Changes() {
                   </div>
                   <div>
                     <dt className="text-muted-foreground">Expected outage</dt>
-                    <dd className="mt-0.5 text-foreground">{selected.expected_outage_minutes} minutes</dd>
+                    <dd className="mt-0.5 text-foreground">
+                      {selected.expected_outage_minutes} minutes
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-muted-foreground">Implementation owner</dt>
                     <dd className="mt-0.5 text-foreground">
-                      {reference.data?.people.find((person) => person.id === selected.owner_id)?.display_name ?? "Unassigned"}
+                      {reference.data?.people.find((person) => person.id === selected.owner_id)
+                        ?.display_name ?? "Unassigned"}
                     </dd>
                   </div>
-                  {selected.actual_start_at ? <div><dt className="text-muted-foreground">Actual implementation</dt><dd className="mt-0.5 text-foreground">{formatDateTime(selected.actual_start_at)} → {formatDateTime(selected.actual_end_at)}</dd></div> : null}
-                  {selected.rollback_used ? <div><dt className="text-muted-foreground">Rollback</dt><dd className="mt-0.5 text-foreground">Rollback plan was used during delivery.</dd></div> : null}
+                  {selected.actual_start_at ? (
+                    <div>
+                      <dt className="text-muted-foreground">Actual implementation</dt>
+                      <dd className="mt-0.5 text-foreground">
+                        {formatDateTime(selected.actual_start_at)} →{" "}
+                        {formatDateTime(selected.actual_end_at)}
+                      </dd>
+                    </div>
+                  ) : null}
+                  {selected.rollback_used ? (
+                    <div>
+                      <dt className="text-muted-foreground">Rollback</dt>
+                      <dd className="mt-0.5 text-foreground">
+                        Rollback plan was used during delivery.
+                      </dd>
+                    </div>
+                  ) : null}
                   <div>
                     <dt className="text-muted-foreground">Affected configuration items</dt>
                     <dd className="mt-0.5 text-foreground">
                       {selected.affected_ci_ids.length
-                        ? selected.affected_ci_ids.map((id) => reference.data?.assets.find((asset) => asset.id === id)?.name ?? id).join(", ")
+                        ? selected.affected_ci_ids
+                            .map(
+                              (id) =>
+                                reference.data?.assets.find((asset) => asset.id === id)?.name ?? id,
+                            )
+                            .join(", ")
                         : "None selected"}
                     </dd>
                   </div>
@@ -449,33 +539,130 @@ function Changes() {
 
                 <div className="rounded-md border border-border bg-background p-3 text-xs">
                   <p className="font-semibold text-foreground">Approval progress</p>
-                  {data?.approvals.filter((item) => item.record_type === "change" && item.record_id === selected.id).length ? (
+                  {data?.approvals.filter(
+                    (item) => item.record_type === "change" && item.record_id === selected.id,
+                  ).length ? (
                     <ul className="mt-2 space-y-1 text-muted-foreground">
-                      {data.approvals.filter((item) => item.record_type === "change" && item.record_id === selected.id).map((item) => (
-                        <li key={item.id} className="flex justify-between gap-3"><span className="capitalize">{item.status}</span><span>{item.decision_notes || "No decision notes"}</span></li>
-                      ))}
+                      {data.approvals
+                        .filter(
+                          (item) => item.record_type === "change" && item.record_id === selected.id,
+                        )
+                        .map((item) => (
+                          <li key={item.id} className="flex justify-between gap-3">
+                            <span className="capitalize">{item.status}</span>
+                            <span>{item.decision_notes || "No decision notes"}</span>
+                          </li>
+                        ))}
                     </ul>
-                  ) : <p className="mt-1 text-muted-foreground">No CAB decision required for this change.</p>}
+                  ) : (
+                    <p className="mt-1 text-muted-foreground">
+                      No CAB decision required for this change.
+                    </p>
+                  )}
                 </div>
 
                 {isChangeManager ? (
                   <div className="space-y-3 rounded-md border border-border bg-background p-3">
-                    <h3 className="text-sm font-semibold text-foreground">Change manager actions</h3>
+                    <h3 className="text-sm font-semibold text-foreground">
+                      Change manager actions
+                    </h3>
                     <div className="flex flex-wrap gap-2">
-                      {selected.state === "open" ? <Button size="sm" onClick={() => update.mutate({ id: selected.id, action: "start" })} disabled={update.isPending}>Start implementation</Button> : null}
-                      {selected.state === "resolved" ? <Button size="sm" onClick={() => update.mutate({ id: selected.id, action: "close" })} disabled={update.isPending}>Close change</Button> : null}
-                      {!['resolved', 'closed', 'cancelled'].includes(selected.state) ? <Button size="sm" variant="outline" onClick={() => update.mutate({ id: selected.id, action: "cancel" })} disabled={update.isPending}>Cancel change</Button> : null}
+                      {selected.state === "open" ? (
+                        <Button
+                          size="sm"
+                          onClick={() => update.mutate({ id: selected.id, action: "start" })}
+                          disabled={update.isPending}
+                        >
+                          Start implementation
+                        </Button>
+                      ) : null}
+                      {selected.state === "resolved" ? (
+                        <Button
+                          size="sm"
+                          onClick={() => update.mutate({ id: selected.id, action: "close" })}
+                          disabled={update.isPending}
+                        >
+                          Close change
+                        </Button>
+                      ) : null}
+                      {!["resolved", "closed", "cancelled"].includes(selected.state) ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => update.mutate({ id: selected.id, action: "cancel" })}
+                          disabled={update.isPending}
+                        >
+                          Cancel change
+                        </Button>
+                      ) : null}
                     </div>
-                    {selected.state === "in_progress" ? <div className="space-y-3 border-t border-border pt-3">
-                      <Label htmlFor="delivery-outcome">Delivery outcome</Label>
-                      <select id="delivery-outcome" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={delivery.outcome} onChange={(event) => setDelivery({ ...delivery, outcome: event.target.value as typeof delivery.outcome })}>
-                        <option value="successful">Successful</option><option value="successful_with_issues">Successful with issues</option><option value="failed">Failed</option><option value="rolled_back">Rolled back</option>
-                      </select>
-                      <Textarea rows={3} value={delivery.validationResults} onChange={(event) => setDelivery({ ...delivery, validationResults: event.target.value })} placeholder="Validation results" />
-                      <Textarea rows={3} value={delivery.pirNotes} onChange={(event) => setDelivery({ ...delivery, pirNotes: event.target.value })} placeholder="Post-implementation review" />
-                      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={delivery.rollbackUsed} onChange={(event) => setDelivery({ ...delivery, rollbackUsed: event.target.checked })} /> Rollback was used</label>
-                      <Button size="sm" onClick={() => update.mutate({ id: selected.id, action: "deliver", deliveryOutcome: delivery.outcome, validationResults: delivery.validationResults, rollbackUsed: delivery.rollbackUsed, pirNotes: delivery.pirNotes })} disabled={update.isPending || !delivery.validationResults.trim() || !delivery.pirNotes.trim()}>Record delivery</Button>
-                    </div> : null}
+                    {selected.state === "in_progress" ? (
+                      <div className="space-y-3 border-t border-border pt-3">
+                        <Label htmlFor="delivery-outcome">Delivery outcome</Label>
+                        <select
+                          id="delivery-outcome"
+                          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                          value={delivery.outcome}
+                          onChange={(event) =>
+                            setDelivery({
+                              ...delivery,
+                              outcome: event.target.value as typeof delivery.outcome,
+                            })
+                          }
+                        >
+                          <option value="successful">Successful</option>
+                          <option value="successful_with_issues">Successful with issues</option>
+                          <option value="failed">Failed</option>
+                          <option value="rolled_back">Rolled back</option>
+                        </select>
+                        <Textarea
+                          rows={3}
+                          value={delivery.validationResults}
+                          onChange={(event) =>
+                            setDelivery({ ...delivery, validationResults: event.target.value })
+                          }
+                          placeholder="Validation results"
+                        />
+                        <Textarea
+                          rows={3}
+                          value={delivery.pirNotes}
+                          onChange={(event) =>
+                            setDelivery({ ...delivery, pirNotes: event.target.value })
+                          }
+                          placeholder="Post-implementation review"
+                        />
+                        <label className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={delivery.rollbackUsed}
+                            onChange={(event) =>
+                              setDelivery({ ...delivery, rollbackUsed: event.target.checked })
+                            }
+                          />{" "}
+                          Rollback was used
+                        </label>
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            update.mutate({
+                              id: selected.id,
+                              action: "deliver",
+                              deliveryOutcome: delivery.outcome,
+                              validationResults: delivery.validationResults,
+                              rollbackUsed: delivery.rollbackUsed,
+                              pirNotes: delivery.pirNotes,
+                            })
+                          }
+                          disabled={
+                            update.isPending ||
+                            !delivery.validationResults.trim() ||
+                            !delivery.pirNotes.trim()
+                          }
+                        >
+                          Record delivery
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
 
