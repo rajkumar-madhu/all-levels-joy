@@ -177,7 +177,7 @@ function CommandCenter() {
       <PageHeader
         eyebrow="Major incident command"
         title="Command bridge"
-        description="Declare a major incident from a live ticket, run the bridge with a single commander, keep stakeholders updated on cadence, and hand the cause to problem management."
+        description="Coordinate response with a commander, stakeholder updates, and problem management. Resolving a bridge leaves its incident open until the service desk records resolution evidence."
         actions={
           canRun ? (
             <Button size="sm" onClick={() => setDeclaring((value) => !value)}>

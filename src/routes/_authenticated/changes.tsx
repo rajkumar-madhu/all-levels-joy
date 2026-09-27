@@ -556,7 +556,9 @@ function Changes() {
                     </ul>
                   ) : (
                     <p className="mt-1 text-muted-foreground">
-                      No CAB decision required for this change.
+                      {selected.approval_status === "not_required"
+                        ? "No CAB decision required for this change."
+                        : "Approval records are unavailable for this change. Ask your workspace administrator to review the approval setup or resubmit the change."}
                     </p>
                   )}
                 </div>
@@ -567,7 +569,8 @@ function Changes() {
                       Change manager actions
                     </h3>
                     <div className="flex flex-wrap gap-2">
-                      {selected.state === "open" ? (
+                      {selected.state === "open" &&
+                      ["approved", "not_required"].includes(selected.approval_status) ? (
                         <Button
                           size="sm"
                           onClick={() => update.mutate({ id: selected.id, action: "start" })}

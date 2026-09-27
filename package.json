@@ -9,7 +9,12 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "test": "bun test ./tests/*.test.ts",
+    "test:db": "bash tests/run-incident-db-tests.sh",
+    "test:ui:dev": "vite --config tests/ui/vite.config.ts",
+    "test:ui": "node tests/ui/verify.mjs",
+    "format": "prettier --write .",
+    "test:e2e": "node tests/e2e/run.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -97,8 +102,10 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
     "nitro": "3.0.260603-beta",
+    "playwright": "1.63.0",
     "postgres": "^3.4.9",
     "prettier": "^3.7.3",
+    "supabase": "2.118.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "8.1.5"

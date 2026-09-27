@@ -244,9 +244,6 @@ export const createProblem = createServerFn({ method: "POST" })
         .from("incidents")
         .update({ problem_id: problem.id })
         .eq("id", data.fromIncidentId);
-      await writeAudit(supabase, userId, "incident", data.fromIncidentId, "problem_linked", {
-        problem: problem.number,
-      });
     }
 
     await writeAudit(supabase, userId, "problem", problem.id, "created", { number });
@@ -354,7 +351,6 @@ export const linkIncidentToProblem = createServerFn({ method: "POST" })
         .from("incidents")
         .update({ problem_id: data.problemId })
         .eq("id", data.incidentId);
-      await writeAudit(supabase, userId, "incident", data.incidentId, "problem_linked");
     } else {
       const { error } = await supabase
         .from("problem_incidents")
@@ -363,7 +359,6 @@ export const linkIncidentToProblem = createServerFn({ method: "POST" })
         .eq("incident_id", data.incidentId);
       if (error) throw new Error(error.message);
       await supabase.from("incidents").update({ problem_id: null }).eq("id", data.incidentId);
-      await writeAudit(supabase, userId, "incident", data.incidentId, "problem_unlinked");
     }
     return { ok: true };
   });
@@ -486,9 +481,6 @@ export const declareMajorIncident = createServerFn({ method: "POST" })
     await writeAudit(supabase, userId, "major_incident", major.id, "declared", {
       number,
       severity: data.severity,
-    });
-    await writeAudit(supabase, userId, "incident", data.incidentId, "major_incident_declared", {
-      number,
     });
 
     return major;

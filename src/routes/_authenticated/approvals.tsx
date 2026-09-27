@@ -40,7 +40,7 @@ function Approvals() {
   const decide = useMutation({
     mutationFn: (input: { id: string; decision: "approved" | "rejected"; notes?: string }) => {
       if (input.decision === "rejected" && !input.notes?.trim()) {
-        throw new Error("Decision notes are required when rejecting a change.");
+        throw new Error("Decision notes are required when rejecting a request or change.");
       }
       return decideApproval({ data: input });
     },
@@ -57,7 +57,7 @@ function Approvals() {
       <PageHeader
         eyebrow="Governance"
         title="Approvals"
-        description="Approving a request or change moves it forward; rejecting cancels it. Both outcomes are audited."
+        description="Every assigned approver must approve before work can proceed. A rejection cancels the record. Each decision is recorded in the audit history."
       />
 
       {workspace.isPending ? (
@@ -124,7 +124,8 @@ function Approvals() {
                 <div className="mt-4 space-y-2">
                   <Textarea
                     rows={2}
-                    placeholder="Decision notes (optional)"
+                    aria-label={`Decision notes for ${record?.number ?? "record"}`}
+                    placeholder="Decision notes (required for rejection)"
                     value={notes[approval.id] ?? ""}
                     onChange={(event) => setNotes({ ...notes, [approval.id]: event.target.value })}
                   />

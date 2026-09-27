@@ -1317,6 +1317,7 @@ export type Database = {
       };
       service_requests: {
         Row: {
+          approval_status: string;
           assignee_id: string | null;
           catalog_item_id: string | null;
           created_at: string;
@@ -1333,6 +1334,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          approval_status?: string;
           assignee_id?: string | null;
           catalog_item_id?: string | null;
           created_at?: string;
@@ -1349,6 +1351,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          approval_status?: string;
           assignee_id?: string | null;
           catalog_item_id?: string | null;
           created_at?: string;
@@ -1525,6 +1528,21 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      bootstrap_workspace: { Args: { _display_name?: string }; Returns: Json };
+      itsm_create_service_request: {
+        Args: { _org_id: string; _catalog_item_id: string; _title: string; _description: string };
+        Returns: Json;
+      };
+      itsm_create_change: { Args: { _org_id: string; _input: Json }; Returns: Json };
+      itsm_decide_approval: {
+        Args: { _approval_id: string; _decision: string; _notes?: string };
+        Returns: Json;
+      };
+      can_access_record: {
+        Args: { _org_id: string; _record_type: string; _record_id: string };
+        Returns: boolean;
+      };
+
       can_manage: { Args: { _org_id: string }; Returns: boolean };
       has_role: {
         Args: {

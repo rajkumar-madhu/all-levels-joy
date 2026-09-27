@@ -26,7 +26,9 @@ export function canManageIncidents(roles: readonly AppRole[]): boolean {
 export const incidentUpdateSchema = z.object({
   id: z.string().uuid(),
   expectedUpdatedAt: z.string().datetime({ offset: true }),
-  state: z.enum(["new", "open", "in_progress", "pending", "resolved", "closed", "cancelled"]).optional(),
+  state: z
+    .enum(["new", "open", "in_progress", "pending", "resolved", "closed", "cancelled"])
+    .optional(),
   assignToMe: z.boolean().optional(),
   groupId: z.string().uuid().nullish(),
   impact: z.number().int().min(1).max(3).optional(),
@@ -41,7 +43,14 @@ export const incidentUpdateSchema = z.object({
 export type IncidentWorkflowInput = z.infer<typeof incidentUpdateSchema>;
 export type IncidentWorkflowCurrent = Pick<
   Incident,
-  "state" | "updated_at" | "first_responded_at" | "reopen_count" | "resolved_at" | "resolution_notes" | "close_code" | "on_hold_reason"
+  | "state"
+  | "updated_at"
+  | "first_responded_at"
+  | "reopen_count"
+  | "resolved_at"
+  | "resolution_notes"
+  | "close_code"
+  | "on_hold_reason"
 >;
 
 export const INCIDENT_CONFLICT_MESSAGE =
@@ -83,7 +92,8 @@ export function buildIncidentWorkflowPatch(
     patch.on_hold_reason = null;
   }
 
-  const reopening = changingState && nextState === "open" && ["resolved", "closed"].includes(current.state);
+  const reopening =
+    changingState && nextState === "open" && ["resolved", "closed"].includes(current.state);
   if (reopening) {
     patch.resolved_at = null;
     patch.resolution_notes = null;
@@ -93,22 +103,27 @@ export function buildIncidentWorkflowPatch(
     ["resolved", "closed"].includes(nextState) &&
     (changingState || input.resolutionNotes !== undefined || input.closeCode !== undefined)
   ) {
-    const notes = patch.resolution_notes !== undefined ? patch.resolution_notes : current.resolution_notes;
+    const notes =
+      patch.resolution_notes !== undefined ? patch.resolution_notes : current.resolution_notes;
     const closeCode = patch.close_code !== undefined ? patch.close_code : current.close_code;
-    if (!notes?.trim()) throw new Error("Add resolution notes before resolving or closing this incident.");
+    if (!notes?.trim())
+      throw new Error("Add resolution notes before resolving or closing this incident.");
     if (!closeCode || !Object.hasOwn(CLOSE_CODES, closeCode)) {
       throw new Error("Select a valid close code before resolving or closing this incident.");
     }
     if (changingState && nextState === "resolved") patch.resolved_at = now;
     // Closing and later metadata edits must retain the original SLA completion timestamp.
     if (nextState === "closed" && !current.resolved_at) {
-      throw new Error("This incident has no resolution timestamp. Reopen and resolve it before closing.");
+      throw new Error(
+        "This incident has no resolution timestamp. Reopen and resolve it before closing.",
+      );
     }
   }
 
   if (
     !current.first_responded_at &&
-    (input.assignToMe || (changingState && ["open", "in_progress", "pending", "resolved"].includes(nextState)))
+    (input.assignToMe ||
+      (changingState && ["open", "in_progress", "pending", "resolved"].includes(nextState)))
   ) {
     patch.first_responded_at = now;
   }

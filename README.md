@@ -22,3 +22,18 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## ITSM implementation and verification
+
+This checkout also includes `bun.lock`; the validated local workflow uses Bun.
+
+```sh
+bun install
+bun run dev
+bun run test
+bunx tsc --noEmit
+bun run lint
+bun run build
+```
+
+See the [product comparison and gap analysis](docs/itsm-product-gap-analysis.md), [workspace design system](docs/itsm-design-system.md), and [database/browser validation instructions](docs/itsm-validation.md). Incident workflows, the enterprise workspace UI, active-membership access, requester privacy, atomic approvals and transactional core audit are implemented locally. `bun run test:db` runs the database regression suite; `bun run test:e2e` starts a disposable local Supabase stack and tests authenticated browser workflows. See the report for remaining product gaps and rollout prerequisites.

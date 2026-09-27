@@ -38,11 +38,12 @@ async function writeAudit(
 }
 
 async function loadRoles(supabase: TypedSupabaseClient, userId: string): Promise<AppRole[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("user_roles")
     .select("role")
     .eq("organization_id", DEMO_ORG_ID)
     .eq("user_id", userId);
+  if (error) throw new Error(`Workspace permissions could not be loaded: ${error.message}`);
   return (data ?? []).map((row: { role: AppRole }) => row.role);
 }
 
@@ -52,68 +53,21 @@ function requireRoles(roles: AppRole[], allowed: AppRole[]) {
   }
 }
 
-/** Ensures the signed-in user has a profile, an organization membership, and roles. */
+/** Provision only a profile/requester role for an existing active workspace member. */
 export const bootstrapWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: { displayName?: string } | undefined) =>
     z.object({ displayName: z.string().trim().max(120).optional() }).parse(input ?? {}),
   )
   .handler(async ({ data, context }) => {
-    const { supabase, userId, claims } = context;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const fallbackName =
-      data.displayName?.trim() ||
-      (typeof claims["email"] === "string"
-        ? (claims["email"] as string).split("@")[0]
-        : "New user");
-
-    const { data: existingProfile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (!existingProfile) {
-      await supabase
-        .from("profiles")
-        .insert({ id: userId, display_name: fallbackName || "New user" });
-    }
-
-    await supabaseAdmin
-      .from("memberships")
-      .upsert(
-        { organization_id: DEMO_ORG_ID, user_id: userId, is_active: true },
-        { onConflict: "organization_id,user_id" },
-      );
-
-    const existingRoles = await loadRoles(supabaseAdmin, userId);
-    if (existingRoles.length === 0) {
-      const { count: adminCount } = await supabaseAdmin
-        .from("user_roles")
-        .select("id", { count: "exact", head: true })
-        .eq("organization_id", DEMO_ORG_ID)
-        .eq("role", "admin");
-
-      const roles: AppRole[] =
-        (adminCount ?? 0) === 0
-          ? [
-              "requester",
-              "service_desk",
-              "fulfiller",
-              "change_manager",
-              "cab_member",
-              "cmdb_manager",
-              "manager",
-              "admin",
-            ]
-          : ["requester", "service_desk"];
-
-      await supabaseAdmin
-        .from("user_roles")
-        .insert(roles.map((role) => ({ organization_id: DEMO_ORG_ID, user_id: userId, role })));
-    }
-
+    const fallback =
+      typeof context.claims["email"] === "string"
+        ? context.claims["email"].split("@")[0]
+        : "New user";
+    const { error } = await context.supabase.rpc("bootstrap_workspace", {
+      _display_name: data.displayName || fallback || "New user",
+    });
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
 
@@ -166,6 +120,21 @@ export const getWorkspace = createServerFn({ method: "GET" })
           .limit(30),
       ]);
 
+    for (const result of [
+      org,
+      profile,
+      incidents,
+      requests,
+      changes,
+      approvals,
+      notifications,
+      audit,
+    ]) {
+      if (result.error)
+        throw new Error(`Workspace data could not be loaded: ${result.error.message}`);
+    }
+
+    if (!org.data) throw new Error("Your account no longer has active access to this workspace.");
     return {
       userId,
       organization: org.data,
@@ -211,6 +180,11 @@ export const getReferenceData = createServerFn({ method: "GET" })
       ],
     );
 
+    for (const result of [services, groups, catalog, knowledge, assets, relationships, people]) {
+      if (result.error)
+        throw new Error(`Reference data could not be loaded: ${result.error.message}`);
+    }
+
     return {
       services: services.data ?? [],
       groups: groups.data ?? [],
@@ -244,6 +218,8 @@ export const getRecordActivity = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false })
         .limit(50),
     ]);
+    if (comments.error) throw new Error(comments.error.message);
+    if (audit.error) throw new Error(audit.error.message);
     return { comments: comments.data ?? [], audit: audit.data ?? [] };
   });
 
@@ -262,13 +238,24 @@ export const addComment = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const roles = await loadRoles(supabase, userId);
+    if (data.internal) {
+      requireRoles(roles, [
+        "service_desk",
+        "fulfiller",
+        "manager",
+        "admin",
+        "change_manager",
+        "cab_member",
+        "cmdb_manager",
+      ]);
+    }
     const { error } = await supabase.from("record_comments").insert({
       organization_id: DEMO_ORG_ID,
       record_type: data.recordType,
       record_id: data.recordId,
       author_id: userId,
       body: data.body,
-      internal: Boolean(data.internal) && roles.length > 0,
+      internal: Boolean(data.internal),
     });
     if (error) throw new Error(error.message);
     await writeAudit(supabase, userId, data.recordType, data.recordId, "comment_added");
@@ -333,7 +320,6 @@ export const createIncident = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    await writeAudit(supabase, userId, "incident", incident.id, "created", { number });
     return incident;
   });
 
@@ -349,7 +335,9 @@ export const updateIncident = createServerFn({ method: "POST" })
 
     const { data: current, error: currentError } = await supabase
       .from("incidents")
-      .select("state, updated_at, first_responded_at, reopen_count, resolved_at, resolution_notes, close_code, on_hold_reason")
+      .select(
+        "state, updated_at, first_responded_at, reopen_count, resolved_at, resolution_notes, close_code, on_hold_reason",
+      )
       .eq("organization_id", DEMO_ORG_ID)
       .eq("id", data.id)
       .maybeSingle();
@@ -379,89 +367,16 @@ export const updateIncident = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!updated) throw new Error(INCIDENT_CONFLICT_MESSAGE);
-    await writeAudit(supabase, userId, "incident", data.id, "updated", patch);
     return { ok: true, updatedAt: updated.updated_at };
-  });
-
-export const createServiceRequest = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((input: { catalogItemId: string; title: string; description: string }) =>
-    z
-      .object({
-        catalogItemId: uuid,
-        title: z.string().trim().min(5).max(160),
-        description: z.string().trim().min(5).max(6000),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { data: item } = await supabase
-      .from("catalog_items")
-      .select("id, approval_required, delivery_days, name")
-      .eq("id", data.catalogItemId)
-      .maybeSingle();
-    if (!item) throw new Error("That catalog item is not available.");
-
-    const number = await nextRecordNumber(supabase, DEMO_ORG_ID, "REQ");
-    const { data: request, error } = await supabase
-      .from("service_requests")
-      .insert({
-        organization_id: DEMO_ORG_ID,
-        number,
-        catalog_item_id: item.id,
-        title: data.title,
-        description: data.description,
-        requester_id: userId,
-        requested_for_id: userId,
-        state: item.approval_required ? "pending" : "new",
-        due_at: new Date(Date.now() + item.delivery_days * 86_400_000).toISOString(),
-      })
-      .select("id, number")
-      .single();
-    if (error) throw new Error(error.message);
-
-    if (item.approval_required) {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: approvers } = await supabaseAdmin
-        .from("user_roles")
-        .select("user_id")
-        .eq("organization_id", DEMO_ORG_ID)
-        .in("role", ["manager", "admin"])
-        .limit(5);
-      const unique = [...new Set((approvers ?? []).map((row: { user_id: string }) => row.user_id))];
-      if (unique.length > 0) {
-        await supabaseAdmin.from("approvals").insert(
-          unique.map((approverId) => ({
-            organization_id: DEMO_ORG_ID,
-            record_type: "request",
-            record_id: request.id,
-            approver_id: approverId,
-          })),
-        );
-        await supabaseAdmin.from("notifications").insert(
-          unique.map((approverId) => ({
-            organization_id: DEMO_ORG_ID,
-            user_id: approverId,
-            title: `Approval needed: ${request.number}`,
-            body: data.title,
-            record_type: "request",
-            record_id: request.id,
-          })),
-        );
-      }
-    }
-
-    await writeAudit(supabase, userId, "request", request.id, "created", { number });
-    return request;
   });
 
 export const updateServiceRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input: { id: string; state: string }) =>
+  .validator((input: { id: string; state: string; expectedUpdatedAt: string }) =>
     z
       .object({
         id: uuid,
+        expectedUpdatedAt: z.string().datetime({ offset: true }),
         state: z.enum(["new", "open", "in_progress", "pending", "resolved", "closed", "cancelled"]),
       })
       .parse(input),
@@ -470,148 +385,18 @@ export const updateServiceRequest = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const roles = await loadRoles(supabase, userId);
     requireRoles(roles, ["service_desk", "fulfiller", "manager", "admin"]);
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from("service_requests")
       .update({ state: data.state })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
-    await writeAudit(supabase, userId, "request", data.id, "state_changed", { state: data.state });
-    return { ok: true };
-  });
-
-export const createChange = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator(
-    (input: {
-      title: string;
-      description: string;
-      changeType: string;
-      risk: string;
-      serviceId?: string | null;
-      ownerId?: string | null;
-      implementationPlan: string;
-      testPlan: string;
-      rollbackPlan: string;
-      businessJustification: string;
-      impactAssessment: string;
-      expectedOutageMinutes: number;
-      affectedCiIds: string[];
-      validationPlan: string;
-      rollbackTrigger: string;
-      communicationPlan: string;
-      startAt: string;
-      endAt: string;
-    }) =>
-      z
-        .object({
-          title: z.string().trim().min(5).max(160),
-          description: z.string().trim().min(5).max(6000),
-          changeType: z.enum(["standard", "normal", "emergency"]),
-          risk: z.enum(["low", "medium", "high", "critical"]),
-          serviceId: uuid.nullish(),
-          ownerId: uuid.nullish(),
-          implementationPlan: z.string().trim().min(5).max(6000),
-          testPlan: z.string().trim().min(5).max(6000),
-          rollbackPlan: z.string().trim().min(5).max(6000),
-          businessJustification: z.string().trim().min(5).max(6000),
-          impactAssessment: z.string().trim().min(5).max(6000),
-          expectedOutageMinutes: z.number().int().min(0).max(10080),
-          affectedCiIds: z.array(uuid).max(100),
-          validationPlan: z.string().trim().min(5).max(6000),
-          rollbackTrigger: z.string().trim().min(5).max(6000),
-          communicationPlan: z.string().trim().min(5).max(6000),
-          startAt: z.string().min(1),
-          endAt: z.string().min(1),
-        })
-        .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const roles = await loadRoles(supabase, userId);
-    requireRoles(roles, ["fulfiller", "change_manager", "manager", "admin"]);
-
-    const startAt = new Date(data.startAt);
-    const endAt = new Date(data.endAt);
-    if (
-      !Number.isFinite(startAt.getTime()) ||
-      !Number.isFinite(endAt.getTime()) ||
-      endAt <= startAt
-    ) {
-      throw new Error("The change window must end after it starts.");
-    }
-
-    const number = await nextRecordNumber(supabase, DEMO_ORG_ID, "CHG");
-    const { data: change, error } = await supabase
-      .from("changes")
-      .insert({
-        organization_id: DEMO_ORG_ID,
-        number,
-        title: data.title,
-        description: data.description,
-        change_type: data.changeType,
-        risk: data.risk,
-        requester_id: userId,
-        owner_id: data.ownerId ?? userId,
-        service_id: data.serviceId ?? null,
-        implementation_plan: data.implementationPlan,
-        test_plan: data.testPlan,
-        rollback_plan: data.rollbackPlan,
-        business_justification: data.businessJustification,
-        impact_assessment: data.impactAssessment,
-        expected_outage_minutes: data.expectedOutageMinutes,
-        affected_ci_ids: data.affectedCiIds,
-        validation_plan: data.validationPlan,
-        rollback_trigger: data.rollbackTrigger,
-        communication_plan: data.communicationPlan,
-        start_at: startAt.toISOString(),
-        end_at: endAt.toISOString(),
-        approval_status: data.changeType === "standard" ? "not_required" : "requested",
-        state: data.changeType === "standard" ? "open" : "pending",
-      })
-      .select("id, number")
-      .single();
-    if (error) throw new Error(error.message);
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: cab } = await supabaseAdmin
-      .from("user_roles")
-      .select("user_id")
       .eq("organization_id", DEMO_ORG_ID)
-      .in("role", ["cab_member", "change_manager", "admin"])
-      .limit(8);
-    const availableApprovers = [
-      ...new Set((cab ?? []).map((row: { user_id: string }) => row.user_id)),
-    ];
-    const unique =
-      data.changeType === "emergency" ? availableApprovers.slice(0, 1) : availableApprovers;
-    if (data.changeType !== "standard" && unique.length > 0) {
-      await supabaseAdmin.from("approvals").insert(
-        unique.map((approverId) => ({
-          organization_id: DEMO_ORG_ID,
-          record_type: "change",
-          record_id: change.id,
-          approver_id: approverId,
-        })),
-      );
-      await supabaseAdmin.from("notifications").insert(
-        unique.map((approverId) => ({
-          organization_id: DEMO_ORG_ID,
-          user_id: approverId,
-          title: `CAB approval needed: ${change.number}`,
-          body: data.title,
-          record_type: "change",
-          record_id: change.id,
-        })),
-      );
-    }
-
-    await writeAudit(supabase, userId, "change", change.id, "created", {
-      number,
-      change_type: data.changeType,
-      approval_status: data.changeType === "standard" ? "not_required" : "requested",
-      affected_ci_count: data.affectedCiIds.length,
-    });
-    return change;
+      .eq("id", data.id)
+      .eq("updated_at", data.expectedUpdatedAt)
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!updated)
+      throw new Error("This request changed or is no longer accessible. Refresh and try again.");
+    return { ok: true };
   });
 
 export const updateChange = createServerFn({ method: "POST" })
@@ -642,14 +427,15 @@ export const updateChange = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const roles = await loadRoles(supabase, userId);
     requireRoles(roles, ["change_manager", "admin"]);
-    const { data: current } = await supabase
+    const { data: current, error: currentError } = await supabase
       .from("changes")
       .select("*")
+      .eq("organization_id", DEMO_ORG_ID)
       .eq("id", data.id)
       .maybeSingle();
+    if (currentError) throw new Error(currentError.message);
     if (!current) throw new Error("That change no longer exists.");
     const patch: ChangeUpdate = {};
-    let auditAction: string = data.action;
     if (data.action === "start") {
       if (
         current.state !== "open" ||
@@ -662,7 +448,6 @@ export const updateChange = createServerFn({ method: "POST" })
       }
       patch["state"] = "in_progress";
       patch["actual_start_at"] = new Date().toISOString();
-      auditAction = "implementation_started";
     } else if (data.action === "deliver") {
       if (current.state !== "in_progress")
         throw new Error("Start implementation before recording delivery.");
@@ -676,7 +461,6 @@ export const updateChange = createServerFn({ method: "POST" })
       patch["validation_results"] = data.validationResults;
       patch["rollback_used"] = data.rollbackUsed ?? false;
       patch["pir_notes"] = data.pirNotes;
-      auditAction = data.rollbackUsed ? "rollback_completed" : "change_delivered";
     } else if (data.action === "close") {
       if (current.state !== "resolved" || !current.pir_notes || !current.validation_results) {
         throw new Error(
@@ -685,95 +469,22 @@ export const updateChange = createServerFn({ method: "POST" })
       }
       patch["state"] = "closed";
       patch["closed_at"] = new Date().toISOString();
-      auditAction = "change_closed";
     } else {
       if (["resolved", "closed"].includes(current.state))
         throw new Error("A delivered change cannot be cancelled.");
       patch["state"] = "cancelled";
-      auditAction = "change_cancelled";
     }
-    const { error } = await supabase.from("changes").update(patch).eq("id", data.id);
-    if (error) throw new Error(error.message);
-    await writeAudit(supabase, userId, "change", data.id, auditAction, patch);
-    return { ok: true };
-  });
-
-export const decideApproval = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((input: { id: string; decision: "approved" | "rejected"; notes?: string }) =>
-    z
-      .object({
-        id: uuid,
-        decision: z.enum(["approved", "rejected"]),
-        notes: z.string().trim().max(2000).optional(),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { data: approval } = await supabase
-      .from("approvals")
-      .select("id, record_type, record_id, approver_id, status")
+    const { data: updated, error } = await supabase
+      .from("changes")
+      .update(patch)
+      .eq("organization_id", DEMO_ORG_ID)
       .eq("id", data.id)
+      .eq("updated_at", current.updated_at)
+      .select("id")
       .maybeSingle();
-    if (!approval) throw new Error("That approval is no longer available.");
-    if (approval.approver_id !== userId)
-      throw new Error("This approval is assigned to someone else.");
-    if (approval.status !== "requested") throw new Error("This approval has already been decided.");
-    if (approval.record_type === "change" && data.decision === "rejected" && !data.notes?.trim()) {
-      throw new Error("Decision notes are required when rejecting a change.");
-    }
-
-    const { error } = await supabase
-      .from("approvals")
-      .update({
-        status: data.decision,
-        decision_notes: data.notes ?? null,
-        decided_at: new Date().toISOString(),
-      })
-      .eq("id", data.id);
     if (error) throw new Error(error.message);
-
-    if (approval.record_type === "request") {
-      const nextState = data.decision === "approved" ? "open" : "cancelled";
-      await supabase
-        .from("service_requests")
-        .update({ state: nextState })
-        .eq("id", approval.record_id);
-    } else if (approval.record_type === "change") {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: decisions } = await supabaseAdmin
-        .from("approvals")
-        .select("status")
-        .eq("record_type", "change")
-        .eq("record_id", approval.record_id);
-      const rejected = (decisions ?? []).some((item) => item.status === "rejected");
-      const fullyApproved =
-        (decisions ?? []).length > 0 &&
-        (decisions ?? []).every((item) => item.status === "approved");
-      if (rejected) {
-        await supabaseAdmin
-          .from("changes")
-          .update({ state: "cancelled", approval_status: "rejected" })
-          .eq("id", approval.record_id);
-      } else if (fullyApproved) {
-        await supabaseAdmin
-          .from("changes")
-          .update({ state: "open", approval_status: "approved" })
-          .eq("id", approval.record_id);
-      }
-    }
-
-    await writeAudit(
-      supabase,
-      userId,
-      approval.record_type,
-      approval.record_id,
-      `approval_${data.decision}`,
-      {
-        notes: data.notes ?? null,
-      },
-    );
+    if (!updated)
+      throw new Error("This change was updated by another person. Refresh and try again.");
     return { ok: true };
   });
 
@@ -1211,3 +922,5 @@ export const getIncidentMetrics = createServerFn({ method: "GET" })
         .slice(0, 8),
     };
   });
+
+export { createServiceRequest, createChange, decideApproval } from "./approval.functions";

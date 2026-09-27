@@ -15,7 +15,7 @@ export function StateBadge({ state }: { state: RecordState }) {
     new: "border-border bg-secondary text-secondary-foreground",
     open: "border-primary/30 bg-primary/10 text-primary",
     in_progress: "border-primary/40 bg-primary/15 text-primary",
-    pending: "border-warning/40 bg-warning/15 text-warning-foreground",
+    pending: "border-warning/40 bg-warning/10 text-warning",
     resolved: "border-success/40 bg-success/15 text-success",
     closed: "border-border bg-muted text-muted-foreground",
     cancelled: "border-border bg-muted text-muted-foreground line-through",
@@ -55,7 +55,7 @@ export function SlaBadge({
   const tone: Record<string, string> = {
     none: "border-border bg-muted text-muted-foreground",
     breached: "border-destructive/40 bg-destructive/10 text-destructive",
-    at_risk: "border-warning/50 bg-warning/15 text-warning-foreground",
+    at_risk: "border-warning/50 bg-warning/10 text-warning",
     on_track: "border-success/40 bg-success/10 text-success",
     completed: "border-border bg-secondary text-secondary-foreground",
     completed_late: "border-destructive/40 bg-destructive/10 text-destructive",
@@ -69,7 +69,7 @@ export function RiskBadge({ risk }: { risk: string }) {
   const tone: Record<string, string> = {
     low: "border-border bg-secondary text-secondary-foreground",
     medium: "border-primary/30 bg-primary/10 text-primary",
-    high: "border-warning/50 bg-warning/15 text-warning-foreground",
+    high: "border-warning/50 bg-warning/10 text-warning",
     critical: "border-destructive/40 bg-destructive/10 text-destructive",
   };
   return <span className={cn(base, tone[risk] ?? tone["medium"])}>Risk: {risk}</span>;

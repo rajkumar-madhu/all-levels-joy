@@ -76,7 +76,7 @@ function Requests() {
   });
 
   const update = useMutation({
-    mutationFn: (input: { id: string; state: RecordState }) =>
+    mutationFn: (input: { id: string; state: RecordState; expectedUpdatedAt: string }) =>
       updateServiceRequest({ data: input }),
     onSuccess: async () => {
       toast.success("Request updated.");
@@ -220,6 +220,16 @@ function Requests() {
                   <div className="mt-2">
                     <StateBadge state={selected.state} />
                   </div>
+                  {selected.approval_status === "requested" ? (
+                    <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+                      Awaiting approval from every assigned approver. Fulfillment starts after all
+                      decisions are approved.
+                    </p>
+                  ) : selected.approval_status === "rejected" ? (
+                    <p className="mt-3 rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
+                      This request was rejected. Submit a new request if the requirements change.
+                    </p>
+                  ) : null}
                 </div>
                 <dl className="grid grid-cols-2 gap-3 text-xs">
                   <div>
@@ -240,7 +250,7 @@ function Requests() {
                   </div>
                 </dl>
 
-                {manager ? (
+                {manager && ["approved", "not_required"].includes(selected.approval_status) ? (
                   <div className="flex flex-wrap gap-2 rounded-md border border-border bg-background p-3">
                     {(["open", "in_progress", "resolved", "closed"] as RecordState[]).map(
                       (state) => (
@@ -248,8 +258,14 @@ function Requests() {
                           key={state}
                           size="sm"
                           variant="outline"
-                          onClick={() => update.mutate({ id: selected.id, state })}
-                          disabled={update.isPending}
+                          onClick={() =>
+                            update.mutate({
+                              id: selected.id,
+                              state,
+                              expectedUpdatedAt: selected.updated_at,
+                            })
+                          }
+                          disabled={update.isPending || selected.state === state}
                         >
                           {STATE_LABELS[state]}
                         </Button>

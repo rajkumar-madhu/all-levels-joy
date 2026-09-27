@@ -43,6 +43,7 @@ export function RecordActivity({
 
         <div className="space-y-2">
           <Textarea
+            aria-label="Record note"
             value={body}
             onChange={(event) => setBody(event.target.value)}
             placeholder="Add a work note or customer update"
@@ -69,6 +70,11 @@ export function RecordActivity({
           </div>
         </div>
 
+        {activity.isError ? (
+          <p role="alert" className="text-sm text-destructive">
+            Activity could not be loaded. Refresh to try again.
+          </p>
+        ) : null}
         <ol className="space-y-2">
           {(activity.data?.comments ?? []).map((comment) => (
             <li key={comment.id} className="rounded-md border border-border bg-card p-3 text-sm">
@@ -79,7 +85,9 @@ export function RecordActivity({
               <p className="mt-1.5 whitespace-pre-wrap text-foreground">{comment.body}</p>
             </li>
           ))}
-          {(activity.data?.comments ?? []).length === 0 ? (
+          {!activity.isPending &&
+          !activity.isError &&
+          (activity.data?.comments ?? []).length === 0 ? (
             <li className="text-sm text-muted-foreground">No notes on this record yet.</li>
           ) : null}
         </ol>
@@ -98,8 +106,10 @@ export function RecordActivity({
                 <span className="text-muted-foreground">{formatDateTime(event.created_at)}</span>
               </li>
             ))}
-            {(activity.data?.audit ?? []).length === 0 ? (
-              <li className="text-muted-foreground">No audit entries recorded yet.</li>
+            {!activity.isPending &&
+            !activity.isError &&
+            (activity.data?.audit ?? []).length === 0 ? (
+              <li className="text-muted-foreground">No audit entries available to your account.</li>
             ) : null}
           </ol>
         </div>

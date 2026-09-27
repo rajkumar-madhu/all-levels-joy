@@ -317,14 +317,5 @@ export const createTicketFromChat = createServerFn({ method: "POST" })
       .eq("id", message.id)
       .eq("user_id", userId);
 
-    await supabase.from("audit_events").insert({
-      organization_id: DEMO_ORG_ID,
-      record_type: "incident",
-      record_id: incident.id,
-      actor_id: userId,
-      action: "created_from_assistant",
-      after_values: { number: incident.number },
-    });
-
     return incident;
   });

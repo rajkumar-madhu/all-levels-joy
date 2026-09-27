@@ -23,3 +23,6 @@ for migration in "$project_root"/supabase/migrations/*.sql "$project_root"/drizz
   run_sql "$migration"
 done
 run_sql "$project_root/tests/sql/incident-workflow.sql"
+run_sql "$project_root/tests/sql/workspace-access.sql"
+run_sql "$project_root/tests/sql/transactional-audit.sql"
+run_sql "$project_root/tests/sql/approval-workflow.sql"

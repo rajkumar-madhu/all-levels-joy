@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
@@ -83,6 +83,8 @@ function Incidents() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const search = Route.useSearch();
+  const currentRecordId = useRef(search.record);
+  currentRecordId.current = search.record;
 
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({
@@ -194,14 +196,17 @@ function Incidents() {
         throw new Error("Select an incident before updating it.");
       return updateIncident({ data: { ...input, expectedUpdatedAt: selected.updated_at } });
     },
-    onSuccess: async () => {
+    onSuccess: async (_result, variables) => {
       toast.success("Incident updated.");
-      setResolution("");
+      if (currentRecordId.current === variables.id) setResolution("");
       await refresh();
     },
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : "That update was not applied."),
   });
+
+  const resetUpdate = update.reset;
+  useEffect(() => resetUpdate(), [search.record, resetUpdate]);
 
   return (
     <AppShell workspace={data}>
@@ -499,7 +504,7 @@ function Incidents() {
                   <dt className="text-muted-foreground">Affected service</dt>
                   <dd className="mt-1 font-medium">
                     {reference.data?.services.find((s) => s.id === selected.service_id)?.name ??
-                      "No service linked"}
+                      (selected.service_id ? "Service details unavailable" : "No service linked")}
                   </dd>
                 </div>
                 <div>

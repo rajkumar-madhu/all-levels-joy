@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   AlertCircle,
   ArrowDownUp,
@@ -56,6 +57,7 @@ export function IncidentWorkbench(props: Props) {
   const [now, setNow] = useState(Date.now);
   const [copied, setCopied] = useState(false);
   useEffect(() => setQuery(filters.q), [filters.q]);
+  useEffect(() => setCopied(false), [filters, props.selectedId]);
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(timer);
@@ -95,7 +97,7 @@ export function IncidentWorkbench(props: Props) {
               label: "Due within 1 hour",
               icon: Clock3,
               note: "Resolution target approaching",
-              tone: "text-warning-foreground",
+              tone: "text-warning",
             },
             {
               queue: "breached",
@@ -150,6 +152,9 @@ export function IncidentWorkbench(props: Props) {
                   setCopied(true);
                 } catch {
                   setCopied(false);
+                  toast.error(
+                    "Unable to copy the link. Copy the address from your browser instead.",
+                  );
                 }
               }}
             >
@@ -290,7 +295,9 @@ export function IncidentWorkbench(props: Props) {
             <span className="ml-2 text-xs text-muted-foreground">
               {props.total !== undefined && !props.error
                 ? `${total} matching ${total === 1 ? "incident" : "incidents"}`
-                : "Loading records"}
+                : props.error
+                  ? "Records unavailable"
+                  : "Loading records"}
             </span>
           </div>
           <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -323,6 +330,11 @@ export function IncidentWorkbench(props: Props) {
             <Button variant="outline" size="sm" onClick={props.onRefresh}>
               Try again
             </Button>
+            {filters.page > 1 ? (
+              <Button variant="outline" size="sm" onClick={() => onFilters({ page: 1 })}>
+                Back to first page
+              </Button>
+            ) : null}
           </div>
         ) : props.loading ? (
           <div role="status" className="space-y-3 p-4">
@@ -356,127 +368,176 @@ export function IncidentWorkbench(props: Props) {
             ) : null}
           </div>
         ) : (
-          <div
-            className="overflow-x-auto"
-            tabIndex={0}
-            role="region"
-            aria-label="Scrollable incident results"
-            aria-busy={props.refreshing}
-          >
-            <table className="w-full min-w-[850px] text-left text-sm">
-              <caption className="sr-only">
-                {queue.label} incidents, page {filters.page}. Open an incident by its number or
-                description.
-              </caption>
-              <thead className="border-y border-border bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  {["Incident", "Priority / State", "Owner / Group", "Resolution SLA", ""].map(
-                    (heading) => (
-                      <th key={heading} scope="col" className="px-4 py-2.5 font-semibold">
-                        {heading}
-                      </th>
-                    ),
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/70">
-                {props.incidents.map((incident) => (
-                  <tr
-                    key={incident.id}
-                    className={cn(
-                      "group transition-colors hover:bg-primary/[0.025]",
-                      props.selectedId === incident.id && "bg-primary/5",
-                    )}
+          <>
+            <div
+              className="divide-y divide-border border-t border-border md:hidden"
+              aria-label="Incident cards"
+            >
+              {props.incidents.map((incident) => (
+                <article
+                  key={incident.id}
+                  className={cn("p-4", props.selectedId === incident.id && "bg-primary/5")}
+                >
+                  <button
+                    type="button"
+                    className="w-full text-left"
+                    onClick={() => props.onSelect(incident.id)}
                   >
-                    <td className="max-w-[360px] px-4 py-4">
-                      <button
-                        type="button"
-                        className="block max-w-full text-left"
-                        onClick={() => props.onSelect(incident.id)}
-                      >
-                        <span className="font-mono text-[10px] font-medium text-primary">
-                          {incident.number}
-                        </span>
-                        <span className="mt-1 block truncate text-[13px] font-medium text-foreground group-hover:text-primary">
-                          {incident.title}
-                        </span>
-                      </button>
-                      <p className="mt-1 truncate text-[11px] text-muted-foreground">
-                        {props.services.find((s) => s.id === incident.service_id)?.name ??
-                          "No service linked"}
-                        <span className="mx-1.5">·</span>
-                        {formatDateTime(incident.created_at)}
-                      </p>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-col items-start gap-1.5">
-                        <PriorityBadge priority={incident.priority} />
-                        <StateBadge state={incident.state} />
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold",
-                            incident.assignee_id
-                              ? "bg-primary/10 text-primary"
-                              : "bg-muted text-muted-foreground",
-                          )}
+                    <span className="flex items-center justify-between font-mono text-[11px] text-primary">
+                      {incident.number}
+                      <ArrowRight className="h-4 w-4" aria-hidden />
+                    </span>
+                    <span className="mt-2 block text-sm font-medium leading-snug">
+                      {incident.title}
+                    </span>
+                  </button>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    <PriorityBadge priority={incident.priority} />
+                    <StateBadge state={incident.state} />
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {ownerName(incident.assignee_id)} · {groupName(incident.group_id)}
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <SlaBadge
+                      dueAt={incident.sla_due_at}
+                      resolvedAt={incident.resolved_at}
+                      recordState={incident.state}
+                      now={now}
+                    />
+                    <span className="text-[10px] text-muted-foreground">
+                      {incident.sla_due_at
+                        ? formatDateTime(incident.sla_due_at)
+                        : "No resolution target"}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div
+              className="hidden overflow-x-auto md:block"
+              tabIndex={0}
+              role="region"
+              aria-label="Scrollable incident results"
+              aria-busy={props.refreshing}
+            >
+              <table className="w-full min-w-[850px] text-left text-sm">
+                <caption className="sr-only">
+                  {queue.label} incidents, page {filters.page}. Open an incident by its number or
+                  description.
+                </caption>
+                <thead className="border-y border-border bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    {["Incident", "Priority / State", "Owner / Group", "Resolution SLA", ""].map(
+                      (heading) => (
+                        <th key={heading} scope="col" className="px-4 py-2.5 font-semibold">
+                          {heading}
+                        </th>
+                      ),
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/70">
+                  {props.incidents.map((incident) => (
+                    <tr
+                      key={incident.id}
+                      className={cn(
+                        "group transition-colors hover:bg-primary/[0.025]",
+                        props.selectedId === incident.id && "bg-primary/5",
+                      )}
+                    >
+                      <td className="max-w-[360px] px-4 py-4">
+                        <button
+                          type="button"
+                          className="block max-w-full text-left"
+                          onClick={() => props.onSelect(incident.id)}
                         >
-                          {incident.assignee_id ? (
-                            ownerName(incident.assignee_id)
-                              .split(" ")
-                              .map((p) => p[0])
-                              .slice(0, 2)
-                              .join("")
-                          ) : (
-                            <UserRound className="h-3.5 w-3.5" />
-                          )}
-                        </span>
-                        <div>
-                          <p
+                          <span className="font-mono text-[10px] font-medium text-primary">
+                            {incident.number}
+                          </span>
+                          <span className="mt-1 block truncate text-[13px] font-medium text-foreground group-hover:text-primary">
+                            {incident.title}
+                          </span>
+                        </button>
+                        <p className="mt-1 truncate text-[11px] text-muted-foreground">
+                          {props.services.find((s) => s.id === incident.service_id)?.name ??
+                            (incident.service_id
+                              ? "Service details unavailable"
+                              : "No service linked")}
+                          <span className="mx-1.5">·</span>
+                          {formatDateTime(incident.created_at)}
+                        </p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex flex-col items-start gap-1.5">
+                          <PriorityBadge priority={incident.priority} />
+                          <StateBadge state={incident.state} />
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          <span
                             className={cn(
-                              "text-xs",
-                              !incident.assignee_id && "text-muted-foreground",
+                              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold",
+                              incident.assignee_id
+                                ? "bg-primary/10 text-primary"
+                                : "bg-muted text-muted-foreground",
                             )}
                           >
-                            {ownerName(incident.assignee_id)}
-                          </p>
-                          <p className="mt-0.5 text-[11px] text-muted-foreground">
-                            {groupName(incident.group_id)}
-                          </p>
+                            {incident.assignee_id ? (
+                              ownerName(incident.assignee_id)
+                                .split(" ")
+                                .map((p) => p[0])
+                                .slice(0, 2)
+                                .join("")
+                            ) : (
+                              <UserRound className="h-3.5 w-3.5" />
+                            )}
+                          </span>
+                          <div>
+                            <p
+                              className={cn(
+                                "text-xs",
+                                !incident.assignee_id && "text-muted-foreground",
+                              )}
+                            >
+                              {ownerName(incident.assignee_id)}
+                            </p>
+                            <p className="mt-0.5 text-[11px] text-muted-foreground">
+                              {groupName(incident.group_id)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <SlaBadge
-                        dueAt={incident.sla_due_at}
-                        resolvedAt={incident.resolved_at}
-                        recordState={incident.state}
-                        now={now}
-                      />
-                      <p className="mt-1.5 text-[11px] tabular-nums text-muted-foreground">
-                        {incident.sla_due_at
-                          ? formatDateTime(incident.sla_due_at)
-                          : "No resolution target"}
-                      </p>
-                    </td>
-                    <td className="px-2 py-4">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        aria-label={`Open ${incident.number}`}
-                        onClick={() => props.onSelect(incident.id)}
-                      >
-                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <SlaBadge
+                          dueAt={incident.sla_due_at}
+                          resolvedAt={incident.resolved_at}
+                          recordState={incident.state}
+                          now={now}
+                        />
+                        <p className="mt-1.5 text-[11px] tabular-nums text-muted-foreground">
+                          {incident.sla_due_at
+                            ? formatDateTime(incident.sla_due_at)
+                            : "No resolution target"}
+                        </p>
+                      </td>
+                      <td className="px-2 py-4">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label={`Open ${incident.number}`}
+                          onClick={() => props.onSelect(incident.id)}
+                        >
+                          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 text-xs text-muted-foreground">
           <span role="status">
