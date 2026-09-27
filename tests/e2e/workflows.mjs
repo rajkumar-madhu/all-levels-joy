@@ -50,8 +50,15 @@ export async function verifyWorkflows({
       ),
     );
     pages.push({ name, page });
-    await page.goto(`${baseURL}/auth?redirect=${encodeURIComponent(route)}`);
+    await page.goto(`${baseURL}${route}`, { waitUntil: "domcontentloaded" });
+    await page.waitForURL((url) => url.pathname === "/auth");
     await page.waitForLoadState("networkidle");
+    const destination = new URL(new URL(page.url()).searchParams.get("redirect"), baseURL);
+    const requested = new URL(route, baseURL);
+    assert.equal(destination.pathname, requested.pathname, "Sign-in preserves the requested route");
+    for (const [key, value] of requested.searchParams) {
+      assert.equal(destination.searchParams.get(key), value, `Sign-in preserves ${key}`);
+    }
     await page.getByLabel("Work email").fill(actors[name].email);
     await page.getByLabel("Password", { exact: true }).fill(actors[name].password);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
@@ -454,6 +461,12 @@ export async function verifyWorkflows({
     );
     assert.deepEqual(escapedRequests, [], "No browser request may reach a hosted Supabase");
     assert.deepEqual(pageErrors, [], "No uncaught browser runtime exceptions");
+    assert.deepEqual(
+      diagnostics.filter((message) => /hydration|Minified React error #418/i.test(message)),
+      [],
+      "Signed-out redirects and authenticated navigation must not cause hydration errors",
+    );
+    check("Protected-route sign-in preserves destinations without hydration errors");
     check("No uncaught browser exceptions and no hosted database traffic");
   } catch (error) {
     await writeFile(

@@ -49,6 +49,7 @@ Optional `PLAYWRIGHT_CHROMIUM` points at an existing compatible browser. `ITSM_E
 
 ## Authenticated browser coverage
 
+- Signed-out visits to protected pages load sign-in without hydration errors and retain the requested route, record and queue parameters after authentication.
 - Requester signs in, creates an incident, adds a public note and uploads a file through actual Storage.
 - Operator claims and reassigns the incident, progresses through work/pending/resolution/closure/reopening, and preserves/clears the correct resolution metadata.
 - Internal notes stay hidden from the requester. A peer cannot read the incident, its comments, attachment metadata or actual stored file. Operators see structured audit evidence; requesters cannot read it.
