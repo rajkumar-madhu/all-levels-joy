@@ -99,7 +99,7 @@ function AuthPage() {
     setBusy(true);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: new URL(destination, window.location.origin).href,
       });
       if (result.error) {
         toast.error(result.error.message ?? "Google sign-in was not completed.");

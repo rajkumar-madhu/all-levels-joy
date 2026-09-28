@@ -1,11 +1,11 @@
 # Core ITSM rollout notes
 
-The code and migration chain through `0007` have been validated locally. Release-specific migration results, deployed revision and live checks are recorded in the release evidence. Deploy the matching database and application changes together using the target environment's existing runner. This repository has both `supabase/migrations` and `drizzle/migrations`; applying only one directory is insufficient.
+The code and migration chain through `0009` are included in this release. Release-specific migration results, deployed revision and live checks are recorded in the release evidence. Deploy the matching database and application changes together using the target environment's existing runner. This repository has both `supabase/migrations` and `drizzle/migrations`; applying only one directory is insufficient.
 
 ## Existing-data compatibility
 
 1. Review existing memberships and roles before rollout. Earlier bootstrap code automatically provisioned elevated roles and reactivated accounts. Migration `0005` stops that behavior but preserves existing assignments because it cannot distinguish deliberate grants from automatically created grants.
-2. Provision active membership explicitly before a user signs in. Bootstrap creates only a missing profile and requester role. An invitation/admin UI and organization selection are still separate product work; no runtime service-role secret is needed for bootstrap.
+2. Use the new [Administration workspace](./itsm-administration.md) to issue controlled invitations, manage membership and roles, organize assignment groups, and edit workspace settings. Bootstrap creates only a missing profile and requester role after admission. Organization selection remains separate product work; no runtime service-role secret is needed.
 3. Review duplicate designated approvers before `0006`. Its unique index deliberately rejects duplicates instead of silently deleting decisions. This read-only query identifies them:
 
 ```sql

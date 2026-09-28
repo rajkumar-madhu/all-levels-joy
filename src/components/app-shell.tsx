@@ -20,6 +20,7 @@ import {
   Menu,
   MessageSquare,
   ScrollText,
+  Settings,
   UserCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -71,6 +72,13 @@ const navigationGroups = [
       { to: "/knowledge", label: "Knowledge", icon: BookOpen, requiresManage: false },
       { to: "/assets", label: "Assets & CMDB", icon: Boxes, requiresManage: true },
       { to: "/audit", label: "Audit trail", icon: ScrollText, requiresManage: true },
+      {
+        to: "/administration",
+        label: "Administration",
+        icon: Settings,
+        requiresManage: false,
+        requiresAdmin: true,
+      },
     ],
   },
 ] as const;
@@ -109,7 +117,9 @@ function WorkspaceNavigation({
 }) {
   const roles = (workspace?.roles ?? []) as AppRole[];
   const manager = canManage(roles);
-  const roleNames = roles.map((role) => ROLE_LABELS[role]);
+  const roleNames = [...roles]
+    .sort((first, second) => Number(second === "admin") - Number(first === "admin"))
+    .map((role) => ROLE_LABELS[role]);
   const displayName = workspace?.profile?.display_name;
   const initials = displayName
     ?.trim()
@@ -164,7 +174,11 @@ function WorkspaceNavigation({
             </p>
             <ul className="space-y-1">
               {group.items
-                .filter((item) => !item.requiresManage || manager)
+                .filter(
+                  (item) =>
+                    (!item.requiresManage || manager) &&
+                    (!("requiresAdmin" in item) || roles.includes("admin")),
+                )
                 .map((item) => {
                   const active = pathname === item.to || pathname.startsWith(`${item.to}/`);
                   return (
@@ -215,7 +229,9 @@ function WorkspaceNavigation({
               title={roleNames.join(", ")}
             >
               {workspace
-                ? roleNames.slice(0, 2).join(" · ") || "No roles assigned"
+                ? roleNames.length > 0
+                  ? `${roleNames[0]}${roleNames.length > 1 ? ` · +${roleNames.length - 1} ${roleNames.length === 2 ? "role" : "roles"}` : ""}`
+                  : "No roles assigned"
                 : "Loading profile…"}
             </span>
           </span>

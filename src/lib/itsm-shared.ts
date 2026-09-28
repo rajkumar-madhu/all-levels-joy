@@ -132,7 +132,16 @@ export function canManage(roles: AppRole[]) {
 }
 
 export function safeRedirect(path: string | undefined | null) {
-  if (!path || !path.startsWith("/") || path.startsWith("//")) return "/dashboard";
+  if (
+    !path ||
+    !path.startsWith("/") ||
+    path.startsWith("//") ||
+    path.includes("\\") ||
+    [...path].some(
+      (character) => character.charCodeAt(0) <= 0x20 || character.charCodeAt(0) === 0x7f,
+    )
+  )
+    return "/dashboard";
   return path;
 }
 

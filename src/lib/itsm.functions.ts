@@ -156,7 +156,19 @@ export const getReferenceData = createServerFn({ method: "GET" })
     const [services, groups, catalog, knowledge, assets, relationships, people] = await Promise.all(
       [
         supabase.from("services").select("*").eq("organization_id", DEMO_ORG_ID).order("name"),
-        supabase.from("groups").select("*").eq("organization_id", DEMO_ORG_ID).order("name"),
+        supabase
+          .from("groups")
+          .select("*")
+          .eq("organization_id", DEMO_ORG_ID)
+          .order("name")
+          .returns<
+            Array<
+              Database["public"]["Tables"]["groups"]["Row"] & {
+                is_active: boolean;
+                version: number;
+              }
+            >
+          >(),
         supabase
           .from("catalog_items")
           .select("*")

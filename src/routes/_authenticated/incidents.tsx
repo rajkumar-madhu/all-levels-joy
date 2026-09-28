@@ -313,8 +313,9 @@ function Incidents() {
             >
               <option value="">Leave unassigned</option>
               {(reference.data?.groups ?? []).map((group) => (
-                <option key={group.id} value={group.id}>
+                <option key={group.id} value={group.id} disabled={group.is_active === false}>
                   {group.name}
+                  {group.is_active === false ? " (archived)" : ""}
                 </option>
               ))}
             </select>
@@ -594,8 +595,9 @@ function Incidents() {
                     >
                       <option value="">No group</option>
                       {(reference.data?.groups ?? []).map((g) => (
-                        <option key={g.id} value={g.id}>
+                        <option key={g.id} value={g.id} disabled={g.is_active === false}>
                           {g.name}
+                          {g.is_active === false ? " (archived)" : ""}
                         </option>
                       ))}
                     </select>

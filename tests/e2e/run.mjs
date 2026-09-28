@@ -10,6 +10,7 @@ import postgres from "postgres";
 import { createClient } from "@supabase/supabase-js";
 import { chromium } from "playwright";
 import { verifyWorkflows } from "./workflows.mjs";
+import { verifyAdministration } from "./administration.mjs";
 
 // Deliberately uses an isolated local stack. Never reads the repository .env or
 // accepts a hosted URL/admin key. Test identities are created without sending mail.
@@ -201,6 +202,20 @@ enabled = false
     ...(process.env.PLAYWRIGHT_CHROMIUM ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM } : {}),
   });
   await verifyWorkflows({ browser, baseURL, actors, sql, org, artifacts, check, waitFor, runId });
+  await verifyAdministration({
+    browser,
+    baseURL,
+    actors,
+    sql,
+    org,
+    artifacts,
+    check,
+    waitFor,
+    runId,
+    authAdmin: admin,
+    authURL: status.API_URL,
+    anonKey: status.ANON_KEY,
+  });
   report.status = "PASS";
 } catch (error) {
   report.status = "FAIL";

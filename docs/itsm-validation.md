@@ -2,17 +2,17 @@
 
 ## Completed local validation — 28 September 2026
 
-| Check                                            | Result                                                                                                                                                        |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bun run test`                                   | PASS — 26 unit/query/schema tests, including all 49 incident state-transition pairs.                                                                          |
-| `bunx tsc --noEmit`                              | PASS.                                                                                                                                                         |
-| `bun run lint`                                   | PASS — zero errors, 15 existing Fast Refresh warnings.                                                                                                        |
-| `bun run build`                                  | PASS — production client/server output generated; bundle-size advisory remains.                                                                               |
-| `bun run test:db`                                | PASS — complete migration chain through `0007`, incident lifecycle, membership/privacy, transactional audit, approval rules and real two-session concurrency. |
-| `bun run test:ui`                                | PASS — isolated desktop/mobile component behavior, error/empty/loading states, keyboard navigation and focus restoration. Synthetic fixture.                  |
-| `bun run test:e2e`                               | PASS — actual application with local Supabase Auth, Postgres, REST and Storage; seven authenticated personas and complete incident/request/change journeys.   |
-| `git diff --check`                               | PASS.                                                                                                                                                         |
-| Hosted migration / deployment / production smoke | Release-dependent — see the deployment report for the published revision, migration ledger and live checks.                                                   |
+| Check                                            | Result                                                                                                                                                                                             |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run test`                                   | PASS — 31 unit/query/schema tests, including all 49 incident state-transition pairs.                                                                                                               |
+| `bunx tsc --noEmit`                              | PASS.                                                                                                                                                                                              |
+| `bun run lint`                                   | PASS — zero errors, 15 existing Fast Refresh warnings.                                                                                                                                             |
+| `bun run build`                                  | PASS — production client/server output generated; bundle-size and bundler-option advisories remain.                                                                                                |
+| `bun run test:db`                                | PASS — complete migration chain through `0009`, incident lifecycle, membership/privacy, approvals, administration, assignment compatibility, transactional audit and real two-session concurrency. |
+| `bun run test:ui`                                | NOT RERUN in the administration follow-up — earlier component verification passed with synthetic desktop/mobile fixtures.                                                                          |
+| `bun run test:e2e`                               | PASS — 23 checks against local Supabase Auth, Postgres, REST and Storage; core journeys plus administration access, invitations, conflict recovery and desktop/mobile behavior.                    |
+| `git diff --check`                               | PASS.                                                                                                                                                                                              |
+| Hosted migration / deployment / production smoke | Release-dependent — see the deployment report for the published revision, migration ledger and live checks.                                                                                        |
 
 ## Repeatable commands
 
@@ -32,7 +32,7 @@ Database regression checks require Docker and `postgres:16-alpine`:
 bun run test:db
 ```
 
-This suite runs a disposable PostgreSQL container with no network or published ports. It applies all Supabase and Drizzle migrations, uses minimal platform shims for auth/storage, executes all four SQL suites and removes the container. Approval tests use two database connections to prove lock serialization and a single final notification. Failure injection proves audit/notification failures roll back parent records, decisions and earlier evidence writes together.
+This suite runs a disposable PostgreSQL container with no network or published ports. It applies all Supabase and Drizzle migrations, uses minimal platform shims for auth/storage, executes all six SQL suites and removes the container. Approval tests use two database connections to prove lock serialization and a single final notification. Failure injection proves audit/notification failures roll back parent records, decisions and earlier evidence writes together.
 
 For the actual authenticated application:
 
@@ -59,6 +59,11 @@ Optional `PLAYWRIGHT_CHROMIUM` points at an existing compatible browser. `ITSM_E
 - Browser rejection cancels the parent and remaining approval tasks. Later approval cannot revive it.
 - Change manager raises a normal change, two CAB members approve it, then implementation, delivery evidence and closure complete through the actual screens.
 - Uninvited and deactivated identities see an explicit access error. API checks confirm no records, membership reactivation, self-enrollment or implicit operational-role grants.
+- Non-administrators cannot open administration or call its RPCs. The last active administrator cannot remove their own administrator role.
+- Invitations created before the account exists can be accepted after verified sign-in. Wrong-email acceptance, replay and revoked invitations are rejected; accepted roles and transactional audit are checked.
+- Two browser sessions make conflicting membership edits. The stale update fails; cancelling and reopening loads current roles and allows an explicit save without a page reload. Assignment group and workspace settings conflicts have the same recovery checks.
+- Member deactivation blocks access and explicit reactivation restores it. Groups retain membership when archived, and archived options are disabled for new incident assignments.
+- Administration renders at desktop and 390px mobile widths, including invitations and navigation, without horizontal document overflow.
 - No uncaught browser runtime exceptions or hosted Supabase traffic occur.
 
 ## Component-only browser coverage
