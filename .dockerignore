@@ -1,0 +1,16 @@
+.git
+.claude
+.env
+.env.*
+node_modules
+.output
+.nitro
+.tanstack
+.vinxi
+.wrangler
+dist
+dist-ssr
+artifacts
+*.local
+*.log
+.DS_Store
