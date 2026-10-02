@@ -257,6 +257,8 @@ export type Database = {
           approval_required: boolean
           category: string
           created_at: string
+          default_group_id: string | null
+          default_priority: number
           delivery_days: number
           description: string | null
           id: string
@@ -269,6 +271,8 @@ export type Database = {
           approval_required?: boolean
           category: string
           created_at?: string
+          default_group_id?: string | null
+          default_priority?: number
           delivery_days?: number
           description?: string | null
           id?: string
@@ -281,6 +285,8 @@ export type Database = {
           approval_required?: boolean
           category?: string
           created_at?: string
+          default_group_id?: string | null
+          default_priority?: number
           delivery_days?: number
           description?: string | null
           id?: string
@@ -289,6 +295,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "catalog_items_default_group_id_fkey"
+            columns: ["default_group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "catalog_items_organization_id_fkey"
             columns: ["organization_id"]
@@ -1436,6 +1449,7 @@ export type Database = {
           id: string
           number: string
           organization_id: string
+          priority: number
           requested_for_id: string | null
           requester_id: string
           state: Database["public"]["Enums"]["record_state"]
@@ -1453,6 +1467,7 @@ export type Database = {
           id?: string
           number: string
           organization_id: string
+          priority?: number
           requested_for_id?: string | null
           requester_id: string
           state?: Database["public"]["Enums"]["record_state"]
@@ -1470,6 +1485,7 @@ export type Database = {
           id?: string
           number?: string
           organization_id?: string
+          priority?: number
           requested_for_id?: string | null
           requester_id?: string
           state?: Database["public"]["Enums"]["record_state"]

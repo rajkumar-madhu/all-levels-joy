@@ -58,7 +58,13 @@ export const approvalDecisionSchema = z
     }
   });
 
-export const createdApprovalSubjectSchema = z.object({ id: uuid, number: z.string().min(1) });
+export const createdApprovalSubjectSchema = z.object({
+  id: uuid,
+  number: z.string().min(1),
+  groupName: z.string().nullish(),
+  dueAt: z.string().nullish(),
+  priority: z.number().nullish(),
+});
 export type ChangeInput = Omit<z.input<typeof changeInputSchema>, "changeType" | "risk"> & {
   changeType: string;
   risk: string;

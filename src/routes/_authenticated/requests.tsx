@@ -43,6 +43,13 @@ export const Route = createFileRoute("/_authenticated/requests")({
   component: Requests,
 });
 
+const REQUEST_PRIORITY: Record<number, string> = {
+  1: "Critical",
+  2: "High",
+  3: "Moderate",
+  4: "Low",
+};
+
 function Requests() {
   const workspace = useWorkspace();
   const reference = useQuery(referenceQuery());
@@ -57,8 +64,25 @@ function Requests() {
   const data = workspace.data;
   const roles = (data?.roles ?? []) as AppRole[];
   const manager = canManage(roles);
-  const requests = data?.requests ?? [];
-  const selected = requests.find((item) => item.id === search.record) ?? null;
+  const allRequests = data?.requests ?? [];
+  const [view, setView] = useState<"all" | "unassigned" | "at_risk" | "breached">("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [groupFilter, setGroupFilter] = useState("all");
+  const groups = reference.data?.groups ?? [];
+  const groupName = (id: string | null) => groups.find((g) => g.id === id)?.name ?? "Unassigned";
+  const nowMs = Date.now();
+  const active = (state: string) => ["new", "open", "in_progress", "pending"].includes(state);
+  const requests = allRequests.filter((r) => {
+    const due = r.due_at ? new Date(r.due_at).getTime() : null;
+    if (view === "unassigned" && r.group_id) return false;
+    if (view === "breached" && !(active(r.state) && due !== null && due < nowMs)) return false;
+    if (view === "at_risk" && !(active(r.state) && due !== null && due >= nowMs && due - nowMs <= 86400000))
+      return false;
+    if (priorityFilter !== "all" && String(r.priority) !== priorityFilter) return false;
+    if (groupFilter !== "all" && r.group_id !== groupFilter) return false;
+    return true;
+  });
+  const selected = allRequests.find((item) => item.id === search.record) ?? null;
   const catalog = reference.data?.catalog ?? [];
 
   const create = useMutation({
@@ -159,7 +183,7 @@ function Requests() {
         <div className="mt-6">
           <WorkspaceLoading />
         </div>
-      ) : requests.length === 0 ? (
+      ) : allRequests.length === 0 ? (
         <div className="mt-6">
           <EmptyState
             title="No service requests yet"
@@ -167,13 +191,63 @@ function Requests() {
           />
         </div>
       ) : (
-        <div className="mt-6 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
+        <>
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          {(
+            [
+              ["all", "All"],
+              ["unassigned", "Unassigned team"],
+              ["at_risk", "At risk"],
+              ["breached", "Breached"],
+            ] as const
+          ).map(([value, label]) => (
+            <Button
+              key={value}
+              size="sm"
+              variant={view === value ? "default" : "outline"}
+              aria-pressed={view === value}
+              onClick={() => setView(value)}
+            >
+              {label}
+            </Button>
+          ))}
+          <select
+            aria-label="Priority"
+            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+          >
+            <option value="all">All priorities</option>
+            {Object.entries(REQUEST_PRIORITY).map(([v, l]) => (
+              <option key={v} value={v}>
+                {l}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Team"
+            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            value={groupFilter}
+            onChange={(e) => setGroupFilter(e.target.value)}
+          >
+            <option value="all">All teams</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+          <span className="text-xs text-muted-foreground">{requests.length} shown</span>
+        </div>
+        <div className="mt-4 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
           <div className="overflow-x-auto rounded-lg border border-border bg-card">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="px-4 py-2.5 font-medium">Number</th>
                   <th className="px-4 py-2.5 font-medium">Request</th>
+                  <th className="px-4 py-2.5 font-medium">Priority</th>
+                  <th className="px-4 py-2.5 font-medium">Team</th>
                   <th className="px-4 py-2.5 font-medium">State</th>
                   <th className="px-4 py-2.5 font-medium">Due</th>
                 </tr>
@@ -196,6 +270,10 @@ function Requests() {
                       </button>
                     </td>
                     <td className="px-4 py-2.5 text-foreground">{request.title}</td>
+                    <td className="px-4 py-2.5 text-xs">{REQUEST_PRIORITY[request.priority] ?? "—"}</td>
+                    <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                      {groupName(request.group_id)}
+                    </td>
                     <td className="px-4 py-2.5">
                       <StateBadge state={request.state} />
                     </td>
@@ -288,6 +366,7 @@ function Requests() {
             )}
           </aside>
         </div>
+        </>
       )}
     </AppShell>
   );
