@@ -8,6 +8,7 @@ import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { StateBadge } from "@/components/status-badge";
 import { RecordActivity } from "@/components/record-activity";
+import { RequestTasks } from "@/components/request-tasks";
 import { createServiceRequest, updateServiceRequest } from "@/lib/itsm.functions";
 import { referenceQuery } from "@/lib/workspace-queries";
 import {
@@ -272,6 +273,10 @@ function Requests() {
                       ),
                     )}
                   </div>
+                ) : null}
+
+                {manager && ["approved", "not_required"].includes(selected.approval_status) ? (
+                  <RequestTasks requestId={selected.id} canWork />
                 ) : null}
 
                 <RecordActivity
