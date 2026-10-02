@@ -945,3 +945,25 @@ export const getIncidentMetrics = createServerFn({ method: "GET" })
   });
 
 export { createServiceRequest, createChange, decideApproval } from "./approval.functions";
+
+export const updateCatalogRouting = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { id: string; groupId: string | null; priority: number }) =>
+    z
+      .object({ id: uuid, groupId: uuid.nullable(), priority: z.number().int().min(1).max(4) })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    requireRoles(await loadRoles(supabase, userId), ["manager", "admin"]);
+    const { data: updated, error } = await supabase
+      .from("catalog_items")
+      .update({ default_group_id: data.groupId, default_priority: data.priority })
+      .eq("organization_id", DEMO_ORG_ID)
+      .eq("id", data.id)
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!updated) throw new Error("That catalogue item could not be updated.");
+    return { ok: true };
+  });
