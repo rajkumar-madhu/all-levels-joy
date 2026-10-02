@@ -129,7 +129,7 @@ export const saveGroup = createServerFn({ method: "POST" })
       "itsm_admin_save_group",
       {
         _org_id: DEMO_ORG_ID,
-        _group_id: data.groupId,
+        _group_id: data.groupId as string,
         _name: data.name,
         _description: data.description,
         _is_active: data.isActive,
