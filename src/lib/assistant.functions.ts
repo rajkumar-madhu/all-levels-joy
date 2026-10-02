@@ -167,6 +167,16 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       )
       .join("\n\n---\n\n");
 
+    const { data: catalogItems } = await supabase
+      .from("catalog_items")
+      .select("id, name, category, description")
+      .eq("organization_id", DEMO_ORG_ID)
+      .eq("active", true)
+      .limit(60);
+    const catalogText = (catalogItems ?? [])
+      .map((item) => `- ${item.name} [${item.category}]: ${item.description ?? ""} → [Request ${item.name}](/catalog?item=${item.id})`)
+      .join("\n");
+
     const { streamText, Output, NoObjectGeneratedError } = await import("ai");
     const { createOpenAI } = await import("@ai-sdk/openai");
     const { createLovableAiGatewayRunIdFetch } = await import("@/lib/ai-gateway.server");
@@ -187,6 +197,8 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       "Propose a ticket (needsTicket true) when the problem is not self-serviceable, is urgent, affects multiple people, or the user asks to log it. Never claim a ticket was created — the user must confirm it.",
       "Impact and urgency are 1 (high), 2 (medium) or 3 (low). Category must be one of network, hardware, software, database, inquiry.",
       "Keep replies under 200 words and use markdown.",
+      "When the user needs something new (access, software, hardware, accounts) rather than fixing something broken, point them to the matching service catalogue item using its markdown link instead of proposing an incident. For broken things they can also self-report at [Report an issue](/catalog).",
+      catalogText ? `Service catalogue:\n${catalogText}` : "Service catalogue: (empty)",
       knowledge ? `Knowledge base:\n${knowledge}` : "Knowledge base: (none published yet)",
     ].join("\n\n");
 
