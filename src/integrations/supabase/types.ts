@@ -298,6 +298,54 @@ export type Database = {
           },
         ]
       }
+      change_links: {
+        Row: {
+          change_id: string
+          created_at: string
+          id: string
+          linked_by: string | null
+          organization_id: string
+          record_id: string
+          record_type: string
+          relation: string
+        }
+        Insert: {
+          change_id: string
+          created_at?: string
+          id?: string
+          linked_by?: string | null
+          organization_id: string
+          record_id: string
+          record_type: string
+          relation?: string
+        }
+        Update: {
+          change_id?: string
+          created_at?: string
+          id?: string
+          linked_by?: string | null
+          organization_id?: string
+          record_id?: string
+          record_type?: string
+          relation?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_links_change_id_fkey"
+            columns: ["change_id"]
+            isOneToOne: false
+            referencedRelation: "changes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "change_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       changes: {
         Row: {
           actual_end_at: string | null
