@@ -140,7 +140,7 @@ function WorkspaceNavigation({
           aria-label="WeCrew ITSM dashboard"
         >
           <span
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand font-mono text-lg font-semibold text-sidebar"
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#00B87A] to-[#007B58] font-mono text-lg font-bold text-white"
             aria-hidden
           >
             W
@@ -191,7 +191,7 @@ function WorkspaceNavigation({
                         className={cn(
                           "relative flex min-h-10 items-center gap-3 rounded-md px-3 py-2 text-[13px] transition-colors focus-visible:outline-sidebar-ring",
                           active
-                            ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground before:absolute before:inset-y-2.5 before:left-0 before:w-0.5 before:rounded-full before:bg-sidebar-ring"
+                            ? "bg-[#00B87A]/15 font-semibold text-[#00E59A] before:absolute before:inset-y-2.5 before:left-0 before:w-0.5 before:rounded-full before:bg-[#00B87A]"
                             : "text-sidebar-foreground/80 hover:bg-white/5 hover:text-white",
                         )}
                       >
