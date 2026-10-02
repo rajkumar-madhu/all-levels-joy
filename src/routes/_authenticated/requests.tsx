@@ -359,6 +359,7 @@ function Requests() {
             )}
           </aside>
         </div>
+        </>
       )}
     </AppShell>
   );
