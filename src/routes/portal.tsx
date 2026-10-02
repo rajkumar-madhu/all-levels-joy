@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { getPortal, postPortalReply } from "@/lib/portal.functions";
+import { getPortal, postPortalReply, submitPortalTicket } from "@/lib/portal.functions";
 import { StateBadge } from "@/components/status-badge";
 import { formatDateTime, priorityLabel, type RecordState } from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
@@ -65,14 +65,29 @@ function PortalSignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
   return (
     <div className="mx-auto max-w-sm rounded-lg border border-border bg-card p-6">
-      <h1 className="text-xl font-semibold text-foreground">Sign in to track your tickets</h1>
+      <h1 className="text-xl font-semibold text-foreground">
+        {mode === "signin" ? "Sign in to the service desk" : "Create a support account"}
+      </h1>
+      <p className="mt-1 text-sm text-muted-foreground">Submit new tickets and track the ones you've raised.</p>
       <form
         className="mt-5 space-y-4"
         onSubmit={async (e) => {
           e.preventDefault();
           setBusy(true);
+          if (mode === "signup") {
+            const { error } = await supabase.auth.signUp({
+              email,
+              password,
+              options: { emailRedirectTo: `${window.location.origin}/portal` },
+            });
+            setBusy(false);
+            if (error) toast.error(error.message);
+            else toast.success("Check your email to confirm your account, then sign in.");
+            return;
+          }
           const { error } = await supabase.auth.signInWithPassword({ email, password });
           setBusy(false);
           if (error) toast.error(error.message);
@@ -87,8 +102,15 @@ function PortalSignIn() {
           <Input id="p-pass" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         <Button type="submit" className="w-full" disabled={busy}>
-          Sign in
+          {mode === "signin" ? "Sign in" : "Create account"}
         </Button>
+        <button
+          type="button"
+          className="w-full text-sm text-primary underline-offset-4 hover:underline"
+          onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+        >
+          {mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}
+        </button>
         <Button
           type="button"
           variant="outline"
@@ -121,7 +143,8 @@ function Tickets() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">Your tickets</h1>
+      <NewTicket onCreated={(id) => setOpen(id)} />
+      <h1 className="mt-8 text-2xl font-semibold text-foreground">Your tickets</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         {all.length} ticket{all.length === 1 ? "" : "s"} raised by you.
       </p>
@@ -250,5 +273,93 @@ function Field({ label, value }: { label: string; value: string }) {
       <dt className="text-muted-foreground">{label}</dt>
       <dd className="mt-0.5 capitalize text-foreground">{value}</dd>
     </div>
+  );
+}
+
+function NewTicket({ onCreated }: { onCreated: (id: string) => void }) {
+  const qc = useQueryClient();
+  const [show, setShow] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [impact, setImpact] = useState(3);
+  const [urgency, setUrgency] = useState(3);
+  const submit = useMutation({
+    mutationFn: () =>
+      submitPortalTicket({ data: { title, description, impact, urgency, category: category || null } }),
+    onSuccess: async (t) => {
+      toast.success(`Ticket ${t.number} submitted.`);
+      setTitle("");
+      setDescription("");
+      setShow(false);
+      await qc.invalidateQueries({ queryKey: ["portal"] });
+      onCreated(t.id);
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "The ticket was not submitted."),
+  });
+  if (!show)
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-5">
+        <div>
+          <p className="font-medium text-foreground">Need help?</p>
+          <p className="text-sm text-muted-foreground">Tell us what's wrong and we'll open a ticket.</p>
+        </div>
+        <Button onClick={() => setShow(true)}>Submit a ticket</Button>
+      </div>
+    );
+  const sel = "h-9 w-full rounded-md border border-input bg-background px-2 text-sm";
+  return (
+    <form
+      className="grid gap-4 rounded-lg border border-border bg-card p-5 sm:grid-cols-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit.mutate();
+      }}
+    >
+      <h2 className="text-lg font-semibold text-foreground sm:col-span-3">Submit a ticket</h2>
+      <div className="space-y-1.5">
+        <Label htmlFor="nt-cat">Area</Label>
+        <select id="nt-cat" className={sel} value={category} onChange={(e) => setCategory(e.target.value)}>
+          <option value="">Not sure</option>
+          <option value="network">Network / VPN / Wi-Fi</option>
+          <option value="hardware">Hardware</option>
+          <option value="software">Software / apps</option>
+          <option value="database">Data / reports</option>
+          <option value="inquiry">Question</option>
+        </select>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="nt-imp">Who is affected</Label>
+        <select id="nt-imp" className={sel} value={impact} onChange={(e) => setImpact(Number(e.target.value))}>
+          <option value={3}>Just me</option>
+          <option value={2}>My team</option>
+          <option value={1}>Many people</option>
+        </select>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="nt-urg">How urgent</Label>
+        <select id="nt-urg" className={sel} value={urgency} onChange={(e) => setUrgency(Number(e.target.value))}>
+          <option value={3}>Can wait</option>
+          <option value={2}>Slowing me down</option>
+          <option value={1}>Can't work</option>
+        </select>
+      </div>
+      <div className="space-y-1.5 sm:col-span-3">
+        <Label htmlFor="nt-title">Summary</Label>
+        <Input id="nt-title" required minLength={5} maxLength={160} value={title} onChange={(e) => setTitle(e.target.value)} />
+      </div>
+      <div className="space-y-1.5 sm:col-span-3">
+        <Label htmlFor="nt-desc">Details</Label>
+        <Textarea id="nt-desc" rows={4} required minLength={5} value={description} onChange={(e) => setDescription(e.target.value)} />
+      </div>
+      <div className="flex gap-2 sm:col-span-3">
+        <Button type="submit" disabled={submit.isPending}>
+          {submit.isPending ? "Submitting…" : "Submit ticket"}
+        </Button>
+        <Button type="button" variant="ghost" onClick={() => setShow(false)}>
+          Cancel
+        </Button>
+      </div>
+    </form>
   );
 }

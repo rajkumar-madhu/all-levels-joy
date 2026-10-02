@@ -92,6 +92,10 @@ function Landing() {
             </span>
             <span className="text-sm font-semibold tracking-tight">WeCrew ITSM</span>
           </div>
+          <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/portal">Customer portal login</Link>
+          </Button>
           {signedIn ? (
             <Button asChild size="sm">
               <Link to="/dashboard">Open workspace</Link>
@@ -110,6 +114,7 @@ function Landing() {
               </Button>
             </div>
           )}
+          </div>
         </div>
       </header>
 

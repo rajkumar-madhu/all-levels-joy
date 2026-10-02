@@ -115,3 +115,29 @@ export const postPortalReply = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const submitPortalTicket = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { title: string; description: string; impact: number; urgency: number; category: string | null }) =>
+    z
+      .object({
+        title: z.string().trim().min(5).max(160),
+        description: z.string().trim().min(5).max(6000),
+        impact: z.number().int().min(1).max(3),
+        urgency: z.number().int().min(1).max(3),
+        category: z.enum(["network", "hardware", "software", "database", "inquiry"]).nullable(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: result, error } = await context.supabase.rpc("portal_submit_ticket", {
+      _org_id: DEMO_ORG_ID,
+      _title: data.title,
+      _description: data.description,
+      _impact: data.impact,
+      _urgency: data.urgency,
+      _category: data.category as string,
+    });
+    if (error) throw new Error(error.message);
+    return result as { id: string; number: string };
+  });
