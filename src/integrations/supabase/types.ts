@@ -1803,6 +1803,17 @@ export type Database = {
         Args: { _org_id: string; _prefix: string }
         Returns: string
       }
+      portal_submit_ticket: {
+        Args: {
+          _category: string
+          _description: string
+          _impact: number
+          _org_id: string
+          _title: string
+          _urgency: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role:
