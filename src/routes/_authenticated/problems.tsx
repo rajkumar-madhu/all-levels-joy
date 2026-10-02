@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -102,6 +102,20 @@ function Problems() {
   );
   const selectedId = search.record || null;
   const selected = problems.find((problem) => problem.id === selectedId) ?? null;
+
+  // Keep the investigation form in sync with the selected problem, including
+  // when the record is opened via a deep link (dashboard, command center).
+  const selectedKey = selected?.id ?? null;
+  useEffect(() => {
+    const problem = problems.find((item) => item.id === selectedKey) ?? null;
+    setInvestigation({
+      workaround: problem?.workaround ?? "",
+      rootCause: problem?.root_cause ?? "",
+      fixPlan: problem?.fix_plan ?? "",
+      resolutionNotes: problem?.resolution_notes ?? "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedKey]);
   const linkedIncidentIds = new Set(
     links.filter((link) => link.problem_id === selectedId).map((link) => link.incident_id),
   );
