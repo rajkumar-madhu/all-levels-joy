@@ -12,6 +12,7 @@ type SearchResults = {
   changes: { id: string; number: string; title: string; state: string }[];
   knowledge: { id: string; number: string; title: string; status: string }[];
   assets: { id: string; name: string }[];
+  catalog: { id: string; name: string; category: string }[];
 };
 
 export function GlobalSearch() {
@@ -48,7 +49,8 @@ export function GlobalSearch() {
       data.requests.length +
       data.changes.length +
       data.knowledge.length +
-      data.assets.length
+      data.assets.length +
+      (data.catalog?.length ?? 0)
     : 0;
 
   const go = (
@@ -103,6 +105,19 @@ export function GlobalSearch() {
             title: `${row.number} · ${row.title}`,
             meta: row.status,
             onSelect: () => go("/knowledge", row.id),
+          })),
+        },
+        {
+          label: "Service catalogue",
+          items: (data.catalog ?? []).map((row) => ({
+            key: `cat-${row.id}`,
+            title: row.name,
+            meta: `Request · ${row.category}`,
+            onSelect: () => {
+              setOpen(false);
+              setQuery("");
+              void navigate({ to: "/catalog", search: { item: row.id } });
+            },
           })),
         },
         {

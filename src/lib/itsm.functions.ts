@@ -699,7 +699,7 @@ export const searchRecords = createServerFn({ method: "GET" })
     const match = `number.ilike.${term},title.ilike.${term}`;
     const knowledgeMatch = `${match},summary.ilike.${term},category.ilike.${term},content.ilike.${term}`;
 
-    const [incidents, requests, changes, knowledge, assets] = await Promise.all([
+    const [incidents, requests, changes, knowledge, assets, catalog] = await Promise.all([
       supabase
         .from("incidents")
         .select("id, number, title, state, priority")
@@ -735,6 +735,14 @@ export const searchRecords = createServerFn({ method: "GET" })
         .ilike("name", term)
         .order("name")
         .limit(5),
+      supabase
+        .from("catalog_items")
+        .select("id, name, category")
+        .eq("organization_id", DEMO_ORG_ID)
+        .eq("active", true)
+        .or(`name.ilike.${term},category.ilike.${term},description.ilike.${term}`)
+        .order("name")
+        .limit(5),
     ]);
 
     return {
@@ -743,6 +751,7 @@ export const searchRecords = createServerFn({ method: "GET" })
       changes: changes.data ?? [],
       knowledge: knowledge.data ?? [],
       assets: assets.data ?? [],
+      catalog: catalog.data ?? [],
     };
   });
 

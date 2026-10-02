@@ -5,7 +5,9 @@ import { toast } from "sonner";
 
 import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell";
 import { PageHeader, EmptyState } from "@/components/page-header";
-import { createServiceRequest } from "@/lib/itsm.functions";
+import { createIncident, createServiceRequest } from "@/lib/itsm.functions";
+import { INCIDENT_CATEGORIES } from "@/lib/itsm-shared";
+import { z } from "zod";
 import { referenceQuery } from "@/lib/workspace-queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_authenticated/catalog")({
+  validateSearch: z.object({ item: z.string().optional(), issue: z.string().optional() }),
   head: () => ({
     meta: [
       { title: "Service catalogue — WeCrew ITSM" },
@@ -39,7 +42,8 @@ function Catalog() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const params = Route.useSearch();
+  const [selectedId, setSelectedId] = useState<string | null>(params.item ?? null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
@@ -82,7 +86,10 @@ function Catalog() {
         description="Choose a service, tell us what you need, and a request ticket is created and routed automatically."
       />
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+      <ReportIssue initialCategory={params.issue} />
+
+      <h2 className="mt-10 text-lg font-semibold text-foreground">Request something</h2>
+      <div className="mt-3 flex flex-col gap-3 sm:flex-row">
         <Input
           placeholder="Search services"
           value={search}
@@ -198,5 +205,147 @@ function Catalog() {
         </div>
       )}
     </AppShell>
+  );
+}
+
+function ReportIssue({ initialCategory }: { initialCategory?: string | undefined }) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [category, setCategory] = useState<string | null>(
+    INCIDENT_CATEGORIES.some((c) => c.value === initialCategory) ? initialCategory! : null,
+  );
+  const [subcategory, setSubcategory] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [impact, setImpact] = useState(3);
+  const [urgency, setUrgency] = useState(3);
+  const current = INCIDENT_CATEGORIES.find((c) => c.value === category);
+
+  const submit = useMutation({
+    mutationFn: () =>
+      createIncident({
+        data: {
+          title,
+          description,
+          impact,
+          urgency,
+          category,
+          subcategory: subcategory || null,
+          contactType: "self_service",
+        },
+      }),
+    onSuccess: async (incident) => {
+      toast.success(`Incident ${incident.number} created.`);
+      await queryClient.invalidateQueries({ queryKey: ["workspace"] });
+      void navigate({ to: "/incidents", search: { record: incident.id } });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "The ticket was not created."),
+  });
+
+  return (
+    <section className="mt-6">
+      <h2 className="text-lg font-semibold text-foreground">Report an issue</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Something broken? Pick an area and an incident ticket is opened for the service desk.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {INCIDENT_CATEGORIES.map((c) => (
+          <Button
+            key={c.value}
+            size="sm"
+            variant={category === c.value ? "default" : "outline"}
+            aria-pressed={category === c.value}
+            onClick={() => {
+              setCategory(category === c.value ? null : c.value);
+              setSubcategory("");
+            }}
+          >
+            {c.label}
+          </Button>
+        ))}
+      </div>
+      {current ? (
+        <form
+          className="mt-4 grid gap-4 rounded-lg border border-border bg-card p-5 sm:grid-cols-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            submit.mutate();
+          }}
+        >
+          <div className="space-y-1.5">
+            <Label htmlFor="issue-sub">What is affected</Label>
+            <select
+              id="issue-sub"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={subcategory}
+              onChange={(e) => setSubcategory(e.target.value)}
+            >
+              <option value="">Not sure</option>
+              {current.subcategories.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="issue-impact">Who is affected</Label>
+              <select
+                id="issue-impact"
+                className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                value={impact}
+                onChange={(e) => setImpact(Number(e.target.value))}
+              >
+                <option value={3}>Just me</option>
+                <option value={2}>My team</option>
+                <option value={1}>Many people</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="issue-urgency">How urgent</Label>
+              <select
+                id="issue-urgency"
+                className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                value={urgency}
+                onChange={(e) => setUrgency(Number(e.target.value))}
+              >
+                <option value={3}>Can wait</option>
+                <option value={2}>Slowing me down</option>
+                <option value={1}>Can't work</option>
+              </select>
+            </div>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="issue-title">Summary</Label>
+            <Input
+              id="issue-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              minLength={5}
+              maxLength={160}
+              required
+            />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="issue-details">What happened</Label>
+            <Textarea
+              id="issue-details"
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Error messages, when it started, what you've tried"
+              minLength={5}
+              required
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <Button type="submit" disabled={submit.isPending}>
+              {submit.isPending ? "Creating ticket…" : "Create incident ticket"}
+            </Button>
+          </div>
+        </form>
+      ) : null}
+    </section>
   );
 }
