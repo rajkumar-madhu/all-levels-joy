@@ -10,7 +10,8 @@ import { RiskBadge, StateBadge } from "@/components/status-badge";
 import { RecordActivity } from "@/components/record-activity";
 import { createChange, updateChange } from "@/lib/itsm.functions";
 import { referenceQuery } from "@/lib/workspace-queries";
-import { formatDateTime, type AppRole } from "@/lib/itsm-shared";
+import { canManage, formatDateTime, type AppRole } from "@/lib/itsm-shared";
+import { ChangeLinks } from "@/components/change-links";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -669,6 +670,7 @@ function Changes() {
                   </div>
                 ) : null}
 
+                <ChangeLinks changeId={selected.id} canEdit={canManage(roles)} />
                 <RecordActivity recordType="change" recordId={selected.id} canPostInternal />
               </div>
             )}
