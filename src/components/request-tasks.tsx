@@ -17,7 +17,8 @@ export function RequestTasks({ requestId, canWork }: { requestId: string; canWor
   const onError = (e: unknown) => toast.error(e instanceof Error ? e.message : "Not saved.");
 
   const add = useMutation({
-    mutationFn: () => addRequestTask({ data: { requestId, title, dueAt: dueAt || undefined } }),
+    mutationFn: () =>
+      addRequestTask({ data: dueAt ? { requestId, title, dueAt } : { requestId, title } }),
     onSuccess: async () => {
       setTitle("");
       setDueAt("");
