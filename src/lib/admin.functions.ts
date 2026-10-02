@@ -134,7 +134,7 @@ export const saveGroup = createServerFn({ method: "POST" })
         _description: data.description,
         _is_active: data.isActive,
         _member_ids: data.memberIds,
-        _expected_version: data.expectedVersion,
+        _expected_version: data.expectedVersion as number,
       },
     );
     if (error) throw new Error(error.message);
