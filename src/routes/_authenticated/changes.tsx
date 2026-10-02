@@ -66,6 +66,7 @@ function Changes() {
   const search = Route.useSearch();
   const [form, setForm] = useState(emptyForm);
   const [raising, setRaising] = useState(false);
+  const [reg, setReg] = useState({ q: "", type: "", risk: "", state: "" });
   const [delivery, setDelivery] = useState({
     outcome: "successful" as "successful" | "successful_with_issues" | "failed" | "rolled_back",
     validationResults: "",
@@ -87,6 +88,25 @@ function Changes() {
   const scheduledCount = changes.filter((item) => item.state === "open").length;
   const implementingCount = changes.filter((item) => item.state === "in_progress").length;
   const reviewCount = changes.filter((item) => item.state === "resolved" && !item.closed_at).length;
+  const q = reg.q.trim().toLowerCase();
+  const registerRows = changes.filter(
+    (c) =>
+      (!q || c.number.toLowerCase().includes(q) || c.title.toLowerCase().includes(q)) &&
+      (!reg.type || c.change_type === reg.type) &&
+      (!reg.risk || c.risk === reg.risk) &&
+      (!reg.state || c.state === reg.state),
+  );
+  const exportRegister = () => {
+    const cols = ["number", "title", "change_type", "risk", "approval_status", "state", "start_at", "end_at", "expected_outage_minutes", "impact_assessment", "rollback_plan"] as const;
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const csv = [cols.join(","), ...registerRows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "change-register.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   const scheduleConflict =
     form.serviceId && form.startAt && form.endAt
       ? changes.find(
@@ -400,19 +420,66 @@ function Changes() {
         </div>
       ) : (
         <div className="mt-6 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
-          <div className="overflow-x-auto rounded-lg border border-border bg-card">
+          <div className="rounded-lg border border-border bg-card">
+            <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
+              <h2 className="mr-auto text-sm font-semibold text-foreground">
+                Change register · {registerRows.length}
+              </h2>
+              <Input
+                aria-label="Search register"
+                placeholder="Search number or title"
+                className="h-8 w-44 text-xs"
+                value={reg.q}
+                onChange={(e) => setReg({ ...reg, q: e.target.value })}
+              />
+              {(
+                [
+                  ["type", ["standard", "normal", "emergency"]],
+                  ["risk", ["low", "medium", "high", "critical"]],
+                  ["state", ["new", "pending", "open", "in_progress", "resolved", "closed", "cancelled"]],
+                ] as const
+              ).map(([field, values]) => (
+                <select
+                  key={field}
+                  aria-label={`Filter by ${field}`}
+                  className="h-8 rounded-md border border-input bg-background px-2 text-xs capitalize"
+                  value={reg[field]}
+                  onChange={(e) => setReg({ ...reg, [field]: e.target.value })}
+                >
+                  <option value="">All {field === "type" ? "types" : field === "risk" ? "risks" : "states"}</option>
+                  {values.map((v) => (
+                    <option key={v} value={v}>
+                      {v.replace(/_/g, " ")}
+                    </option>
+                  ))}
+                </select>
+              ))}
+              <Button size="sm" variant="outline" onClick={exportRegister}>
+                Export CSV
+              </Button>
+            </div>
+            <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="px-4 py-2.5 font-medium">Number</th>
                   <th className="px-4 py-2.5 font-medium">Title</th>
                   <th className="px-4 py-2.5 font-medium">Type</th>
+                  <th className="px-4 py-2.5 font-medium">Risk</th>
+                  <th className="px-4 py-2.5 font-medium">Approval</th>
                   <th className="px-4 py-2.5 font-medium">State</th>
                   <th className="px-4 py-2.5 font-medium">Window</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {changes.map((change) => (
+                {registerRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                      No changes match these filters.
+                    </td>
+                  </tr>
+                ) : null}
+                {registerRows.map((change) => (
                   <tr
                     key={change.id}
                     className={change.id === search.record ? "bg-accent/40" : "hover:bg-muted/60"}
@@ -433,6 +500,12 @@ function Changes() {
                       {change.change_type}
                     </td>
                     <td className="px-4 py-2.5">
+                      <RiskBadge risk={change.risk} />
+                    </td>
+                    <td className="px-4 py-2.5 text-xs capitalize text-muted-foreground">
+                      {change.approval_status.replace(/_/g, " ")}
+                    </td>
+                    <td className="px-4 py-2.5">
                       <StateBadge state={change.state} />
                     </td>
                     <td className="px-4 py-2.5 text-xs text-muted-foreground">
@@ -442,6 +515,7 @@ function Changes() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
 
           <aside className="rounded-lg border border-border bg-card p-5">
