@@ -134,15 +134,36 @@ export const sendChatMessage = createServerFn({ method: "POST" })
 
     const { data: articles } = await supabase
       .from("knowledge_articles")
-      .select("number, title, summary, content, category")
+      .select("number, title, summary, content, category, updated_at")
       .eq("organization_id", DEMO_ORG_ID)
       .eq("status", "published")
-      .limit(12);
+      .order("updated_at", { ascending: false })
+      .limit(300);
 
-    const knowledge = (articles ?? [])
+    // Rank published staff articles by overlap with the question so the most
+    // relevant real content grounds the answer.
+    const terms = data.text
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((word) => word.length > 2);
+    const ranked = (articles ?? [])
+      .map((article) => {
+        const title = `${article.title} ${article.category}`.toLowerCase();
+        const body = `${article.summary ?? ""} ${article.content ?? ""}`.toLowerCase();
+        const score = terms.reduce(
+          (sum, term) => sum + (title.includes(term) ? 3 : 0) + (body.includes(term) ? 1 : 0),
+          0,
+        );
+        return { article, score };
+      })
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
+
+    const knowledge = ranked
       .map(
-        (article) =>
-          `${article.number} — ${article.title} [${article.category}]\n${article.summary ?? ""}\n${(article.content ?? "").slice(0, 1200)}`,
+        ({ article }) =>
+          `${article.number} — ${article.title} [${article.category}]\n${article.summary ?? ""}\n${(article.content ?? "").slice(0, 2500)}`,
       )
       .join("\n\n---\n\n");
 
@@ -161,7 +182,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     const system = [
       "You are the WeCrew IT service desk assistant for an internal ITSM workspace.",
       "Help employees troubleshoot common IT issues (VPN, Wi-Fi, email, printing, laptops, passwords, access requests, SaaS apps) with short, practical, numbered steps.",
-      "Use the knowledge base excerpts below when they apply and mention the article number you used.",
+      "Answer from the staff-written knowledge base articles below first. Follow their steps faithfully, cite the article number (e.g. KB000123) you used, and do not invent policies that contradict them. If no article covers the issue, say so briefly and give general guidance.",
       "If the issue is already resolved by a simple step, do not propose a ticket.",
       "Propose a ticket (needsTicket true) when the problem is not self-serviceable, is urgent, affects multiple people, or the user asks to log it. Never claim a ticket was created — the user must confirm it.",
       "Impact and urgency are 1 (high), 2 (medium) or 3 (low). Category must be one of network, hardware, software, database, inquiry.",
