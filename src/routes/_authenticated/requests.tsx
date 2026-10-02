@@ -43,6 +43,13 @@ export const Route = createFileRoute("/_authenticated/requests")({
   component: Requests,
 });
 
+const REQUEST_PRIORITY: Record<number, string> = {
+  1: "Critical",
+  2: "High",
+  3: "Moderate",
+  4: "Low",
+};
+
 function Requests() {
   const workspace = useWorkspace();
   const reference = useQuery(referenceQuery());
