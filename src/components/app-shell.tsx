@@ -89,6 +89,9 @@ export function useWorkspace() {
   return useQuery({
     ...workspaceQuery(),
     queryFn: async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) throw new Error("Please sign in to open the workspace.");
       // Share successful bootstrap within the signed-in query cache. Rejections
       // propagate to callers; a manual refetch can retry a failed bootstrap.
       await queryClient.fetchQuery({
