@@ -5,7 +5,75 @@ import { toast } from "sonner";
 
 import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell";
 import { PageHeader, EmptyState } from "@/components/page-header";
-import { createIncident, createServiceRequest } from "@/lib/itsm.functions";
+import {
+  createIncident,
+  createServiceRequest,
+  updateCatalogRouting,
+} from "@/lib/itsm.functions";
+
+const PRIORITY_LABELS: Record<number, string> = {
+  1: "Critical",
+  2: "High",
+  3: "Moderate",
+  4: "Low",
+};
+
+function RoutingEditor(props: {
+  itemId: string;
+  groupId: string | null;
+  priority: number;
+  groups: { id: string; name: string }[];
+}) {
+  const queryClient = useQueryClient();
+  const [groupId, setGroupId] = useState(props.groupId ?? "");
+  const [priority, setPriority] = useState(props.priority);
+  const save = useMutation({
+    mutationFn: () =>
+      updateCatalogRouting({ data: { id: props.itemId, groupId: groupId || null, priority } }),
+    onSuccess: async () => {
+      toast.success("Routing rule saved.");
+      await queryClient.invalidateQueries();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Routing was not saved."),
+  });
+  return (
+    <div className="space-y-3 rounded-md border border-border bg-background p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Routing rule
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        <select
+          aria-label="Default team"
+          className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+          value={groupId}
+          onChange={(e) => setGroupId(e.target.value)}
+        >
+          <option value="">No team</option>
+          {props.groups.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.name}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Default priority"
+          className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+          value={priority}
+          onChange={(e) => setPriority(Number(e.target.value))}
+        >
+          {[1, 2, 3, 4].map((p) => (
+            <option key={p} value={p}>
+              {PRIORITY_LABELS[p]}
+            </option>
+          ))}
+        </select>
+      </div>
+      <Button type="button" size="sm" variant="outline" disabled={save.isPending} onClick={() => save.mutate()}>
+        Save routing
+      </Button>
+    </div>
+  );
+}
 import { INCIDENT_CATEGORIES } from "@/lib/itsm-shared";
 import { z } from "zod";
 import { referenceQuery } from "@/lib/workspace-queries";
@@ -37,6 +105,7 @@ export const Route = createFileRoute("/_authenticated/catalog")({
 
 function Catalog() {
   const workspace = useWorkspace();
+  const canRoute = (workspace.data?.roles ?? []).some((r) => r === "admin" || r === "manager");
   const reference = useQuery(referenceQuery());
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -67,7 +136,15 @@ function Catalog() {
     mutationFn: () =>
       createServiceRequest({ data: { catalogItemId: selectedId!, title, description } }),
     onSuccess: async (request) => {
-      toast.success(`Ticket ${request.number} created.`);
+      toast.success(`Ticket ${request.number} created.`, {
+        description: [
+          request.groupName ? `Routed to ${request.groupName}` : "Awaiting team assignment",
+          request.priority ? PRIORITY_LABELS[request.priority] : null,
+          request.dueAt ? `target ${new Date(request.dueAt).toLocaleDateString()}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+      });
       setSelectedId(null);
       setTitle("");
       setDescription("");
@@ -199,6 +276,15 @@ function Catalog() {
                     Cancel
                   </Button>
                 </div>
+                {canRoute ? (
+                  <RoutingEditor
+                    key={selected.id}
+                    itemId={selected.id}
+                    groupId={selected.default_group_id}
+                    priority={selected.default_priority}
+                    groups={(reference.data?.groups ?? []).map((g) => ({ id: g.id, name: g.name }))}
+                  />
+                ) : null}
               </form>
             )}
           </aside>
