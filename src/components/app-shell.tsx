@@ -59,6 +59,7 @@ const navigationGroups = [
     label: "Service operations",
     items: [
       { to: "/incidents", label: "Incidents", icon: AlertTriangle, requiresManage: false },
+      { to: "/catalog", label: "Service catalogue", icon: Boxes, requiresManage: false },
       { to: "/requests", label: "Service requests", icon: ClipboardList, requiresManage: false },
       { to: "/problems", label: "Problems", icon: Bug, requiresManage: true },
       { to: "/command-center", label: "Major incident command", icon: Siren, requiresManage: true },

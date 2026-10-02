@@ -129,12 +129,12 @@ export const saveGroup = createServerFn({ method: "POST" })
       "itsm_admin_save_group",
       {
         _org_id: DEMO_ORG_ID,
-        _group_id: data.groupId,
+        _group_id: data.groupId as string,
         _name: data.name,
         _description: data.description,
         _is_active: data.isActive,
         _member_ids: data.memberIds,
-        _expected_version: data.expectedVersion,
+        _expected_version: data.expectedVersion as number,
       },
     );
     if (error) throw new Error(error.message);
