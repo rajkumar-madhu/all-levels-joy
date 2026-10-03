@@ -75,7 +75,7 @@ export const transitionSecurityFinding = createServerFn({ method: "POST" })
     }
     const { error } = await context.supabase.rpc("itsm_transition_security_finding", {
       _finding_id: data.id,
-      _action: action,
+      _action: action as string,
       _input: payload as never,
     });
     if (error) throw new Error(error.message);

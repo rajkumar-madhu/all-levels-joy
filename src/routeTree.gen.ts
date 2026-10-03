@@ -29,6 +29,7 @@ import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authentica
 import { Route as AuthenticatedProblemsRouteImport } from './routes/_authenticated/problems'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
+import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedAssistantIndexRouteImport } from './routes/_authenticated/assistant.index'
 import { Route as AuthenticatedAssistantThreadIdRouteImport } from './routes/_authenticated/assistant.$threadId'
 import { Route as ApiPublicSecurityExceptionsExpireRouteImport } from './routes/api/public/security-exceptions-expire'
@@ -137,6 +138,11 @@ const AuthenticatedRequestsRoute = AuthenticatedRequestsRouteImport.update({
   path: '/requests',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAssistantIndexRoute =
   AuthenticatedAssistantIndexRouteImport.update({
     id: '/assistant/',
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/problems': typeof AuthenticatedProblemsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
+  '/security': typeof AuthenticatedSecurityRoute
   '/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
   '/api/public/security-exceptions-expire': typeof ApiPublicSecurityExceptionsExpireRoute
   '/api/public/security-findings': typeof ApiPublicSecurityFindingsRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/problems': typeof AuthenticatedProblemsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
+  '/security': typeof AuthenticatedSecurityRoute
   '/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
   '/api/public/security-exceptions-expire': typeof ApiPublicSecurityExceptionsExpireRoute
   '/api/public/security-findings': typeof ApiPublicSecurityFindingsRoute
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/_authenticated/problems': typeof AuthenticatedProblemsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
+  '/_authenticated/security': typeof AuthenticatedSecurityRoute
   '/_authenticated/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
   '/api/public/security-exceptions-expire': typeof ApiPublicSecurityExceptionsExpireRoute
   '/api/public/security-findings': typeof ApiPublicSecurityFindingsRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/problems'
     | '/profile'
     | '/requests'
+    | '/security'
     | '/assistant/$threadId'
     | '/api/public/security-exceptions-expire'
     | '/api/public/security-findings'
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/problems'
     | '/profile'
     | '/requests'
+    | '/security'
     | '/assistant/$threadId'
     | '/api/public/security-exceptions-expire'
     | '/api/public/security-findings'
@@ -312,6 +323,7 @@ export interface FileRouteTypes {
     | '/_authenticated/problems'
     | '/_authenticated/profile'
     | '/_authenticated/requests'
+    | '/_authenticated/security'
     | '/_authenticated/assistant/$threadId'
     | '/api/public/security-exceptions-expire'
     | '/api/public/security-findings'
@@ -470,6 +482,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRequestsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/security': {
+      id: '/_authenticated/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof AuthenticatedSecurityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/assistant/': {
       id: '/_authenticated/assistant/'
       path: '/assistant'
@@ -517,6 +536,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProblemsRoute: typeof AuthenticatedProblemsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
+  AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
   AuthenticatedAssistantThreadIdRoute: typeof AuthenticatedAssistantThreadIdRoute
   AuthenticatedAssistantIndexRoute: typeof AuthenticatedAssistantIndexRoute
 }
@@ -537,6 +557,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProblemsRoute: AuthenticatedProblemsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
+  AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,
   AuthenticatedAssistantThreadIdRoute: AuthenticatedAssistantThreadIdRoute,
   AuthenticatedAssistantIndexRoute: AuthenticatedAssistantIndexRoute,
 }

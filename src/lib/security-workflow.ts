@@ -39,12 +39,11 @@ export const transitionSchema = z.discriminatedUnion("action", [
   }),
   z.object({ action: z.literal("approve"), notes: z.string().trim().max(2000).optional() }),
   z.object({ action: z.literal("reject"), notes: z.string().trim().min(1).max(2000) }),
-  z
-    .object({ action: z.literal("schedule"), windowStart: z.string(), windowEnd: z.string() })
-    .refine((d) => Date.parse(d.windowEnd) > Date.parse(d.windowStart), {
-      message: "The fix window must end after it starts.",
-      path: ["windowEnd"],
-    }),
+  z.object({
+    action: z.literal("schedule"),
+    windowStart: z.string().min(1, "Choose a window start."),
+    windowEnd: z.string().min(1, "Choose a window end."),
+  }),
   z.object({ action: z.literal("start") }),
   z.object({
     action: z.literal("deliver"),

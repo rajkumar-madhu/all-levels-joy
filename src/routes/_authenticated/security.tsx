@@ -613,7 +613,7 @@ function FindingDetail({
         </Button>
       ) : null}
 
-      <RecordActivity recordType="security_finding" recordId={f.id} />
+      <RecordActivity recordType="security_finding" recordId={f.id} canPostInternal />
     </article>
   );
 }
