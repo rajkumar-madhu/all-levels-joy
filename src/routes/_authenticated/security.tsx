@@ -243,7 +243,7 @@ function NewFinding({
   onSubmit: (d: {
     title: string;
     description: string;
-    reference?: string;
+    reference?: string | undefined;
     severity: (typeof SEVERITIES)[number];
   }) => void;
   pending: boolean;
@@ -315,7 +315,7 @@ function FindingDetail({
   incidents: { id: string; number: string; title: string }[];
   canApprove: boolean;
   canDecideException: boolean;
-  userId?: string;
+  userId: string | undefined;
   onChanged: () => Promise<void>;
 }) {
   const [form, setForm] = useState<Record<string, string>>({
@@ -364,7 +364,7 @@ function FindingDetail({
   });
   const decideEx = useMutation({
     mutationFn: (i: { id: string; decision: "approved" | "rejected" }) =>
-      decideSecurityException({ data: { ...i, notes: form["exceptionNotes"] } }),
+      decideSecurityException({ data: { ...i, notes: form["exceptionNotes"] ?? "" } }),
     onSuccess: async () => {
       toast.success("Exception decision recorded.");
       await onChanged();
