@@ -30,6 +30,7 @@ export function ChangeLinks({ changeId, canEdit }: { changeId: string; canEdit: 
       toast.success(input.linked ? "Record linked." : "Link removed.");
       setRecordId("");
       await queryClient.invalidateQueries({ queryKey: key });
+      await queryClient.invalidateQueries({ queryKey: ["incident-links"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Link was not saved."),
   });

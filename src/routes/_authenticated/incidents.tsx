@@ -8,6 +8,7 @@ import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell
 import { PageHeader } from "@/components/page-header";
 import { PriorityBadge, SlaBadge, StateBadge } from "@/components/status-badge";
 import { RecordActivity } from "@/components/record-activity";
+import { IncidentLinkedRecords } from "@/components/incident-linked-records";
 import { createIncident, updateIncident } from "@/lib/itsm.functions";
 import { IncidentWorkbench } from "@/components/incident-workbench";
 import {
@@ -744,6 +745,8 @@ function Incidents() {
                   service desk.
                 </p>
               )}
+
+              <IncidentLinkedRecords incidentId={selected.id} />
 
               <RecordActivity
                 recordType="incident"
