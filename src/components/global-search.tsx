@@ -13,6 +13,7 @@ type SearchResults = {
   knowledge: { id: string; number: string; title: string; status: string }[];
   assets: { id: string; name: string }[];
   catalog: { id: string; name: string; category: string }[];
+  security?: { id: string; number: string; title: string; state: string; severity: string }[];
 };
 
 export function GlobalSearch() {
@@ -50,11 +51,12 @@ export function GlobalSearch() {
       data.changes.length +
       data.knowledge.length +
       data.assets.length +
-      (data.catalog?.length ?? 0)
+      (data.catalog?.length ?? 0) +
+      (data.security?.length ?? 0)
     : 0;
 
   const go = (
-    to: "/incidents" | "/requests" | "/changes" | "/knowledge" | "/assets",
+    to: "/incidents" | "/requests" | "/changes" | "/knowledge" | "/assets" | "/security",
     recordId?: string,
   ) => {
     setOpen(false);
@@ -96,6 +98,15 @@ export function GlobalSearch() {
             title: `${row.number} · ${row.title}`,
             meta: STATE_LABELS[row.state as RecordState] ?? row.state,
             onSelect: () => go("/changes", row.id),
+          })),
+        },
+        {
+          label: "Security findings",
+          items: (data.security ?? []).map((row) => ({
+            key: `sec-${row.id}`,
+            title: `${row.number} · ${row.title}`,
+            meta: `${row.severity} · ${row.state.replace("_", " ")}`,
+            onSelect: () => go("/security", row.id),
           })),
         },
         {

@@ -9,6 +9,7 @@ import {
   BookOpen,
   Boxes,
   Bug,
+  ShieldAlert,
   Building2,
   CheckCheck,
   ChevronRight,
@@ -70,6 +71,7 @@ const navigationGroups = [
     items: [
       { to: "/changes", label: "Changes", icon: GitBranch, requiresManage: false },
       { to: "/approvals", label: "Approvals", icon: BadgeCheck, requiresManage: false },
+      { to: "/security", label: "Security findings", icon: ShieldAlert, requiresManage: true },
       { to: "/knowledge", label: "Knowledge", icon: BookOpen, requiresManage: false },
       { to: "/assets", label: "Assets & CMDB", icon: Boxes, requiresManage: true },
       { to: "/audit", label: "Audit trail", icon: ScrollText, requiresManage: true },
