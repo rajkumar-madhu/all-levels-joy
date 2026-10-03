@@ -72,3 +72,42 @@ export const setChangeLink = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+export const getIncidentLinks = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { incidentId: string }) => z.object({ incidentId: uuid }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const [links, incident] = await Promise.all([
+      supabase
+        .from("change_links")
+        .select("id, relation, change_id")
+        .eq("record_type", "incident")
+        .eq("record_id", data.incidentId),
+      supabase.from("incidents").select("problem_id").eq("id", data.incidentId).maybeSingle(),
+    ]);
+    if (links.error) throw new Error(links.error.message);
+    if (incident.error) throw new Error(incident.error.message);
+    const changeIds = (links.data ?? []).map((l) => l.change_id);
+    const changes = changeIds.length
+      ? await supabase.from("changes").select("id, number, title, state, risk").in("id", changeIds)
+      : { data: [], error: null };
+    if (changes.error) throw new Error(changes.error.message);
+    let problem: { id: string; number: string; title: string; state: string } | null = null;
+    if (incident.data?.problem_id) {
+      const p = await supabase
+        .from("problems")
+        .select("id, number, title, state")
+        .eq("id", incident.data.problem_id)
+        .maybeSingle();
+      if (p.error) throw new Error(p.error.message);
+      problem = p.data;
+    }
+    return {
+      changes: (links.data ?? []).flatMap((l) => {
+        const c = changes.data?.find((x) => x.id === l.change_id);
+        return c ? [{ ...c, relation: l.relation, linkId: l.id }] : [];
+      }),
+      problem,
+    };
+  });

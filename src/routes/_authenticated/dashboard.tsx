@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 
 import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell";
 import { PageHeader, EmptyState } from "@/components/page-header";
+import { SecurityMetrics } from "@/components/security-metrics";
+import { canManage } from "@/lib/itsm-shared";
 import { PriorityBadge, SlaBadge, StateBadge } from "@/components/status-badge";
 import {
   BRIDGE_STATE_LABELS,
@@ -136,6 +138,7 @@ function Dashboard() {
         title={`Good to see you, ${data?.profile?.display_name?.split(" ")[0] ?? "there"}`}
         description="Everything below reflects the records your assigned roles allow you to see."
       />
+      {canManage(roles) ? <SecurityMetrics /> : null}
 
       {workspace.isPending ? (
         <div className="mt-6">

@@ -29,8 +29,11 @@ import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authentica
 import { Route as AuthenticatedProblemsRouteImport } from './routes/_authenticated/problems'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
+import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedAssistantIndexRouteImport } from './routes/_authenticated/assistant.index'
 import { Route as AuthenticatedAssistantThreadIdRouteImport } from './routes/_authenticated/assistant.$threadId'
+import { Route as ApiPublicSecurityExceptionsExpireRouteImport } from './routes/api/public/security-exceptions-expire'
+import { Route as ApiPublicSecurityFindingsRouteImport } from './routes/api/public/security-findings'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -135,6 +138,11 @@ const AuthenticatedRequestsRoute = AuthenticatedRequestsRouteImport.update({
   path: '/requests',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAssistantIndexRoute =
   AuthenticatedAssistantIndexRouteImport.update({
     id: '/assistant/',
@@ -146,6 +154,18 @@ const AuthenticatedAssistantThreadIdRoute =
     id: '/assistant/$threadId',
     path: '/assistant/$threadId',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiPublicSecurityExceptionsExpireRoute =
+  ApiPublicSecurityExceptionsExpireRouteImport.update({
+    id: '/api/public/security-exceptions-expire',
+    path: '/api/public/security-exceptions-expire',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSecurityFindingsRoute =
+  ApiPublicSecurityFindingsRouteImport.update({
+    id: '/api/public/security-findings',
+    path: '/api/public/security-findings',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -168,7 +188,10 @@ export interface FileRoutesByFullPath {
   '/problems': typeof AuthenticatedProblemsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
+  '/security': typeof AuthenticatedSecurityRoute
   '/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
+  '/api/public/security-exceptions-expire': typeof ApiPublicSecurityExceptionsExpireRoute
+  '/api/public/security-findings': typeof ApiPublicSecurityFindingsRoute
   '/assistant/': typeof AuthenticatedAssistantIndexRoute
 }
 export interface FileRoutesByTo {
@@ -191,7 +214,10 @@ export interface FileRoutesByTo {
   '/problems': typeof AuthenticatedProblemsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/requests': typeof AuthenticatedRequestsRoute
+  '/security': typeof AuthenticatedSecurityRoute
   '/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
+  '/api/public/security-exceptions-expire': typeof ApiPublicSecurityExceptionsExpireRoute
+  '/api/public/security-findings': typeof ApiPublicSecurityFindingsRoute
   '/assistant': typeof AuthenticatedAssistantIndexRoute
 }
 export interface FileRoutesById {
@@ -216,7 +242,10 @@ export interface FileRoutesById {
   '/_authenticated/problems': typeof AuthenticatedProblemsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
+  '/_authenticated/security': typeof AuthenticatedSecurityRoute
   '/_authenticated/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
+  '/api/public/security-exceptions-expire': typeof ApiPublicSecurityExceptionsExpireRoute
+  '/api/public/security-findings': typeof ApiPublicSecurityFindingsRoute
   '/_authenticated/assistant/': typeof AuthenticatedAssistantIndexRoute
 }
 export interface FileRouteTypes {
@@ -241,7 +270,10 @@ export interface FileRouteTypes {
     | '/problems'
     | '/profile'
     | '/requests'
+    | '/security'
     | '/assistant/$threadId'
+    | '/api/public/security-exceptions-expire'
+    | '/api/public/security-findings'
     | '/assistant/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -264,7 +296,10 @@ export interface FileRouteTypes {
     | '/problems'
     | '/profile'
     | '/requests'
+    | '/security'
     | '/assistant/$threadId'
+    | '/api/public/security-exceptions-expire'
+    | '/api/public/security-findings'
     | '/assistant'
   id:
     | '__root__'
@@ -288,7 +323,10 @@ export interface FileRouteTypes {
     | '/_authenticated/problems'
     | '/_authenticated/profile'
     | '/_authenticated/requests'
+    | '/_authenticated/security'
     | '/_authenticated/assistant/$threadId'
+    | '/api/public/security-exceptions-expire'
+    | '/api/public/security-findings'
     | '/_authenticated/assistant/'
   fileRoutesById: FileRoutesById
 }
@@ -298,6 +336,8 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PortalRoute: typeof PortalRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicSecurityExceptionsExpireRoute: typeof ApiPublicSecurityExceptionsExpireRoute
+  ApiPublicSecurityFindingsRoute: typeof ApiPublicSecurityFindingsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -442,6 +482,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRequestsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/security': {
+      id: '/_authenticated/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof AuthenticatedSecurityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/assistant/': {
       id: '/_authenticated/assistant/'
       path: '/assistant'
@@ -455,6 +502,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/assistant/$threadId'
       preLoaderRoute: typeof AuthenticatedAssistantThreadIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/security-exceptions-expire': {
+      id: '/api/public/security-exceptions-expire'
+      path: '/api/public/security-exceptions-expire'
+      fullPath: '/api/public/security-exceptions-expire'
+      preLoaderRoute: typeof ApiPublicSecurityExceptionsExpireRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/security-findings': {
+      id: '/api/public/security-findings'
+      path: '/api/public/security-findings'
+      fullPath: '/api/public/security-findings'
+      preLoaderRoute: typeof ApiPublicSecurityFindingsRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -475,6 +536,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProblemsRoute: typeof AuthenticatedProblemsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
+  AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
   AuthenticatedAssistantThreadIdRoute: typeof AuthenticatedAssistantThreadIdRoute
   AuthenticatedAssistantIndexRoute: typeof AuthenticatedAssistantIndexRoute
 }
@@ -495,6 +557,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProblemsRoute: AuthenticatedProblemsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
+  AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,
   AuthenticatedAssistantThreadIdRoute: AuthenticatedAssistantThreadIdRoute,
   AuthenticatedAssistantIndexRoute: AuthenticatedAssistantIndexRoute,
 }
@@ -508,6 +571,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PortalRoute: PortalRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicSecurityExceptionsExpireRoute:
+    ApiPublicSecurityExceptionsExpireRoute,
+  ApiPublicSecurityFindingsRoute: ApiPublicSecurityFindingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1437,6 +1437,218 @@ export type Database = {
           },
         ]
       }
+      security_exceptions: {
+        Row: {
+          compensating_controls: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          expires_at: string
+          finding_id: string
+          id: string
+          justification: string
+          organization_id: string
+          previous_state: string | null
+          requested_by: string | null
+          status: string
+        }
+        Insert: {
+          compensating_controls: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          expires_at: string
+          finding_id: string
+          id?: string
+          justification: string
+          organization_id: string
+          previous_state?: string | null
+          requested_by?: string | null
+          status?: string
+        }
+        Update: {
+          compensating_controls?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          expires_at?: string
+          finding_id?: string
+          id?: string
+          justification?: string
+          organization_id?: string
+          previous_state?: string | null
+          requested_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_exceptions_finding_id_fkey"
+            columns: ["finding_id"]
+            isOneToOne: false
+            referencedRelation: "security_findings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_exceptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_findings: {
+        Row: {
+          affected_ci_ids: string[]
+          approval_notes: string | null
+          approved_at: string | null
+          approver_id: string | null
+          asset_key: string
+          change_id: string | null
+          closed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery_outcome: string | null
+          description: string
+          due_at: string
+          fix_plan: string | null
+          id: string
+          impact_assessment: string | null
+          incident_id: string | null
+          last_seen_at: string
+          number: string
+          organization_id: string
+          owner_id: string | null
+          reference: string | null
+          requester_id: string | null
+          review_notes: string | null
+          rollback_plan: string | null
+          rollback_trigger: string | null
+          rollback_used: boolean
+          scanner_name: string | null
+          service_id: string | null
+          severity: string
+          source: string
+          state: string
+          test_plan: string | null
+          title: string
+          updated_at: string
+          validation_results: string | null
+          window_end: string | null
+          window_start: string | null
+        }
+        Insert: {
+          affected_ci_ids?: string[]
+          approval_notes?: string | null
+          approved_at?: string | null
+          approver_id?: string | null
+          asset_key?: string
+          change_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_outcome?: string | null
+          description?: string
+          due_at: string
+          fix_plan?: string | null
+          id?: string
+          impact_assessment?: string | null
+          incident_id?: string | null
+          last_seen_at?: string
+          number: string
+          organization_id: string
+          owner_id?: string | null
+          reference?: string | null
+          requester_id?: string | null
+          review_notes?: string | null
+          rollback_plan?: string | null
+          rollback_trigger?: string | null
+          rollback_used?: boolean
+          scanner_name?: string | null
+          service_id?: string | null
+          severity: string
+          source?: string
+          state?: string
+          test_plan?: string | null
+          title: string
+          updated_at?: string
+          validation_results?: string | null
+          window_end?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          affected_ci_ids?: string[]
+          approval_notes?: string | null
+          approved_at?: string | null
+          approver_id?: string | null
+          asset_key?: string
+          change_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_outcome?: string | null
+          description?: string
+          due_at?: string
+          fix_plan?: string | null
+          id?: string
+          impact_assessment?: string | null
+          incident_id?: string | null
+          last_seen_at?: string
+          number?: string
+          organization_id?: string
+          owner_id?: string | null
+          reference?: string | null
+          requester_id?: string | null
+          review_notes?: string | null
+          rollback_plan?: string | null
+          rollback_trigger?: string | null
+          rollback_used?: boolean
+          scanner_name?: string | null
+          service_id?: string | null
+          severity?: string
+          source?: string
+          state?: string
+          test_plan?: string | null
+          title?: string
+          updated_at?: string
+          validation_results?: string | null
+          window_end?: string | null
+          window_start?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_findings_change_id_fkey"
+            columns: ["change_id"]
+            isOneToOne: false
+            referencedRelation: "changes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_findings_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_findings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_findings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_requests: {
         Row: {
           approval_status: string
@@ -1789,6 +2001,10 @@ export type Database = {
         Args: { _input: Json; _org_id: string }
         Returns: Json
       }
+      itsm_create_security_finding: {
+        Args: { _input: Json; _org_id: string }
+        Returns: Json
+      }
       itsm_create_service_request: {
         Args: {
           _catalog_item_id: string
@@ -1802,6 +2018,11 @@ export type Database = {
         Args: { _approval_id: string; _decision: string; _notes?: string }
         Returns: Json
       }
+      itsm_decide_security_exception: {
+        Args: { _decision: string; _exception_id: string; _notes: string }
+        Returns: Json
+      }
+      itsm_expire_security_exceptions: { Args: never; Returns: number }
       itsm_get_invitation: { Args: { _invitation_id: string }; Returns: Json }
       itsm_lock_admin_workspace: {
         Args: { _org_id: string }
@@ -1810,6 +2031,36 @@ export type Database = {
       itsm_normalize_admin_roles: {
         Args: { _roles: Database["public"]["Enums"]["app_role"][] }
         Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      itsm_request_security_exception: {
+        Args: {
+          _controls: string
+          _expires_at: string
+          _finding_id: string
+          _justification: string
+        }
+        Returns: Json
+      }
+      itsm_security_audit: {
+        Args: {
+          _action: string
+          _before: Json
+          _f: Database["public"]["Tables"]["security_findings"]["Row"]
+        }
+        Returns: undefined
+      }
+      itsm_security_due: {
+        Args: { _from: string; _severity: string }
+        Returns: string
+      }
+      itsm_security_next_number: { Args: { _org_id: string }; Returns: string }
+      itsm_transition_security_finding: {
+        Args: { _action: string; _finding_id: string; _input: Json }
+        Returns: Json
+      }
+      itsm_upsert_scanner_finding: {
+        Args: { _input: Json; _org_id: string }
+        Returns: Json
       }
       itsm_valid_admin_roles: {
         Args: { _roles: Database["public"]["Enums"]["app_role"][] }
