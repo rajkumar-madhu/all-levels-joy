@@ -134,6 +134,20 @@
       "when": 1791225127374,
       "tag": "0018_portal_reply_sla",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791226965048,
+      "tag": "0019_portal_requester_reads",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791227099424,
+      "tag": "0020_portal_reply_reopen_open",
+      "breakpoints": true
     }
   ]
 }
