@@ -824,6 +824,7 @@ export type Database = {
           reviewer_id: string | null
           status: string
           summary: string | null
+          tags: string[]
           title: string
           updated_at: string
           version: number
@@ -842,6 +843,7 @@ export type Database = {
           reviewer_id?: string | null
           status?: string
           summary?: string | null
+          tags?: string[]
           title: string
           updated_at?: string
           version?: number
@@ -860,6 +862,7 @@ export type Database = {
           reviewer_id?: string | null
           status?: string
           summary?: string | null
+          tags?: string[]
           title?: string
           updated_at?: string
           version?: number
@@ -867,6 +870,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "knowledge_articles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          organization_id: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_categories_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"

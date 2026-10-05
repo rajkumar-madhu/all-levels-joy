@@ -134,7 +134,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
 
     const { data: articles } = await supabase
       .from("knowledge_articles")
-      .select("number, title, summary, content, category, updated_at")
+      .select("id, number, title, summary, content, category, tags, updated_at")
       .eq("organization_id", DEMO_ORG_ID)
       .eq("status", "published")
       .order("updated_at", { ascending: false })
@@ -148,10 +148,17 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       .filter((word) => word.length > 2);
     const ranked = (articles ?? [])
       .map((article) => {
-        const title = `${article.title} ${article.category}`.toLowerCase();
+        const title = article.title.toLowerCase();
+        const category = article.category.toLowerCase();
+        const tags = (article.tags ?? []).map((tag) => tag.toLowerCase());
         const body = `${article.summary ?? ""} ${article.content ?? ""}`.toLowerCase();
         const score = terms.reduce(
-          (sum, term) => sum + (title.includes(term) ? 3 : 0) + (body.includes(term) ? 1 : 0),
+          (sum, term) =>
+            sum +
+            (title.includes(term) ? 3 : 0) +
+            (tags.some((tag) => tag === term || tag.split("-").includes(term)) ? 4 : 0) +
+            (category.includes(term) ? 2 : 0) +
+            (body.includes(term) ? 1 : 0),
           0,
         );
         return { article, score };
@@ -163,7 +170,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     const knowledge = ranked
       .map(
         ({ article }) =>
-          `${article.number} — ${article.title} [${article.category}]\n${article.summary ?? ""}\n${(article.content ?? "").slice(0, 2500)}`,
+          `${article.number} — ${article.title}\nCategory: ${article.category}\nTags: ${(article.tags ?? []).join(", ") || "none"}\nLink: [${article.number}](/knowledge?record=${article.id})\n${article.summary ?? ""}\n${(article.content ?? "").slice(0, 2500)}`,
       )
       .join("\n\n---\n\n");
 
@@ -192,7 +199,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     const system = [
       "You are the WeCrew IT service desk assistant for an internal ITSM workspace.",
       "Help employees troubleshoot common IT issues (VPN, Wi-Fi, email, printing, laptops, passwords, access requests, SaaS apps) with short, practical, numbered steps.",
-      "Answer from the staff-written knowledge base articles below first. Follow their steps faithfully, cite the article number (e.g. KB000123) you used, and do not invent policies that contradict them. If no article covers the issue, say so briefly and give general guidance.",
+      "Answer from the staff-written knowledge base articles below first. Follow their steps faithfully, cite each article you used with its markdown link exactly as given (e.g. [KB001094](/knowledge?record=...)), and do not invent policies that contradict them. If no article covers the issue, say plainly that there is no knowledge article for it yet, give brief general guidance, and offer to raise a ticket.",
       "If the issue is already resolved by a simple step, do not propose a ticket.",
       "Propose a ticket (needsTicket true) when the problem is not self-serviceable, is urgent, affects multiple people, or the user asks to log it. Never claim a ticket was created — the user must confirm it.",
       "Impact and urgency are 1 (high), 2 (medium) or 3 (low). Category must be one of network, hardware, software, database, inquiry.",

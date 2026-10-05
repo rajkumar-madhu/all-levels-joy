@@ -9,6 +9,7 @@ import { z } from "zod";
 import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell";
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { saveKnowledgeArticle } from "@/lib/itsm.functions";
+import { listKnowledgeCategories, saveKnowledgeCategory } from "@/lib/knowledge.functions";
 import { referenceQuery } from "@/lib/workspace-queries";
 import { formatDateTime, type AppRole } from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ const knowledgeSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
   category: fallback(z.string(), "all").default("all"),
   status: fallback(z.string(), "all").default("all"),
+  tag: fallback(z.string(), "").default(""),
 });
 
 export const Route = createFileRoute("/_authenticated/knowledge")({
@@ -48,8 +50,9 @@ const emptyArticle = {
   title: "",
   summary: "",
   content: "",
-  category: "How-to",
+  category: "",
   status: "draft",
+  tags: "",
 };
 
 function Knowledge() {
@@ -59,17 +62,30 @@ function Knowledge() {
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const [editor, setEditor] = useState<typeof emptyArticle | null>(null);
+  const [managingCategories, setManagingCategories] = useState(false);
+  const categoryQuery = useQuery({
+    queryKey: ["knowledge-categories"],
+    queryFn: () => listKnowledgeCategories(),
+  });
+  const categoryRows = categoryQuery.data ?? [];
+  const activeCategories = categoryRows.filter((row) => row.active).map((row) => row.name);
 
   const data = workspace.data;
   const roles = (data?.roles ?? []) as AppRole[];
   const canAuthor = roles.some((role) =>
     ["service_desk", "fulfiller", "manager", "admin", "change_manager"].includes(role),
   );
+  const canManageCategories = roles.some((role) =>
+    ["service_desk", "fulfiller", "change_manager", "cab_member", "cmdb_manager", "manager", "admin"].includes(role),
+  );
   const allArticles = reference.data?.knowledge ?? [];
   const visibleArticles = canAuthor
     ? allArticles
     : allArticles.filter((article) => article.status === "published");
-  const categories = [...new Set(visibleArticles.map((article) => article.category))].sort();
+  const categories = [
+    ...new Set([...activeCategories, ...visibleArticles.map((article) => article.category)]),
+  ].filter((name) => activeCategories.includes(name) || visibleArticles.some((a) => a.category === name));
+  const allTags = [...new Set(visibleArticles.flatMap((article) => article.tags ?? []))].sort();
   const safeStatus = ["all", "draft", "review", "published", "retired"].includes(search.status)
     ? search.status
     : "all";
@@ -77,15 +93,17 @@ function Knowledge() {
   const articles = visibleArticles.filter((article) => {
     const matchesQuery =
       normalizedQuery.length === 0 ||
-      [article.number, article.title, article.summary, article.category, article.content]
+      [article.number, article.title, article.summary, article.category, article.content, ...(article.tags ?? [])]
         .filter(Boolean)
         .some((value) => String(value).toLocaleLowerCase().includes(normalizedQuery));
     const matchesCategory = search.category === "all" || article.category === search.category;
     const matchesStatus = safeStatus === "all" || article.status === safeStatus;
-    return matchesQuery && matchesCategory && matchesStatus;
+    const matchesTag = !search.tag || (article.tags ?? []).includes(search.tag);
+    return matchesQuery && matchesCategory && matchesStatus && matchesTag;
   });
   const selected = visibleArticles.find((item) => item.id === search.record) ?? null;
-  const hasFilters = search.q.length > 0 || search.category !== "all" || safeStatus !== "all";
+  const hasFilters =
+    search.q.length > 0 || search.category !== "all" || safeStatus !== "all" || search.tag !== "";
 
   const updateSearch = (patch: Partial<typeof search>) => {
     void navigate({ search: (previous) => ({ ...previous, ...patch }) });
@@ -99,8 +117,12 @@ function Knowledge() {
           title: editor?.title ?? "",
           summary: editor?.summary ?? "",
           content: editor?.content ?? "",
-          category: editor?.category ?? "How-to",
+          category: editor?.category || activeCategories[0] || "General",
           status: editor?.status ?? "draft",
+          tags: (editor?.tags ?? "")
+            .split(",")
+            .map((tag) => tag.trim().toLowerCase().replace(/\s+/g, "-"))
+            .filter(Boolean),
         },
       }),
     onSuccess: async () => {
@@ -120,9 +142,16 @@ function Knowledge() {
         description="Published articles reduce repeat incidents. Drafts and reviews stay visible to authors only in listing order."
         actions={
           canAuthor ? (
-            <Button size="sm" onClick={() => setEditor(editor ? null : { ...emptyArticle })}>
-              {editor ? "Cancel" : "New article"}
-            </Button>
+            <div className="flex gap-2">
+              {canManageCategories ? (
+                <Button size="sm" variant="outline" onClick={() => setManagingCategories((v) => !v)}>
+                  {managingCategories ? "Close categories" : "Manage categories"}
+                </Button>
+              ) : null}
+              <Button size="sm" onClick={() => setEditor(editor ? null : { ...emptyArticle })}>
+                {editor ? "Cancel" : "New article"}
+              </Button>
+            </div>
           ) : null
         }
       />
@@ -174,17 +203,43 @@ function Knowledge() {
             <Button
               variant="outline"
               onClick={() =>
-                void navigate({ search: { record: "", q: "", category: "all", status: "all" } })
+                void navigate({ search: { record: "", q: "", category: "all", status: "all", tag: "" } })
               }
             >
               <X className="h-4 w-4" aria-hidden /> Clear
             </Button>
           ) : null}
         </div>
+        {allTags.length > 0 ? (
+          <div className="mt-3 flex flex-wrap gap-1.5" aria-label="Filter by tag">
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => updateSearch({ tag: search.tag === tag ? "" : tag, record: "" })}
+                className={`rounded-full border px-2 py-0.5 text-xs ${
+                  search.tag === tag
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <p className="mt-3 text-xs text-muted-foreground">
           {articles.length} {articles.length === 1 ? "article" : "articles"} found
         </p>
       </section>
+
+      {managingCategories ? (
+        <CategoryManager
+          rows={categoryRows}
+          onSaved={() => queryClient.invalidateQueries({ queryKey: ["knowledge-categories"] })}
+          onRenamed={() => queryClient.invalidateQueries({ queryKey: ["reference"] })}
+        />
+      ) : null}
 
       {editor ? (
         <form
@@ -206,12 +261,21 @@ function Knowledge() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="kb-category">Category</Label>
-            <Input
+            <select
               id="kb-category"
-              value={editor.category}
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={editor.category || activeCategories[0] || ""}
               onChange={(event) => setEditor({ ...editor, category: event.target.value })}
               required
-            />
+            >
+              {[...new Set([...activeCategories, ...(editor.category ? [editor.category] : [])])].map(
+                (name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ),
+              )}
+            </select>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="kb-status">Status</Label>
@@ -227,6 +291,15 @@ function Knowledge() {
                 </option>
               ))}
             </select>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="kb-tags">Tags (comma separated)</Label>
+            <Input
+              id="kb-tags"
+              placeholder="vpn, remote, macos"
+              value={editor.tags}
+              onChange={(event) => setEditor({ ...editor, tags: event.target.value })}
+            />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="kb-summary">Summary</Label>
@@ -300,6 +373,15 @@ function Knowledge() {
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {article.category} · updated {formatDateTime(article.updated_at)}
                   </p>
+                  {(article.tags ?? []).length > 0 ? (
+                    <p className="mt-1 flex flex-wrap gap-1">
+                      {(article.tags ?? []).map((tag) => (
+                        <span key={tag} className="rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">
+                          #{tag}
+                        </span>
+                      ))}
+                    </p>
+                  ) : null}
                 </button>
               </li>
             ))}
@@ -326,6 +408,7 @@ function Knowledge() {
                           content: selected.content,
                           category: selected.category,
                           status: selected.status,
+                          tags: (selected.tags ?? []).join(", "),
                         })
                       }
                     >
@@ -334,6 +417,19 @@ function Knowledge() {
                   ) : null}
                 </div>
                 <h2 className="mt-1 text-lg font-semibold text-foreground">{selected.title}</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {selected.category}
+                  {(selected.tags ?? []).map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => updateSearch({ tag })}
+                      className="ml-1.5 rounded-full bg-muted px-1.5 hover:bg-accent"
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                </p>
                 {selected.summary ? (
                   <p className="mt-1 text-sm text-muted-foreground">{selected.summary}</p>
                 ) : null}
@@ -346,5 +442,82 @@ function Knowledge() {
         </div>
       )}
     </AppShell>
+  );
+}
+
+function CategoryManager({
+  rows,
+  onSaved,
+  onRenamed,
+}: {
+  rows: { id: string; name: string; description: string | null; active: boolean }[];
+  onSaved: () => Promise<void>;
+  onRenamed: () => Promise<void>;
+}) {
+  const [drafts, setDrafts] = useState<Record<string, { name: string; description: string }>>({});
+  const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const save = useMutation({
+    mutationFn: (input: { id?: string | null; name: string; description?: string; active: boolean }) =>
+      saveKnowledgeCategory({ data: input }),
+    onSuccess: async () => {
+      toast.success("Category saved.");
+      setNewName("");
+      setNewDescription("");
+      await onSaved();
+      await onRenamed();
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Category was not saved."),
+  });
+  return (
+    <section className="mt-6 space-y-3 rounded-lg border border-border bg-card p-5" aria-label="Manage categories">
+      <h2 className="text-sm font-semibold text-foreground">Categories</h2>
+      <ul className="divide-y divide-border">
+        {rows.map((row) => {
+          const draft = drafts[row.id] ?? { name: row.name, description: row.description ?? "" };
+          return (
+            <li key={row.id} className="grid gap-2 py-2 sm:grid-cols-[200px_1fr_auto_auto] sm:items-center">
+              <Input
+                aria-label={`Name for ${row.name}`}
+                value={draft.name}
+                onChange={(e) => setDrafts({ ...drafts, [row.id]: { ...draft, name: e.target.value } })}
+              />
+              <Input
+                aria-label={`Description for ${row.name}`}
+                value={draft.description}
+                onChange={(e) => setDrafts({ ...drafts, [row.id]: { ...draft, description: e.target.value } })}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={save.isPending}
+                onClick={() => save.mutate({ id: row.id, name: draft.name, description: draft.description, active: row.active })}
+              >
+                Save
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={save.isPending}
+                onClick={() => save.mutate({ id: row.id, name: row.name, description: row.description ?? "", active: !row.active })}
+              >
+                {row.active ? "Retire" : "Restore"}
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+      <form
+        className="grid gap-2 sm:grid-cols-[200px_1fr_auto]"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save.mutate({ name: newName, description: newDescription, active: true });
+        }}
+      >
+        <Input aria-label="New category name" placeholder="New category" value={newName} onChange={(e) => setNewName(e.target.value)} required minLength={2} />
+        <Input aria-label="New category description" placeholder="Description" value={newDescription} onChange={(e) => setNewDescription(e.target.value)} />
+        <Button size="sm" type="submit" disabled={save.isPending}>Add category</Button>
+      </form>
+    </section>
   );
 }
