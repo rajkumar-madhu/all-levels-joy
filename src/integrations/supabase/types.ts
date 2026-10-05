@@ -2117,6 +2117,10 @@ export type Database = {
         Args: { _org_id: string; _prefix: string }
         Returns: string
       }
+      portal_reply: {
+        Args: { _body: string; _incident_id: string }
+        Returns: Json
+      }
       portal_submit_ticket: {
         Args: {
           _category: string
