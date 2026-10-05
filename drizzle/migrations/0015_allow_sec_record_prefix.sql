@@ -1,0 +1,2 @@
+ALTER TABLE public.record_counters DROP CONSTRAINT record_counters_prefix_check;
+ALTER TABLE public.record_counters ADD CONSTRAINT record_counters_prefix_check CHECK (prefix = ANY (ARRAY['INC','REQ','CHG','KB','PRB','MI','SEC']));
