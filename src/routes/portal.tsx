@@ -188,9 +188,14 @@ function TicketDetail({
   const [body, setBody] = useState("");
   const reply = useMutation({
     mutationFn: () => postPortalReply({ data: { recordType: ticket.kind, recordId: ticket.id, body } }),
-    onSuccess: async () => {
+    onSuccess: async (result) => {
       setBody("");
-      toast.success("Reply sent.");
+      const outcome = (result as { outcome?: string } | undefined)?.outcome;
+      if (outcome === "reopened") toast.success("Reply sent. Your ticket has been reopened.");
+      else if (outcome === "resumed") toast.success("Reply sent. Support is working on it again.");
+      else if (outcome === "closed")
+        toast.info("Reply saved. This ticket is closed — please open a new ticket if you still need help.");
+      else toast.success("Reply sent.");
       await queryClient.invalidateQueries({ queryKey: ["portal"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Reply was not sent."),
