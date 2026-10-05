@@ -96,9 +96,16 @@ export const postPortalReply = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const table = data.recordType === "incident" ? "incidents" : "service_requests";
+    if (data.recordType === "incident") {
+      const { data: result, error } = await supabase.rpc("portal_reply", {
+        _incident_id: data.recordId,
+        _body: data.body,
+      });
+      if (error) throw new Error(error.message);
+      return { ok: true, outcome: (result as { outcome?: string } | null)?.outcome ?? "comment" };
+    }
     const { data: own } = await supabase
-      .from(table)
+      .from("service_requests")
       .select("id")
       .eq("id", data.recordId)
       .eq("requester_id", userId)
@@ -113,7 +120,7 @@ export const postPortalReply = createServerFn({ method: "POST" })
       internal: false,
     });
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, outcome: "comment" };
   });
 
 export const submitPortalTicket = createServerFn({ method: "POST" })
