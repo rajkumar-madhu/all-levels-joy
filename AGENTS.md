@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Security findings change state only through security-definer RPCs (`itsm_*security*`); tables are read-only to staff via RLS. Why: lifecycle gates, approvals and audit stay atomic in the database.
+- Scanner findings arrive at `/api/public/security-findings` signed with HMAC (`SECURITY_SCANNER_SECRET`) and dedupe on scanner+reference+asset. Why: external callers bypass site auth.
