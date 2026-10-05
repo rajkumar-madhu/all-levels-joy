@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Import real IT articles from published docs and retire sample articles (blocked: need documentation URL)
+- [x] Knowledge base: categories, tags, 21 starter articles, sample articles retired, assistant grounded with linked citations
 - [x] Change register with filters, wired into dashboard and global search
 - [x] Linked records panel on incidents (changes + problem)
 - [x] Security findings module: findings lifecycle, risk exceptions, workspace wiring
