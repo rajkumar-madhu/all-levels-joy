@@ -282,7 +282,7 @@ function TicketProposal({
 // Internal workspace links (knowledge articles, catalogue items) open in-app;
 // anything else opens in a new tab.
 const assistantMarkdownComponents = {
-  a: ({ href, children }: { href?: string; children?: React.ReactNode }) =>
+  a: ({ href, children }: React.AnchorHTMLAttributes<HTMLAnchorElement>) =>
     href && href.startsWith("/") && !href.startsWith("//") ? (
       <Link to={href as never} className="font-medium text-primary underline">
         {children}
