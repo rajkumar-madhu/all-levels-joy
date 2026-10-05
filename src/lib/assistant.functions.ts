@@ -291,7 +291,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
         organization_id: DEMO_ORG_ID,
         user_id: userId,
         role: "assistant",
-        content: parsed?.reply ?? "",
+        content: linkKnowledgeCitations(parsed?.reply ?? "", ranked.map(({ article }) => article)),
         suggested_ticket: suggested,
       })
       .select("id")
@@ -359,3 +359,14 @@ export const createTicketFromChat = createServerFn({ method: "POST" })
 
     return incident;
   });
+
+// Turn plain article numbers the model cites into links to the article, without
+// touching numbers that are already inside a markdown link.
+function linkKnowledgeCitations(text: string, articles: { id: string; number: string }[]) {
+  let result = text;
+  for (const article of articles) {
+    const pattern = new RegExp(`(?<![\\[/=])\\b${article.number}\\b(?!\\]\\()`, "g");
+    result = result.replace(pattern, `[${article.number}](/knowledge?record=${article.id})`);
+  }
+  return result;
+}
