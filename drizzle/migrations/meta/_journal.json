@@ -127,6 +127,13 @@
       "when": 1791224793994,
       "tag": "0017_fix_request_sla_target_type",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791225127374,
+      "tag": "0018_portal_reply_sla",
+      "breakpoints": true
     }
   ]
 }

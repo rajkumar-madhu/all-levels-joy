@@ -16,7 +16,83 @@ import {
   type BridgeState,
   type RecordState,
 } from "@/lib/itsm-shared";
-import { commandCenterQuery, problemBoardQuery } from "@/lib/workspace-queries";
+import { commandCenterQuery, problemBoardQuery, referenceQuery } from "@/lib/workspace-queries";
+
+const PRIORITY_NAMES: Record<number, string> = { 1: "Critical", 2: "High", 3: "Moderate", 4: "Low" };
+
+function RequestQueues({
+  requests,
+  groups,
+}: {
+  requests: Array<{ group_id: string | null; priority: number; due_at: string | null }>;
+  groups: Array<{ id: string; name: string }>;
+}) {
+  const rows = new Map<string, { team: string; groupId: string | null; priority: number; onTrack: number; atRisk: number; breached: number }>();
+  for (const r of requests) {
+    const key = `${r.group_id ?? "none"}:${r.priority}`;
+    const row =
+      rows.get(key) ??
+      {
+        team: groups.find((g) => g.id === r.group_id)?.name ?? "Unassigned team",
+        groupId: r.group_id,
+        priority: r.priority,
+        onTrack: 0,
+        atRisk: 0,
+        breached: 0,
+      };
+    const s = slaState(r.due_at, null);
+    if (s === "breached") row.breached++;
+    else if (s === "at_risk") row.atRisk++;
+    else row.onTrack++;
+    rows.set(key, row);
+  }
+  const list = [...rows.values()].sort((a, b) => a.team.localeCompare(b.team) || a.priority - b.priority);
+  return (
+    <section className="mt-8 rounded-lg border border-border bg-card">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <h2 className="text-sm font-semibold text-foreground">Request queues</h2>
+        <Link to="/requests" className="text-xs underline underline-offset-4">
+          All requests
+        </Link>
+      </div>
+      {list.length === 0 ? (
+        <p className="px-4 py-6 text-sm text-muted-foreground">No open requests.</p>
+      ) : (
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <th className="px-4 py-2 font-semibold">Team</th>
+              <th className="px-4 py-2 font-semibold">Priority</th>
+              <th className="px-4 py-2 font-semibold">On track</th>
+              <th className="px-4 py-2 font-semibold">At risk</th>
+              <th className="px-4 py-2 font-semibold">Breached</th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((row) => (
+              <tr key={`${row.groupId}:${row.priority}`} className="border-t border-border">
+                <td className="px-4 py-2">
+                  <Link
+                    to="/requests"
+                    search={{ team: row.groupId ?? undefined, priority: String(row.priority) }}
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    {row.team}
+                  </Link>
+                </td>
+                <td className="px-4 py-2">{PRIORITY_NAMES[row.priority] ?? row.priority}</td>
+                <td className="px-4 py-2">{row.onTrack}</td>
+                <td className="px-4 py-2 text-warning">{row.atRisk}</td>
+                <td className="px-4 py-2 text-destructive">{row.breached}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
+
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -40,6 +116,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const workspace = useWorkspace();
   const problemBoard = useQuery(problemBoardQuery());
+  const reference = useQuery(referenceQuery());
   const commandCenter = useQuery(commandCenterQuery());
   const data = workspace.data;
 
@@ -182,6 +259,8 @@ function Dashboard() {
               ),
             )}
           </section>
+
+          <RequestQueues requests={openRequests} groups={reference.data?.groups ?? []} />
 
           <section className="mt-8 grid gap-6 xl:grid-cols-2">
             <div className="rounded-lg border border-border bg-card">

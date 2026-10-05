@@ -24,7 +24,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_authenticated/requests")({
-  validateSearch: z.object({ record: z.string().optional() }),
+  validateSearch: z.object({
+    record: z.string().optional(),
+    team: z.string().optional(),
+    priority: z.string().optional(),
+  }),
   head: () => ({
     meta: [
       { title: "Service requests — WeCrew ITSM" },
@@ -66,8 +70,8 @@ function Requests() {
   const manager = canManage(roles);
   const allRequests = data?.requests ?? [];
   const [view, setView] = useState<"all" | "unassigned" | "at_risk" | "breached">("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
-  const [groupFilter, setGroupFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState(search.priority ?? "all");
+  const [groupFilter, setGroupFilter] = useState(search.team ?? "all");
   const groups = reference.data?.groups ?? [];
   const groupName = (id: string | null) => groups.find((g) => g.id === id)?.name ?? "Unassigned";
   const nowMs = Date.now();
