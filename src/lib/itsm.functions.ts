@@ -510,9 +510,14 @@ export const saveKnowledgeArticle = createServerFn({ method: "POST" })
       content: string;
       category: string;
       status: string;
+      tags?: string[];
     }) =>
       z
         .object({
+          tags: z
+            .array(z.string().trim().toLowerCase().min(1).max(40).regex(/^[a-z0-9][a-z0-9-]*$/))
+            .max(12)
+            .default([]),
           id: uuid.nullish(),
           title: z.string().trim().min(5).max(160),
           summary: z.string().trim().max(400),
@@ -535,6 +540,7 @@ export const saveKnowledgeArticle = createServerFn({ method: "POST" })
           summary: data.summary,
           content: data.content,
           category: data.category,
+          tags: [...new Set(data.tags)],
           status: data.status,
           published_at: data.status === "published" ? new Date().toISOString() : null,
         })
@@ -554,6 +560,7 @@ export const saveKnowledgeArticle = createServerFn({ method: "POST" })
         summary: data.summary,
         content: data.content,
         category: data.category,
+        tags: [...new Set(data.tags)],
         status: data.status,
         author_id: userId,
         published_at: data.status === "published" ? new Date().toISOString() : null,
@@ -725,7 +732,7 @@ export const searchRecords = createServerFn({ method: "GET" })
         .from("knowledge_articles")
         .select("id, number, title, status")
         .eq("organization_id", DEMO_ORG_ID)
-        .or(knowledgeMatch)
+        .or(`${knowledgeMatch}${/^[a-z0-9-]+$/i.test(escaped) ? `,tags.cs.{${escaped.toLowerCase()}}` : ""}`)
         .order("created_at", { ascending: false })
         .limit(5),
       supabase
