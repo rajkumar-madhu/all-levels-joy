@@ -12,9 +12,11 @@
 
 ## Verification
 1. Submit a new test request through the Service catalogue. Confirm the team, priority and target date, then confirm it appears in the dashboard panel and its link opens it.
-2. Put a test incident into "awaiting caller", reply from the portal as its requester, and confirm the status goes back to In progress and the target date moves later.
-3. Resolve that incident, reply again, and confirm it reopens with a new target date.
-4. Leave the test records labelled "TEST".
+2. Sign up a new test customer through the Customer portal sign-in page. New accounts need email confirmation, so I'll confirm the test account on the backend instead of using an inbox.
+3. As that customer, submit a test ticket. Confirm it gets the next incident number, the correct team, priority and target date, and appears in your Incidents queue.
+4. Put that ticket into "awaiting caller", reply from the portal as the customer, and confirm the status goes back to In progress and the target date moves later.
+5. Resolve the ticket, reply again, and confirm it reopens with a new target date.
+6. Leave the test records and the test customer labelled "TEST".
 
 ## Technical details
 - New migration:
