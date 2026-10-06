@@ -11,7 +11,7 @@ import { PageHeader, EmptyState } from "@/components/page-header";
 import { saveKnowledgeArticle } from "@/lib/itsm.functions";
 import { listKnowledgeCategories, saveKnowledgeCategory } from "@/lib/knowledge.functions";
 import { referenceQuery } from "@/lib/workspace-queries";
-import { formatDateTime, type AppRole } from "@/lib/itsm-shared";
+import { canAuthorKnowledge, formatDateTime, type AppRole } from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

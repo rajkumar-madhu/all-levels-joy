@@ -52,6 +52,7 @@ import {
   labelOf,
   type AppRole,
   type RecordState,
+  canCreateTickets,
 } from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
