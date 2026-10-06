@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { DEMO_ORG_ID } from "@/lib/itsm-shared";
-import { nextRecordNumber } from "@/lib/record-number";
 
 const uuid = z.string().uuid();
 
@@ -327,29 +326,18 @@ export const createTicketFromChat = createServerFn({ method: "POST" })
     const suggestion = message.suggested_ticket as SuggestedTicket | null;
     if (!suggestion) throw new Error("There is no ticket proposal on this message.");
 
-    const number = await nextRecordNumber(supabase, DEMO_ORG_ID, "INC");
-    const severity = suggestion.impact + suggestion.urgency;
-    const dueHours = severity <= 2 ? 2 : severity <= 4 ? 8 : 24;
-
-    const { data: incident, error: insertError } = await supabase
-      .from("incidents")
-      .insert({
-        organization_id: DEMO_ORG_ID,
-        number,
-        title: suggestion.title,
-        description: suggestion.description,
-        impact: suggestion.impact,
-        urgency: suggestion.urgency,
-        requester_id: userId,
-        category: suggestion.category,
-        subcategory: suggestion.subcategory,
-        contact_type: "chat",
-        sla_due_at: new Date(Date.now() + dueHours * 3600_000).toISOString(),
-        state: "new",
-      })
-      .select("id, number")
-      .single();
+    const { data: created, error: insertError } = await supabase.rpc("itsm_self_service_incident", {
+      _org_id: DEMO_ORG_ID,
+      _title: suggestion.title,
+      _description: suggestion.description,
+      _impact: suggestion.impact,
+      _urgency: suggestion.urgency,
+      _category: suggestion.category ?? "",
+      _subcategory: suggestion.subcategory ?? "",
+      _contact_type: "chat",
+    });
     if (insertError) throw new Error(insertError.message);
+    const incident = created as { id: string; number: string };
 
     await supabase
       .from("ai_chat_messages")

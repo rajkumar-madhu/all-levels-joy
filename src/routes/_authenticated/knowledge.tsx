@@ -11,7 +11,7 @@ import { PageHeader, EmptyState } from "@/components/page-header";
 import { saveKnowledgeArticle } from "@/lib/itsm.functions";
 import { listKnowledgeCategories, saveKnowledgeCategory } from "@/lib/knowledge.functions";
 import { referenceQuery } from "@/lib/workspace-queries";
-import { formatDateTime, type AppRole } from "@/lib/itsm-shared";
+import { canAuthorKnowledge, formatDateTime, type AppRole } from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -72,12 +72,8 @@ function Knowledge() {
 
   const data = workspace.data;
   const roles = (data?.roles ?? []) as AppRole[];
-  const canAuthor = roles.some((role) =>
-    ["service_desk", "fulfiller", "manager", "admin", "change_manager"].includes(role),
-  );
-  const canManageCategories = roles.some((role) =>
-    ["service_desk", "fulfiller", "change_manager", "cab_member", "cmdb_manager", "manager", "admin"].includes(role),
-  );
+  const canAuthor = canAuthorKnowledge(roles);
+  const canManageCategories = canAuthor;
   const allArticles = reference.data?.knowledge ?? [];
   const visibleArticles = canAuthor
     ? allArticles

@@ -1700,6 +1700,7 @@ export type Database = {
         Row: {
           approval_status: string
           assignee_id: string | null
+          awaiting_customer_since: string | null
           catalog_item_id: string | null
           created_at: string
           description: string
@@ -1718,6 +1719,7 @@ export type Database = {
         Insert: {
           approval_status?: string
           assignee_id?: string | null
+          awaiting_customer_since?: string | null
           catalog_item_id?: string | null
           created_at?: string
           description?: string
@@ -1736,6 +1738,7 @@ export type Database = {
         Update: {
           approval_status?: string
           assignee_id?: string | null
+          awaiting_customer_since?: string | null
           catalog_item_id?: string | null
           created_at?: string
           description?: string
@@ -1975,6 +1978,7 @@ export type Database = {
         Args: { _org_id: string; _record_id: string; _record_type: string }
         Returns: boolean
       }
+      can_author_knowledge: { Args: { _org_id: string }; Returns: boolean }
       can_manage: { Args: { _org_id: string }; Returns: boolean }
       core_audit_snapshot: {
         Args: { _row: Json; _table_name: string }
@@ -2101,6 +2105,19 @@ export type Database = {
         Returns: string
       }
       itsm_security_next_number: { Args: { _org_id: string }; Returns: string }
+      itsm_self_service_incident: {
+        Args: {
+          _category: string
+          _contact_type: string
+          _description: string
+          _impact: number
+          _org_id: string
+          _subcategory: string
+          _title: string
+          _urgency: number
+        }
+        Returns: Json
+      }
       itsm_transition_security_finding: {
         Args: { _action: string; _finding_id: string; _input: Json }
         Returns: Json
@@ -2117,8 +2134,13 @@ export type Database = {
         Args: { _org_id: string; _prefix: string }
         Returns: string
       }
+      portal_allowed: { Args: never; Returns: boolean }
       portal_reply: {
         Args: { _body: string; _incident_id: string }
+        Returns: Json
+      }
+      portal_reply_request: {
+        Args: { _body: string; _request_id: string }
         Returns: Json
       }
       portal_submit_ticket: {

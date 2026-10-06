@@ -335,6 +335,44 @@ export const createIncident = createServerFn({ method: "POST" })
     return incident;
   });
 
+/** Raises a ticket on behalf of any active member (catalogue issue form). */
+export const createSelfServiceIncident = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(
+    (input: {
+      title: string;
+      description: string;
+      impact: number;
+      urgency: number;
+      category?: string | null;
+      subcategory?: string | null;
+    }) =>
+      z
+        .object({
+          title: z.string().trim().min(5).max(160),
+          description: z.string().trim().min(5).max(6000),
+          impact: z.number().int().min(1).max(3),
+          urgency: z.number().int().min(1).max(3),
+          category: z.string().trim().max(40).nullish(),
+          subcategory: z.string().trim().max(60).nullish(),
+        })
+        .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: result, error } = await context.supabase.rpc("itsm_self_service_incident", {
+      _org_id: DEMO_ORG_ID,
+      _title: data.title,
+      _description: data.description,
+      _impact: data.impact,
+      _urgency: data.urgency,
+      _category: data.category ?? "",
+      _subcategory: data.subcategory ?? "",
+      _contact_type: "self_service",
+    });
+    if (error) throw new Error(error.message);
+    return result as { id: string; number: string };
+  });
+
 export const updateIncident = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: IncidentWorkflowInput) => incidentUpdateSchema.parse(input))
@@ -384,22 +422,29 @@ export const updateIncident = createServerFn({ method: "POST" })
 
 export const updateServiceRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input: { id: string; state: string; expectedUpdatedAt: string }) =>
-    z
-      .object({
-        id: uuid,
-        expectedUpdatedAt: z.string().datetime({ offset: true }),
-        state: z.enum(["new", "open", "in_progress", "pending", "resolved", "closed", "cancelled"]),
-      })
-      .parse(input),
+  .validator(
+    (input: { id: string; state: string; expectedUpdatedAt: string; awaitingCustomer?: boolean }) =>
+      z
+        .object({
+          id: uuid,
+          expectedUpdatedAt: z.string().datetime({ offset: true }),
+          state: z.enum(["new", "open", "in_progress", "pending", "resolved", "closed", "cancelled"]),
+          awaitingCustomer: z.boolean().optional(),
+        })
+        .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const roles = await loadRoles(supabase, userId);
     requireRoles(roles, ["service_desk", "fulfiller", "manager", "admin"]);
+    const patch: { state: typeof data.state; awaiting_customer_since?: string | null } = {
+      state: data.state,
+    };
+    if (data.awaitingCustomer !== undefined)
+      patch.awaiting_customer_since = data.awaitingCustomer ? new Date().toISOString() : null;
     const { data: updated, error } = await supabase
       .from("service_requests")
-      .update({ state: data.state })
+      .update(patch)
       .eq("organization_id", DEMO_ORG_ID)
       .eq("id", data.id)
       .eq("updated_at", data.expectedUpdatedAt)
@@ -530,7 +575,7 @@ export const saveKnowledgeArticle = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const roles = await loadRoles(supabase, userId);
-    requireRoles(roles, ["service_desk", "fulfiller", "manager", "admin", "change_manager"]);
+    requireRoles(roles, ["service_desk", "fulfiller", "manager", "admin"]);
 
     if (data.id) {
       const { error } = await supabase

@@ -52,6 +52,7 @@ import {
   labelOf,
   type AppRole,
   type RecordState,
+  canCreateTickets,
 } from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -216,16 +217,18 @@ function Incidents() {
         title="Incident workspace"
         description="Triage incoming work, protect service targets, and keep every resolution accountable."
         actions={
-          <Button size="sm" onClick={() => setCreating((value) => !value)}>
-            {creating ? (
-              "Cancel"
-            ) : (
-              <>
-                <Plus className="h-4 w-4" />
-                Log incident
-              </>
-            )}
-          </Button>
+          canCreateTickets(roles) ? (
+            <Button size="sm" onClick={() => setCreating((value) => !value)}>
+              {creating ? (
+                "Cancel"
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  Log incident
+                </>
+              )}
+            </Button>
+          ) : null
         }
       />
 

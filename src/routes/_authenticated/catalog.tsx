@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell";
 import { PageHeader, EmptyState } from "@/components/page-header";
 import {
-  createIncident,
+  createSelfServiceIncident,
   createServiceRequest,
   updateCatalogRouting,
 } from "@/lib/itsm.functions";
@@ -309,7 +309,7 @@ function ReportIssue({ initialCategory }: { initialCategory?: string | undefined
 
   const submit = useMutation({
     mutationFn: () =>
-      createIncident({
+      createSelfServiceIncident({
         data: {
           title,
           description,
@@ -317,7 +317,6 @@ function ReportIssue({ initialCategory }: { initialCategory?: string | undefined
           urgency,
           category,
           subcategory: subcategory || null,
-          contactType: "self_service",
         },
       }),
     onSuccess: async (incident) => {
