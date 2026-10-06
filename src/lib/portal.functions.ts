@@ -104,23 +104,13 @@ export const postPortalReply = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return { ok: true, outcome: (result as { outcome?: string } | null)?.outcome ?? "comment" };
     }
-    const { data: own } = await supabase
-      .from("service_requests")
-      .select("id")
-      .eq("id", data.recordId)
-      .eq("requester_id", userId)
-      .maybeSingle();
-    if (!own) throw new Error("You can only reply to your own tickets.");
-    const { error } = await supabase.from("record_comments").insert({
-      organization_id: DEMO_ORG_ID,
-      record_type: data.recordType,
-      record_id: data.recordId,
-      author_id: userId,
-      body: data.body,
-      internal: false,
+    const { data: result, error } = await supabase.rpc("portal_reply_request", {
+      _request_id: data.recordId,
+      _body: data.body,
     });
     if (error) throw new Error(error.message);
-    return { ok: true, outcome: "comment" };
+    void userId;
+    return { ok: true, outcome: (result as { outcome?: string } | null)?.outcome ?? "comment" };
   });
 
 export const submitPortalTicket = createServerFn({ method: "POST" })
