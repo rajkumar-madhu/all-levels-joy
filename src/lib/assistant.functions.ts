@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { DEMO_ORG_ID } from "@/lib/itsm-shared";
-import { nextRecordNumber } from "@/lib/record-number";
 
 const uuid = z.string().uuid();
 
