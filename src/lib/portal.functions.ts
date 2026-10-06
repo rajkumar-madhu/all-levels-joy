@@ -8,11 +8,15 @@ export const getPortal = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+    const { data: allowed } = await supabase.rpc("portal_allowed");
+    if (!allowed) {
+      return { allowed: false as const, incidents: [], requests: [], comments: [], problems: [], majors: [] };
+    }
     const [incidents, requests] = await Promise.all([
       supabase
         .from("incidents")
         .select(
-          "id, number, title, description, state, priority, sla_due_at, resolved_at, resolution_notes, created_at, updated_at, problem_id",
+          "id, number, title, description, state, priority, sla_due_at, resolved_at, resolution_notes, created_at, updated_at, problem_id, on_hold_reason",
         )
         .eq("organization_id", DEMO_ORG_ID)
         .eq("requester_id", userId)

@@ -136,6 +136,16 @@ function Tickets() {
   if (query.isError)
     return <p className="text-sm text-destructive">Your tickets could not be loaded. Try again shortly.</p>;
   const d = query.data;
+  if (d.allowed === false)
+    return (
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h1 className="text-lg font-semibold text-foreground">Please use your @wecrew.in email</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          The support portal is available to confirmed @wecrew.in accounts only. Sign out and sign in with your
+          company email, then confirm it from the link we send you.
+        </p>
+      </div>
+    );
   const all = [
     ...d.incidents.map((i) => ({ ...i, kind: "incident" as const, due: i.sla_due_at })),
     ...d.requests.map((r) => ({ ...r, kind: "request" as const, due: r.due_at })),
@@ -222,6 +232,11 @@ function TicketDetail({
           <Field label="Approval" value={String(ticket["approval_status"]).replace(/_/g, " ")} />
         )}
       </dl>
+      {ticket["awaiting_customer_since"] || ticket["on_hold_reason"] === "awaiting_caller" ? (
+        <p className="rounded-md border border-warning bg-warning/10 p-3 text-sm font-medium text-foreground">
+          We need your reply — send an update below so we can keep working on this.
+        </p>
+      ) : null}
       <p className="whitespace-pre-wrap text-foreground">{ticket.description}</p>
       {ticket["resolution_notes"] ? (
         <div className="rounded-md border border-border bg-background p-3">
