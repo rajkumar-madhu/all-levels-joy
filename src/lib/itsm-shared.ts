@@ -131,6 +131,17 @@ export function canManage(roles: AppRole[]) {
   return roles.some((role) => MANAGEMENT_ROLES.includes(role));
 }
 
+/** Logging tickets from the internal Incidents page is staff-only. */
+export function canCreateTickets(roles: AppRole[]) {
+  return canManage(roles);
+}
+
+export const KNOWLEDGE_AUTHOR_ROLES: AppRole[] = ["service_desk", "fulfiller", "manager", "admin"];
+
+export function canAuthorKnowledge(roles: AppRole[]) {
+  return roles.some((role) => KNOWLEDGE_AUTHOR_ROLES.includes(role));
+}
+
 export function safeRedirect(path: string | undefined | null) {
   if (
     !path ||
