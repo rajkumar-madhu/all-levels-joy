@@ -575,7 +575,7 @@ export const saveKnowledgeArticle = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const roles = await loadRoles(supabase, userId);
-    requireRoles(roles, ["service_desk", "fulfiller", "manager", "admin", "change_manager"]);
+    requireRoles(roles, ["service_desk", "fulfiller", "manager", "admin"]);
 
     if (data.id) {
       const { error } = await supabase
