@@ -23,7 +23,9 @@ export const getPortal = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }),
       supabase
         .from("service_requests")
-        .select("id, number, title, description, state, approval_status, due_at, created_at, updated_at")
+        .select(
+          "id, number, title, description, state, approval_status, due_at, created_at, updated_at, priority, awaiting_customer_since",
+        )
         .eq("organization_id", DEMO_ORG_ID)
         .eq("requester_id", userId)
         .order("created_at", { ascending: false }),
