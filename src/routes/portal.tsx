@@ -215,7 +215,7 @@ function TicketDetail({
     ...data.comments
       .filter((c) => c.record_id === ticket.id)
       .map((c) => ({ id: c.id, at: c.created_at, who: c.mine ? "You" : "Support team", body: c.body })),
-    ...data.outageUpdates
+    ...(data.outageUpdates ?? [])
       .filter((u) => u.incident_id === ticket.id)
       .map((u) => ({ id: u.id, at: u.created_at, who: "Outage update", body: u.body })),
   ].sort((a, b) => a.at.localeCompare(b.at));
