@@ -2143,6 +2143,15 @@ export type Database = {
         Args: { _body: string; _request_id: string }
         Returns: Json
       }
+      portal_submit_request: {
+        Args: {
+          _catalog_item_id: string
+          _description: string
+          _org_id: string
+          _title: string
+        }
+        Returns: Json
+      }
       portal_submit_ticket: {
         Args: {
           _category: string
