@@ -32,7 +32,11 @@ The Administration page fails to load after the security changes. Steps:
 - Most likely cause: the page's data function (`itsm_admin_overview`) lost its execute permission or a policy change blocks it. Restore the permission/policy so admins load the page, while non-admins stay blocked.
 - Confirm the page loads: members, teams and invitations all render, and inviting someone still works.
 
-## 4. Replace starter Knowledge articles with real IT documentation (blocked)
+## 4. Staff-only portal (already built — verify)
+
+The signed-in workspace is the staff portal: incidents, problems, changes, requests, knowledge and administration are all staff-only behind sign-in, and the landing page links to it. This plan adds a verification pass: landing page sign-in link works, signed-out visitors are redirected to sign-in, and staff can open and manage tickets, problems and changes.
+
+## 5. Replace starter Knowledge articles with real IT documentation (blocked)
 
 The connected Notion contains no IT help pages (only to-do lists, project notes and network queries). This task is blocked until you provide the real documentation — a Notion page/folder shared with the connection, attached files, pasted text, or web links. Once provided: import the pages as articles, retire the starter set, and verify the Support Assistant answers from them with citations.
 
