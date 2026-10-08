@@ -32,6 +32,10 @@ The Administration page fails to load after the security changes. Steps:
 - Most likely cause: the page's data function (`itsm_admin_overview`) lost its execute permission or a policy change blocks it. Restore the permission/policy so admins load the page, while non-admins stay blocked.
 - Confirm the page loads: members, teams and invitations all render, and inviting someone still works.
 
+## 4. Replace starter Knowledge articles with real IT documentation (blocked)
+
+The connected Notion contains no IT help pages (only to-do lists, project notes and network queries). This task is blocked until you provide the real documentation — a Notion page/folder shared with the connection, attached files, pasted text, or web links. Once provided: import the pages as articles, retire the starter set, and verify the Support Assistant answers from them with citations.
+
 ## Verification
 
 - Typecheck, then preview tests: signed-out knowledge search ("VPN", "MFA") with no retired articles or tickets leaking; staff incident edit; Administration page load as admin.
