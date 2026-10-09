@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { getPortal, postPortalReply, submitPortalTicket } from "@/lib/portal.functions";
+import { getPublicKnowledgeArticle, searchPublicKnowledge } from "@/lib/public-knowledge.functions";
 import { StateBadge } from "@/components/status-badge";
 import { formatDateTime, priorityLabel, type RecordState } from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/portal")({
   head: () => ({
     meta: [
       { title: "Customer portal — WeCrew Support" },
-      { name: "description", content: "Track your support tickets, known problems and outage updates." },
+      { name: "description", content: "Search help articles, track your support tickets, known problems and outage updates." },
       { property: "og:title", content: "Customer portal — WeCrew Support" },
       { property: "og:description", content: "Check status and reply to your WeCrew support tickets." },
       { property: "og:type", content: "website" },
@@ -48,13 +49,14 @@ function Portal() {
           ) : null}
         </div>
       </header>
-      <main className="mx-auto max-w-4xl px-5 py-8">
+      <main className="mx-auto max-w-4xl space-y-10 px-5 py-8">
         {signedIn === null ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
-        ) : signedIn ? (
-          <Tickets />
         ) : (
-          <PortalSignIn />
+          <>
+            <KnowledgeSearch signedIn={signedIn} />
+            {signedIn ? <Tickets /> : <PortalSignIn />}
+          </>
         )}
       </main>
     </div>
@@ -126,6 +128,115 @@ function PortalSignIn() {
         </Button>
       </form>
     </div>
+  );
+}
+
+function KnowledgeSearch({ signedIn }: { signedIn: boolean }) {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
+  const search = useQuery({
+    queryKey: ["portal-kb", query, category],
+    queryFn: () =>
+      searchPublicKnowledge({
+        data: {
+          ...(query ? { query } : {}),
+          ...(category ? { category } : {}),
+        },
+      }),
+  });
+  const article = useQuery({
+    queryKey: ["portal-kb-article", openId],
+    queryFn: () => getPublicKnowledgeArticle({ data: { id: openId! } }),
+    enabled: !!openId,
+  });
+  const d = search.data;
+
+  return (
+    <section aria-label="Find an answer" className="rounded-lg border border-border bg-card p-5">
+      <h1 className="text-xl font-semibold text-foreground">Find an answer</h1>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Search our help articles before raising a ticket — most issues are fixed in minutes.
+      </p>
+      <div className="mt-4">
+        <Label htmlFor="kb-search" className="sr-only">
+          Search help articles
+        </Label>
+        <Input
+          id="kb-search"
+          placeholder="Search help articles — try “VPN” or “password”"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+      {d && d.categories.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant={category === "" ? "default" : "outline"}
+            onClick={() => setCategory("")}
+          >
+            All topics
+          </Button>
+          {d.categories.map((c) => (
+            <Button
+              key={c.id}
+              size="sm"
+              variant={category === c.name ? "default" : "outline"}
+              onClick={() => setCategory(category === c.name ? "" : c.name)}
+            >
+              {c.name}
+            </Button>
+          ))}
+        </div>
+      ) : null}
+      {search.isPending ? (
+        <p className="mt-4 text-sm text-muted-foreground">Searching…</p>
+      ) : search.isError ? (
+        <p className="mt-4 text-sm text-destructive">Articles could not be loaded. Try again shortly.</p>
+      ) : d && d.articles.length === 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">
+          No articles match. {signedIn ? "Raise a ticket below and we'll help." : "Sign in below to raise a ticket."}
+        </p>
+      ) : (
+        <ul className="mt-4 divide-y divide-border">
+          {d?.articles.map((a) => (
+            <li key={a.id}>
+              <button
+                type="button"
+                className="flex w-full items-center gap-3 py-3 text-left"
+                aria-expanded={openId === a.id}
+                onClick={() => setOpenId(openId === a.id ? null : a.id)}
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block font-medium text-foreground">{a.title}</span>
+                  {a.summary ? (
+                    <span className="mt-0.5 block truncate text-sm text-muted-foreground">{a.summary}</span>
+                  ) : null}
+                </span>
+                <span className="shrink-0 text-xs text-muted-foreground">{a.category}</span>
+              </button>
+              {openId === a.id ? (
+                <div className="pb-4 pl-1 text-sm">
+                  {article.isPending ? (
+                    <p className="text-muted-foreground">Loading article…</p>
+                  ) : article.isError || !article.data ? (
+                    <p className="text-destructive">This article could not be loaded.</p>
+                  ) : (
+                    <p className="whitespace-pre-wrap text-foreground">{article.data.content}</p>
+                  )}
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+      {!signedIn ? (
+        <p className="mt-4 border-t border-border pt-4 text-sm text-muted-foreground">
+          Still stuck? Sign in below to raise a ticket and track our reply.
+        </p>
+      ) : null}
+    </section>
   );
 }
 

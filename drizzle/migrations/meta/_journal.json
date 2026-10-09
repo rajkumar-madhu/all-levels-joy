@@ -162,6 +162,13 @@
       "when": 1791351157816,
       "tag": "0022_portal_submit_request",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791526063744,
+      "tag": "0023_public_knowledge_read",
+      "breakpoints": true
     }
   ]
 }
