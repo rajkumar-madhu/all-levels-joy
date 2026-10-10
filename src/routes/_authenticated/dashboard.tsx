@@ -160,7 +160,12 @@ function Dashboard() {
     .sort((a, b) => a.severity - b.severity || b.escalation_level - a.escalation_level);
   const bridgeIncidents = commandCenter.data?.incidents ?? [];
 
-  const metrics = [
+  const metrics: {
+    label: string;
+    value: number;
+    hint: string;
+    to?: "/incidents" | "/command-center" | "/problems" | "/sla" | "/requests" | "/approvals" | "/changes";
+  }[] = [
     {
       label: "Open incidents",
       value: openIncidents.length,
