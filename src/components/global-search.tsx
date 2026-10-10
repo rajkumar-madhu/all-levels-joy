@@ -68,11 +68,32 @@ export function GlobalSearch() {
     }
   };
 
+  const pageMatches = ["sla", "deadline", "breach", "due"].some((kw) =>
+    debounced.toLowerCase().includes(kw),
+  );
+
   const groups: {
     label: string;
     items: { key: string; title: string; meta: string; onSelect: () => void }[];
   }[] = data
     ? [
+        {
+          label: "Pages",
+          items: pageMatches
+            ? [
+                {
+                  key: "page-sla",
+                  title: "SLA dashboard",
+                  meta: "Team deadlines",
+                  onSelect: () => {
+                    setOpen(false);
+                    setQuery("");
+                    void navigate({ to: "/sla" });
+                  },
+                },
+              ]
+            : [],
+        },
         {
           label: "Incidents",
           items: data.incidents.map((row) => ({
