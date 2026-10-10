@@ -1,22 +1,22 @@
-# Submit a Software installation request and verify its queue
+# SLA dashboard per team
 
-## What I confirmed already
-- The catalogue item "Software installation" is routed to the Platform Operations team with Low priority and a 2-day delivery target, and needs no approval.
-- The Requests page already shows team, priority and due-date columns plus team/priority filters.
+## What exists today
+- The operations dashboard already has a "Request queues" panel with per-team, per-priority on-track / at-risk / breached counts, linking into the filtered Requests page.
+- Incidents and requests both carry due dates; the `slaState` helper classifies on track / at risk / breached. The `sla_instances` deadline records exist but are not read by any page yet.
+- Global search finds records (incidents, requests, changes, knowledge, assets, catalogue, security findings) but has no page-level entries.
 
-## What I'll do
-1. Sign the preview in as the staff test account and open the Service catalogue.
-2. Select "Software installation", submit a request titled "TEST Software installation queue check" with test details.
-3. Check the confirmation shows the ticket number, Platform Operations team, Low priority and the target date.
-4. On the Requests page (it opens automatically after submitting), confirm the new ticket row shows:
-   - Team: Platform Operations
-   - Priority: Low
-   - A due date about 2 days out
-5. Filter the Requests page by the Platform Operations team and confirm the ticket appears there.
-6. Double-check the stored record (team, priority, due date, deadline-tracking entry) matches what the page shows.
-7. Report the ticket number and results. The test ticket stays labelled "TEST" so your team can cancel it, or I can cancel it for you.
+## What will change
+1. **New SLA dashboard page** (`/sla`):
+   - One row per team (Service Desk, Platform Operations, Unassigned) showing: open requests, open incidents, deadlines due within 24 hours, and breached counts — requests and incidents side by side.
+   - Each number links into the matching filtered queue (Requests page team/priority filters, incident queue).
+   - A "breached now" list naming the actual tickets (number, title, team, how overdue) so staff can act immediately.
+   - Data comes from the existing workspace load (requests + incidents with due dates), classified with the existing `slaState` helper — no new database reads needed.
+2. **Dashboard wiring:** the existing "Request queues" panel gains an "Open SLA dashboard" link, and the SLA breached / at-risk metric cards link to the new page.
+3. **Global search wiring:** searching "sla", "deadline" or "breach" surfaces a "SLA dashboard" entry that navigates to the new page.
+4. **Verify:** sign in as staff, open `/sla`, confirm the per-team counts match the Requests page filters and incident queue, and confirm the search entry appears and navigates.
 
 ## Technical details
-- Playwright against `/catalog` and `/requests` in the preview, signed in as the staff test account.
-- Verification reads on `service_requests` and `sla_instances` compared against `catalog_items.default_group_id/default_priority`.
-- No code changes expected; only if a mismatch is found, fix it in the same pass and re-run the test.
+- New route `src/routes/_authenticated/sla.tsx` with its own head() metadata (title "SLA dashboard — WeCrew ITSM", description, og tags).
+- Reuses `useWorkspace`, `referenceQuery` (groups), `slaState`, `formatDateTime` from `itsm-shared`; pure client-side aggregation, no new server functions or migrations.
+- Global search: add a static "Pages" group in `src/components/global-search.tsx` matched on keywords (sla, deadline, breach, due).
+- Dashboard edits limited to `src/routes/_authenticated/dashboard.tsx` (link + metric card targets).
