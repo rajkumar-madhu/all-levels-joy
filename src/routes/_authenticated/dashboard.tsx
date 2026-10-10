@@ -51,9 +51,14 @@ function RequestQueues({
     <section className="mt-8 rounded-lg border border-border bg-card">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <h2 className="text-sm font-semibold text-foreground">Request queues</h2>
-        <Link to="/requests" className="text-xs underline underline-offset-4">
-          All requests
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link to="/sla" className="text-xs underline underline-offset-4">
+            SLA dashboard
+          </Link>
+          <Link to="/requests" className="text-xs underline underline-offset-4">
+            All requests
+          </Link>
+        </div>
       </div>
       {list.length === 0 ? (
         <p className="px-4 py-6 text-sm text-muted-foreground">No open requests.</p>
@@ -174,8 +179,18 @@ function Dashboard() {
       hint: "Root cause investigations",
       to: "/problems" as const,
     },
-    { label: "SLA breached", value: breached.length, hint: "Needs immediate attention" },
-    { label: "SLA at risk", value: atRisk.length, hint: "Due within the hour" },
+    {
+      label: "SLA breached",
+      value: breached.length,
+      hint: "Needs immediate attention",
+      to: "/sla" as const,
+    },
+    {
+      label: "SLA at risk",
+      value: atRisk.length,
+      hint: "Due within the hour",
+      to: "/sla" as const,
+    },
     {
       label: "Open requests",
       value: openRequests.length,
