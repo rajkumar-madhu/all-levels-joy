@@ -117,7 +117,14 @@ function Knowledge() {
           status: editor?.status ?? "draft",
           tags: (editor?.tags ?? "")
             .split(",")
-            .map((tag) => tag.trim().toLowerCase().replace(/\s+/g, "-"))
+            .map((tag) =>
+              tag
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "")
+                .slice(0, 40),
+            )
             .filter(Boolean),
         },
       }),
