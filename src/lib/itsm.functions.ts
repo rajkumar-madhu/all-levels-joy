@@ -560,9 +560,22 @@ export const saveKnowledgeArticle = createServerFn({ method: "POST" })
       z
         .object({
           tags: z
-            .array(z.string().trim().toLowerCase().min(1).max(40).regex(/^[a-z0-9][a-z0-9-]*$/))
+            .array(
+              z
+                .string()
+                .trim()
+                .toLowerCase()
+                .max(40)
+                .transform((tag) =>
+                  tag
+                    .replace(/[^a-z0-9]+/g, "-")
+                    .replace(/^-+|-+$/g, "")
+                    .slice(0, 40),
+                ),
+            )
             .max(12)
-            .default([]),
+            .default([])
+            .transform((tags) => [...new Set(tags.filter(Boolean))]),
           id: uuid.nullish(),
           title: z.string().trim().min(5).max(160),
           summary: z.string().trim().max(400),
