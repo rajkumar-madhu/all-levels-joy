@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Scanner module: signed intake, manual-field parity, scanner activity and end-to-end verification
+
 - [ ] Incident response timeline, assignment/closure history and SLA breach details
 
 - [x] Knowledge base: categories, tags, 21 starter articles, sample articles retired, assistant grounded with linked citations

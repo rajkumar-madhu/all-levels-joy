@@ -49,6 +49,14 @@ export const getSecurityBoard = createServerFn({ method: "POST" })
     };
   });
 
+export const getScannerConnection = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: allowed, error } = await context.supabase.rpc("can_manage", { _org_id: DEMO_ORG_ID });
+    if (error || !allowed) throw new Error("Only workspace staff can access scanner connections.");
+    return { configured: Boolean(process.env["SECURITY_SCANNER_SECRET"]) };
+  });
+
 export const createSecurityFinding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: z.input<typeof findingInputSchema>) => findingInputSchema.parse(input))

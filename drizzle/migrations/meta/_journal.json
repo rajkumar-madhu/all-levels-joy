@@ -169,6 +169,13 @@
       "when": 1791526063744,
       "tag": "0023_public_knowledge_read",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791861385835,
+      "tag": "0024_scanner_finding_field_parity",
+      "breakpoints": true
     }
   ]
 }
