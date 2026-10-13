@@ -84,6 +84,14 @@ export const scannerFindingSchema = z.object({
   description: z.string().max(6000).optional(),
   severity: z.enum(SEVERITIES),
   asset: z.string().trim().max(200).optional(),
+  serviceId: z.string().uuid().optional(),
+  ownerId: z.string().uuid().optional(),
+  affectedCiIds: z.array(z.string().uuid()).max(100).optional(),
+  impactAssessment: z.string().trim().max(6000).optional(),
+  fixPlan: z.string().trim().max(6000).optional(),
+  testPlan: z.string().trim().max(6000).optional(),
+  rollbackPlan: z.string().trim().max(6000).optional(),
+  rollbackTrigger: z.string().trim().max(6000).optional(),
 });
 export const scannerPayloadSchema = z.object({
   findings: z.array(scannerFindingSchema).min(1).max(100),

@@ -36,4 +36,21 @@ describe("security finding boundaries", () => {
     expect(scannerPayloadSchema.safeParse({ findings: [] }).success).toBe(false);
     expect(scannerPayloadSchema.safeParse({ findings: [{ ...f, severity: "urgent" }] }).success).toBe(false);
   });
+  test("scanner intake preserves the same assessment and remediation fields as manual findings", () => {
+    const finding = {
+      scanner: "trivy", reference: "CVE-test", asset: "server-test", title: "Test vulnerable package", severity: "high",
+      description: "Package vulnerability details", serviceId: id, ownerId: id, affectedCiIds: [id],
+      impactAssessment: "Service interruption", fixPlan: "Upgrade the package", testPlan: "Run service checks",
+      rollbackPlan: "Restore prior version", rollbackTrigger: "Service checks fail",
+    };
+    expect(scannerPayloadSchema.parse({ findings: [finding] }).findings[0]).toEqual(finding);
+  });
+  test("scanners cannot set approval or lifecycle state", () => {
+    const finding = scannerPayloadSchema.parse({ findings: [{ scanner: "trivy", reference: "CVE-test", title: "Test finding", severity: "high", state: "closed", approvedAt: new Date().toISOString() }] }).findings[0];
+    expect(finding).not.toHaveProperty("state");
+    expect(finding).not.toHaveProperty("approvedAt");
+  });
+  test("scanner linked records require UUID identifiers", () => {
+    expect(scannerPayloadSchema.safeParse({ findings: [{ scanner: "trivy", reference: "CVE-test", title: "Test finding", severity: "high", serviceId: "other-workspace" }] }).success).toBe(false);
+  });
 });
