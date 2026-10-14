@@ -2122,6 +2122,10 @@ export type Database = {
         Args: { _action: string; _finding_id: string; _input: Json }
         Returns: Json
       }
+      itsm_upsert_pagerduty_incident: {
+        Args: { _input: Json; _org_id: string }
+        Returns: Json
+      }
       itsm_upsert_scanner_finding: {
         Args: { _input: Json; _org_id: string }
         Returns: Json

@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: all-levels-joy
+  namespace: all-levels-joy
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - service.wecrew.in
+      secretName: service-wecrew-tls
+  rules:
+    - host: service.wecrew.in
+      http:
+        paths:
+          - path: /auth/v1
+            pathType: Prefix
+            backend:
+              service:
+                name: local-supabase
+                port:
+                  name: http
+          - path: /rest/v1
+            pathType: Prefix
+            backend:
+              service:
+                name: local-supabase
+                port:
+                  name: http
+          - path: /storage/v1
+            pathType: Prefix
+            backend:
+              service:
+                name: local-supabase
+                port:
+                  name: http
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: all-levels-joy
+                port:
+                  name: http

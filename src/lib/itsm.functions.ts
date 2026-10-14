@@ -993,6 +993,7 @@ export const getIncidentMetrics = createServerFn({ method: "GET" })
 
     return {
       windowDays: 30,
+      sampledRecent: recentRows.length === 1000,
       opened: recentRows.length,
       resolved: resolvedRows.length,
       openTotal: open.length,

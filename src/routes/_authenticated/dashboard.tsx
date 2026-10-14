@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell";
 import { PageHeader, EmptyState } from "@/components/page-header";
@@ -17,7 +18,13 @@ import {
   type BridgeState,
   type RecordState,
 } from "@/lib/itsm-shared";
-import { commandCenterQuery, problemBoardQuery, referenceQuery } from "@/lib/workspace-queries";
+import { getIntegrationStatus } from "@/lib/integration-status.functions";
+import {
+  commandCenterQuery,
+  incidentMetricsQuery,
+  problemBoardQuery,
+  referenceQuery,
+} from "@/lib/workspace-queries";
 
 const PRIORITY_NAMES: Record<number, string> = { 1: "Critical", 2: "High", 3: "Moderate", 4: "Low" };
 
@@ -103,7 +110,7 @@ function RequestQueues({
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Operations dashboard — WeCrew ITSM" },
+      { title: "Platform dashboard — WeCrew ITSM" },
       {
         name: "description",
         content:
@@ -121,9 +128,21 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function Dashboard() {
   const workspace = useWorkspace();
+  const queryClient = useQueryClient();
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
   const problemBoard = useQuery(problemBoardQuery());
   const reference = useQuery(referenceQuery());
   const commandCenter = useQuery(commandCenterQuery());
+  const incidentMetrics = useQuery(incidentMetricsQuery());
+  const integrations = useQuery({
+    queryKey: ["integration-status"],
+    queryFn: () => getIntegrationStatus({ data: { force: false } }),
+    enabled: (workspace.data?.roles ?? []).includes("admin"),
+  });
   const data = workspace.data;
 
   const incidents = data?.incidents ?? [];
@@ -150,6 +169,38 @@ function Dashboard() {
     (item) => item.state === "resolved" && !item.closed_at,
   );
   const roles = (data?.roles ?? []) as AppRole[];
+  const pendingApprovals = (data?.approvals ?? []).filter(
+    (item) => item.status === "requested" && item.approver_id === data?.userId,
+  );
+  const articles = (reference.data?.knowledge ?? []).slice(0, 12);
+  const catalog = (reference.data?.catalog ?? []).slice(0, 12);
+  const assetRows = reference.data?.assets ?? [];
+  const assets = assetRows.slice(0, 12);
+  const services = reference.data?.services ?? [];
+  // The reporting query calculates attainment from resolved incidents with a
+  // target, instead of treating unresolved work as an SLA success.
+  const slaCompliance = incidentMetrics.data?.slaAttainment ?? null;
+  const slaComplianceValue = incidentMetrics.isError
+    ? "Unavailable"
+    : slaCompliance === null
+      ? "—"
+      : `${Math.round(slaCompliance)}%`;
+  const slaComplianceHint = incidentMetrics.isError
+    ? "report unavailable"
+    : slaCompliance === null
+      ? "no resolved targets"
+      : incidentMetrics.data?.sampledRecent
+        ? "latest 1,000 · 30d"
+        : "resolved within target · 30d";
+  const p1Open = openIncidents.filter((item) => item.priority === 1).length;
+  const serviceHealth = services.map((service) => {
+    const related = openIncidents.filter((item) => item.service_id === service.id);
+    const hurt = related.filter(
+      (item) => slaState(item.sla_due_at, item.resolved_at) === "breached",
+    ).length;
+    return { id: service.id, name: service.name, open: related.length, hurt };
+  });
+  const assetDown = assetRows.filter((item) => item.status !== "operational").length;
   const openProblems = (problemBoard.data?.problems ?? [])
     .filter((item) => !["resolved", "closed", "cancelled"].includes(item.state))
     .sort(
@@ -231,11 +282,83 @@ function Dashboard() {
 
   return (
     <AppShell workspace={data}>
-      <PageHeader
-        eyebrow="Operations"
-        title={`Good to see you, ${data?.profile?.display_name?.split(" ")[0] ?? "there"}`}
-        description="Everything below reflects the records your assigned roles allow you to see."
-      />
+      <section className="rounded-lg bg-sidebar px-6 py-6 text-white">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70">
+          Unified service operations
+        </p>
+        <h1 className="mt-2 text-4xl text-white">
+          {data?.organization?.name ?? "Service workspace"}
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm text-white/75">
+          Operational overview and prioritized records across modules. Open a module for its full
+          searchable queue and record workflows.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+          <span
+            className={`h-2 w-2 rounded-full ${breached.length > 0 || p1Open > 0 ? "bg-brand" : "bg-success"}`}
+            aria-hidden
+          />
+          <span>
+            {breached.length > 0 || p1Open > 0 ? "Attention needed" : "Holding steady"}
+          </span>
+          <span className="text-white/40">·</span>
+          <span className="font-mono text-white/70">
+            {now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false })}
+          </span>
+          <span className="text-white/40">·</span>
+          <span className="font-mono text-white/60">
+            {now.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}
+          </span>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link to="/incidents" className="rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white">
+            Incidents
+          </Link>
+          <Link to="/changes" className="rounded-md border border-white/25 px-3 py-2 text-xs font-semibold text-white">
+            Changes
+          </Link>
+          {canManage(roles) ? (
+            <Link to="/security" className="rounded-md border border-white/25 px-3 py-2 text-xs font-semibold text-white">
+              Security
+            </Link>
+          ) : null}
+          {roles.includes("admin") ? (
+            <Link to="/integrations" className="rounded-md border border-white/25 px-3 py-2 text-xs font-semibold text-white">
+              Integrations
+            </Link>
+          ) : null}
+          <button
+            type="button"
+            className="rounded-md border border-white/25 px-3 py-2 text-xs font-semibold text-white"
+            onClick={() => {
+              void queryClient.invalidateQueries({ queryKey: ["workspace"] });
+              void queryClient.invalidateQueries({ queryKey: ["incident-metrics"] });
+              void queryClient.invalidateQueries({ queryKey: ["reference"] });
+              void queryClient.invalidateQueries({ queryKey: ["problem-board"] });
+              void queryClient.invalidateQueries({ queryKey: ["command-center"] });
+            }}
+          >
+            Refresh
+          </button>
+        </div>
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          {[
+            { label: "SLA · 30d", value: slaComplianceValue, hint: slaComplianceHint },
+            { label: "P1 open", value: String(p1Open), hint: "critical" },
+            {
+              label: "Assets",
+              value: reference.isSuccess ? String(assetRows.length) : "—",
+              hint: reference.isError ? "unavailable" : assetDown ? `${assetDown} not operational` : "in CMDB",
+            },
+          ].map((item) => (
+            <div key={item.label} className="rounded-md border border-white/15 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-white/60">{item.label}</p>
+              <p className="mt-1 font-mono text-3xl text-white">{item.value}</p>
+              <p className="text-xs text-white/60">{item.hint}</p>
+            </div>
+          ))}
+        </div>
+      </section>
       {canManage(roles) ? <SecurityMetrics /> : null}
 
       {workspace.isPending ? (
@@ -251,13 +374,95 @@ function Dashboard() {
         </div>
       ) : (
         <>
-          <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <section className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-4 lg:grid-cols-8" aria-label="Platform signals">
+            {[
+              { label: "Incidents", value: openIncidents.length, hint: "open" },
+              { label: "P1", value: p1Open, hint: "critical" },
+              { label: "SLA risk", value: atRisk.length, hint: "at risk" },
+              { label: "Breached", value: breached.length, hint: "open" },
+              { label: "Requests", value: openRequests.length, hint: "open" },
+              { label: "Changes", value: upcomingChanges.length, hint: "open" },
+              { label: "Problems", value: openProblems.length, hint: "open" },
+              { label: "SLA · 30d", value: slaComplianceValue, hint: slaComplianceHint },
+            ].map((signal) => (
+              <div key={signal.label} className="bg-card px-3 py-3">
+                <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{signal.label}</p>
+                <p className="mt-1 font-mono text-2xl text-foreground">{signal.value}</p>
+                <p className="text-[11px] text-muted-foreground">{signal.hint}</p>
+              </div>
+            ))}
+          </section>
+          <p className="text-xs text-muted-foreground">
+            Queue counts use the records loaded for this dashboard, up to 200 per module. Open a module for its full searchable queue.
+          </p>
+
+          <section className="mt-6 rounded-lg border border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <h2 className="text-sm font-semibold text-foreground">Service health</h2>
+              <Link to="/assets" className="text-xs underline underline-offset-4">
+                Assets
+              </Link>
+            </div>
+            {reference.isError ? (
+              <p className="px-4 py-6 text-sm text-destructive">Service health could not be loaded.</p>
+            ) : serviceHealth.length === 0 ? (
+              <p className="px-4 py-6 text-sm text-muted-foreground">No services are registered.</p>
+            ) : (
+              <ul className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+                {serviceHealth.map((service) => (
+                  <li key={service.id} className="rounded-md border border-border px-3 py-3">
+                    <p className="text-sm font-medium text-foreground">{service.name}</p>
+                    <p className="mt-1 font-mono text-xs text-muted-foreground">
+                      {service.open} open · {service.hurt} breached
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {roles.includes("admin") ? (
+            <section className="mt-6 rounded-lg border border-border bg-card">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <h2 className="text-sm font-semibold text-foreground">Integrate your stack</h2>
+                <Link to="/integrations" className="text-xs underline underline-offset-4">
+                  How they connect
+                </Link>
+              </div>
+              {integrations.isPending ? (
+                <p className="px-4 py-6 text-sm text-muted-foreground">Checking platform tools…</p>
+              ) : integrations.isError ? (
+                <p className="px-4 py-6 text-sm text-destructive">Platform tools could not be checked.</p>
+              ) : (
+                <ul className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
+                  {(integrations.data?.tools ?? []).map((tool) => (
+                    <li key={tool.name} className="bg-card px-4 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium text-foreground">{tool.name}</p>
+                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              {tool.state === "up" ? "Reachable" : tool.state === "absent" ? "Not installed" : "Unreachable"}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">{tool.kind}</p>
+                      {tool.url ? (
+                        <a href={tool.url} className="mt-1 block truncate font-mono text-xs text-primary underline underline-offset-4">
+                          {tool.url.replace("https://", "")}
+                        </a>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
+
+          <section className="mt-6 flex gap-3 overflow-x-auto pb-1">
             {metrics.map((metric) =>
               metric.to ? (
                 <Link
                   key={metric.label}
                   to={metric.to}
-                  className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/60"
+                  className="min-w-[180px] shrink-0 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/60"
                 >
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
                     {metric.label}
@@ -268,7 +473,7 @@ function Dashboard() {
                   <p className="mt-1 text-xs text-muted-foreground">{metric.hint}</p>
                 </Link>
               ) : (
-                <div key={metric.label} className="rounded-lg border border-border bg-card p-4">
+                <div key={metric.label} className="min-w-[180px] shrink-0 rounded-lg border border-border bg-card p-4">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
                     {metric.label}
                   </p>
@@ -287,7 +492,7 @@ function Dashboard() {
 
           <RequestQueues requests={openRequests} groups={reference.data?.groups ?? []} />
 
-          <section className="mt-8 grid gap-6 xl:grid-cols-2">
+          <section className="mt-8 space-y-6">
             <div className="rounded-lg border border-border bg-card">
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <h2 className="text-sm font-semibold text-foreground">Active major incidents</h2>
@@ -307,7 +512,7 @@ function Dashboard() {
                 </p>
               ) : (
                 <ul className="divide-y divide-border">
-                  {activeBridges.slice(0, 5).map((bridge) => {
+                  {activeBridges.slice(0, 12).map((bridge) => {
                     const incident = bridgeIncidents.find((item) => item.id === bridge.incident_id);
                     const overdue = Boolean(
                       bridge.next_update_at && new Date(bridge.next_update_at) < new Date(),
@@ -373,7 +578,7 @@ function Dashboard() {
                 </p>
               ) : (
                 <ul className="divide-y divide-border">
-                  {openProblems.slice(0, 5).map((problem) => (
+                  {openProblems.slice(0, 12).map((problem) => (
                     <li key={problem.id} className="px-4 py-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
@@ -403,7 +608,7 @@ function Dashboard() {
             </div>
           </section>
 
-          <section className="mt-8 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+          <section className="mt-8 space-y-6">
             <div className="rounded-lg border border-border bg-card">
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <h2 className="text-sm font-semibold text-foreground">Priority incident queue</h2>
@@ -417,7 +622,7 @@ function Dashboard() {
                 </p>
               ) : (
                 <ul className="divide-y divide-border">
-                  {openIncidents.slice(0, 6).map((incident) => (
+                  {openIncidents.slice(0, 12).map((incident) => (
                     <li key={incident.id} className="px-4 py-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
@@ -454,7 +659,7 @@ function Dashboard() {
                   <p className="px-4 py-6 text-sm text-muted-foreground">No changes scheduled.</p>
                 ) : (
                   <ul className="divide-y divide-border">
-                    {upcomingChanges.slice(0, 4).map((change) => (
+                    {upcomingChanges.slice(0, 12).map((change) => (
                       <li key={change.id} className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
                           <Link
@@ -499,7 +704,7 @@ function Dashboard() {
                   Recent notifications
                 </h2>
                 <ul className="divide-y divide-border">
-                  {(data?.notifications ?? []).slice(0, 5).map((item) => (
+                  {(data?.notifications ?? []).slice(0, 12).map((item) => (
                     <li key={item.id} className="px-4 py-3 text-sm">
                       <p className="font-medium text-foreground">{item.title}</p>
                       <p className="text-xs text-muted-foreground">
@@ -514,6 +719,139 @@ function Dashboard() {
                   ) : null}
                 </ul>
               </div>
+            </div>
+          </section>
+
+          <section className="mt-8 space-y-6">
+            <div className="rounded-lg border border-border bg-card">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <h2 className="text-sm font-semibold text-foreground">Approvals waiting on you</h2>
+                <Link to="/approvals" className="text-xs underline underline-offset-4">
+                  Open approvals
+                </Link>
+              </div>
+              {pendingApprovals.length === 0 ? (
+                <p className="px-4 py-6 text-sm text-muted-foreground">No approvals are waiting.</p>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {pendingApprovals.slice(0, 12).map((approval) => (
+                    <li key={approval.id} className="px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          to="/approvals"
+                          className="font-mono text-xs capitalize text-primary underline underline-offset-4"
+                        >
+                          {approval.record_type}
+                        </Link>
+                        <span className="rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
+                          {approval.status}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Raised {formatDateTime(approval.created_at)}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-border bg-card">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <h2 className="text-sm font-semibold text-foreground">Knowledge</h2>
+                <Link to="/knowledge" className="text-xs underline underline-offset-4">
+                  Open knowledge
+                </Link>
+              </div>
+              {reference.isPending ? (
+                <p className="px-4 py-6 text-sm text-muted-foreground">Loading articles…</p>
+              ) : reference.isError ? (
+                <p className="px-4 py-6 text-sm text-destructive">Knowledge could not be loaded.</p>
+              ) : articles.length === 0 ? (
+                <p className="px-4 py-6 text-sm text-muted-foreground">No articles yet.</p>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {articles.map((article) => (
+                    <li key={article.id} className="px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          to="/knowledge"
+                          search={{ record: article.id }}
+                          className="font-mono text-xs text-primary underline underline-offset-4"
+                        >
+                          {article.number}
+                        </Link>
+                        <span className="text-xs text-muted-foreground">{article.category}</span>
+                      </div>
+                      <p className="mt-1.5 text-sm font-medium text-foreground">{article.title}</p>
+                      {article.summary ? (
+                        <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                          {article.summary}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-border bg-card">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <h2 className="text-sm font-semibold text-foreground">Service catalogue</h2>
+                <Link to="/catalog" className="text-xs underline underline-offset-4">
+                  Open catalogue
+                </Link>
+              </div>
+              {reference.isError ? (
+                <p className="px-4 py-6 text-sm text-destructive">The catalogue could not be loaded.</p>
+              ) : catalog.length === 0 ? (
+                <p className="px-4 py-6 text-sm text-muted-foreground">No catalogue items.</p>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {catalog.map((item) => (
+                    <li key={item.id} className="px-4 py-3">
+                      <p className="text-xs text-muted-foreground">{item.category}</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{item.name}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-border bg-card">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <h2 className="text-sm font-semibold text-foreground">Assets and CMDB</h2>
+                <Link to="/assets" className="text-xs underline underline-offset-4">
+                  Open assets
+                </Link>
+              </div>
+              {reference.isError ? (
+                <p className="px-4 py-6 text-sm text-destructive">Configuration items could not be loaded.</p>
+              ) : assets.length === 0 ? (
+                <p className="px-4 py-6 text-sm text-muted-foreground">No configuration items.</p>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {assets.map((asset) => (
+                    <li key={asset.id} className="px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          to="/assets"
+                          className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
+                        >
+                          {asset.name}
+                        </Link>
+                        <span className="rounded-md border border-border bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+                          {asset.ci_class}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {asset.environment} · {asset.status}
+                        {asset.asset_tag ? ` · ${asset.asset_tag}` : ""}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </section>
         </>

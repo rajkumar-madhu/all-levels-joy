@@ -20,6 +20,7 @@ import {
   LogOut,
   Menu,
   MessageSquare,
+  Plug,
   ScrollText,
   Settings,
   UserCircle,
@@ -74,8 +75,14 @@ const navigationGroups = [
       { to: "/security", label: "Security findings", icon: ShieldAlert, requiresManage: true },
       { to: "/knowledge", label: "Knowledge", icon: BookOpen, requiresManage: false },
       { to: "/assets", label: "Assets & CMDB", icon: Boxes, requiresManage: true },
-      { to: "/integrations", label: "Integrations", icon: Boxes, requiresManage: true },
       { to: "/audit", label: "Audit trail", icon: ScrollText, requiresManage: true },
+      {
+        to: "/integrations",
+        label: "Integrations",
+        icon: Plug,
+        requiresManage: false,
+        requiresAdmin: true,
+      },
       {
         to: "/administration",
         label: "Administration",
@@ -146,7 +153,7 @@ function WorkspaceNavigation({
           aria-label="WeCrew ITSM dashboard"
         >
           <span
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#00B87A] to-[#007B58] font-mono text-lg font-bold text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-md bg-brand font-serif text-lg font-semibold text-white"
             aria-hidden
           >
             W
@@ -197,7 +204,7 @@ function WorkspaceNavigation({
                         className={cn(
                           "relative flex min-h-10 items-center gap-3 rounded-md px-3 py-2 text-[13px] transition-colors focus-visible:outline-sidebar-ring",
                           active
-                            ? "bg-[#00B87A]/15 font-semibold text-[#00E59A] before:absolute before:inset-y-2.5 before:left-0 before:w-0.5 before:rounded-full before:bg-[#00B87A]"
+                            ? "bg-sidebar-accent font-semibold text-white before:absolute before:inset-y-2.5 before:left-0 before:w-0.5 before:rounded-full before:bg-brand"
                             : "text-sidebar-foreground/80 hover:bg-white/5 hover:text-white",
                         )}
                       >
@@ -321,7 +328,7 @@ export function AppShell({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <div className="min-h-screen bg-background lg:grid lg:grid-cols-[256px_minmax(0,1fr)]">
+      <div className="min-h-screen bg-background lg:grid lg:h-dvh lg:grid-cols-[256px_minmax(0,1fr)] lg:overflow-hidden">
         <a
           href="#main-content"
           className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground focus:translate-y-0"
@@ -341,7 +348,7 @@ export function AppShell({
           </SheetDescription>
           {navigation}
         </SheetContent>
-        <div className="flex min-w-0 flex-col">
+        <div className="flex min-w-0 flex-col lg:h-dvh lg:overflow-y-auto">
           <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-card/95 px-4 backdrop-blur sm:gap-5 sm:px-6 lg:px-8">
             <SheetTrigger asChild>
               <Button

@@ -12,4 +12,16 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      // Browser sessions use the same public origin as the dev server. These
+      // prefixes belong to the local Supabase API, not to app routes.
+      proxy: {
+        "/auth/v1": { target: "http://127.0.0.1:54321", changeOrigin: true },
+        "/rest/v1": { target: "http://127.0.0.1:54321", changeOrigin: true },
+        "/storage/v1": { target: "http://127.0.0.1:54321", changeOrigin: true },
+        "/realtime/v1": { target: "http://127.0.0.1:54321", changeOrigin: true, ws: true },
+      },
+    },
+  },
 });
