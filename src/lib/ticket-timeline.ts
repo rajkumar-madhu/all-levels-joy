@@ -17,13 +17,13 @@ export function ticketTimeline(ticket: TicketSnapshot, audit: HistoryEvent[]): T
     if (event.source !== "database" || !["created", "updated"].includes(event.action)) continue;
     const before = snapshot(event.before_values), after = snapshot(event.after_values);
     const add = (suffix: string, label: string, extra = {}) => entries.push({ id: `${event.id}-${suffix}`, label, at: event.created_at, actorId: event.actor_id, ...extra });
-    if (after.assignee_id !== before.assignee_id && (after.assignee_id || before.assignee_id))
-      add("assigned", after.assignee_id ? (before.assignee_id ? "Reassigned" : "Assigned") : "Unassigned", { personId: stringValue(after.assignee_id) });
-    if (after.group_id !== before.group_id && (after.group_id || before.group_id))
-      add("team", after.group_id ? "Routed to team" : "Team removed", { groupId: stringValue(after.group_id) });
-    if (before.state && after.state !== before.state) {
-      const labels: Record<string, string> = { open: ["resolved", "closed"].includes(String(before.state)) ? "Reopened" : "Opened for work", in_progress: "Work started", pending: "On hold", resolved: "Resolved", closed: "Closed", cancelled: "Cancelled", new: "New" };
-      add("state", labels[String(after.state)] ?? "Status changed");
+    if (after['assignee_id'] !== before['assignee_id'] && (after['assignee_id'] || before['assignee_id']))
+      add("assigned", after['assignee_id'] ? (before['assignee_id'] ? "Reassigned" : "Assigned") : "Unassigned", { personId: stringValue(after['assignee_id']) });
+    if (after['group_id'] !== before['group_id'] && (after['group_id'] || before['group_id']))
+      add("team", after['group_id'] ? "Routed to team" : "Team removed", { groupId: stringValue(after['group_id']) });
+    if (before['state'] && after['state'] !== before['state']) {
+      const labels: Record<string, string> = { open: ["resolved", "closed"].includes(String(before['state'])) ? "Reopened" : "Opened for work", in_progress: "Work started", pending: "On hold", resolved: "Resolved", closed: "Closed", cancelled: "Cancelled", new: "New" };
+      add("state", labels[String(after['state'])] ?? "Status changed");
     }
   }
   if (ticket.first_responded_at) entries.push({ id: "response", label: "First response", at: ticket.first_responded_at });

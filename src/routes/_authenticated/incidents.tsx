@@ -70,6 +70,8 @@ export const Route = createFileRoute("/_authenticated/incidents")({
           "Log, triage, assign, and resolve incidents with impact and urgency driven priority.",
       },
       { property: "og:title", content: "Incidents — WeCrew ITSM" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content: "Incident queue with SLA timers and resolution evidence.",

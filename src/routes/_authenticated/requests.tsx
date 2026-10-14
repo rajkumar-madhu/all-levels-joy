@@ -38,6 +38,8 @@ export const Route = createFileRoute("/_authenticated/requests")({
           "Order from the service catalog and track approvals, fulfillment tasks, and delivery dates.",
       },
       { property: "og:title", content: "Service requests — WeCrew ITSM" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content: "Catalog ordering with approvals and fulfillment tracking.",
@@ -107,9 +109,12 @@ function Requests() {
   const update = useMutation({
     mutationFn: (input: { id: string; state: RecordState; expectedUpdatedAt: string }) =>
       updateServiceRequest({ data: input }),
-    onSuccess: async () => {
+    onSuccess: async (_result, input) => {
       toast.success("Request updated.");
-      await queryClient.invalidateQueries({ queryKey: ["workspace"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["workspace"] }),
+        queryClient.invalidateQueries({ queryKey: ["activity", "request", input.id] }),
+      ]);
     },
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : "That update was not applied."),
