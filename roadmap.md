@@ -30,3 +30,4 @@
 - [x] Integrations hub: Prometheus/Grafana/webhook alerts create deduplicated incidents; dashboard Connected stack + CMDB; Slack/Teams critical notifications
 - [ ] Configure MONITORING_WEBHOOK_TOKEN (and optional SLACK_WEBHOOK_URL / TEAMS_WEBHOOK_URL) and point Alertmanager/Grafana at /api/public/alerts (needs user)
 - [ ] Jira/GitHub/Linear two-way sync (planned)
+- [ ] Post critical alerts to Slack via incoming webhook (SLACK_WEBHOOK_URL; needs user to paste real URL in secure form)
