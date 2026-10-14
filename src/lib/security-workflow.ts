@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const plan = z.string().trim().min(5).max(6000);
+const windowTimestamp = z.string().datetime({ offset: true, message: "Choose a valid window time with a timezone." });
 
 export const SEVERITIES = ["critical", "high", "medium", "low"] as const;
 export const SECURITY_STATES = [
@@ -41,8 +42,10 @@ export const transitionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("reject"), notes: z.string().trim().min(1).max(2000) }),
   z.object({
     action: z.literal("schedule"),
-    windowStart: z.string().min(1, "Choose a window start."),
-    windowEnd: z.string().min(1, "Choose a window end."),
+    windowStart: windowTimestamp,
+    windowEnd: windowTimestamp,
+  }).refine((value) => Date.parse(value.windowEnd) > Date.parse(value.windowStart), {
+    message: "The fix window must end after it starts.", path: ["windowEnd"],
   }),
   z.object({ action: z.literal("start") }),
   z.object({

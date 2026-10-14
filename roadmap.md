@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Security fix-window timezone conversion and real-finding verification
+
 - [ ] Administration catalogue routing rules with upcoming-request preview (plan prepared; awaiting approval)
 - [ ] Obtain and share real IT documentation, replace starter Knowledge articles, and verify public help search (blocked: documentation pages or files needed)
 
