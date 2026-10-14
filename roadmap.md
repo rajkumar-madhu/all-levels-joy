@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Sign up info@wecrew.in, accept staff invitation and approve a finding, change and catalogue request (blocked: account does not exist; user must choose a password and confirm their mailbox before invitation acceptance and approvals)
+
 - [x] Staff-only Security workspace: landing links, server staff gate, staff finding inspection and non-staff direct-board rejection; 15 security tests passed
 - [ ] Verify Security restriction with an active requester-only workspace member (blocked: available customer test account has no active workspace membership; direct-board rejection verified)
 - [ ] Team email notifications (blocked: staff work-email/team assignments and verified sender domain needed)
