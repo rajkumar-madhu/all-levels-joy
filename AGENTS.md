@@ -14,3 +14,5 @@
 - Scanner findings arrive at `/api/public/security-findings` signed with HMAC (`SECURITY_SCANNER_SECRET`) and dedupe on scanner+reference+asset. Why: external callers bypass site auth.
 - Scanner intake maps assessment, remediation and workspace-scoped asset references into existing security findings; repeated scans preserve approved plans and lifecycle state. Why: scanners and manual findings share one review workflow without bypassing approvals.
 - Ticket response timelines derive assignment and lifecycle times from paginated immutable database audit snapshots; SLA lateness stops at recorded completion or pause, never at an unrelated last-update timestamp. Why: incident and request history must reflect real events without inventing historical times.
+
+- Monitoring alerts arrive at `/api/public/alerts` with a bearer token (`MONITORING_WEBHOOK_TOKEN`), become `contact_type=monitoring` incidents and dedupe on an `[alert:source:fingerprint]` marker in the description. Why: no extra table needed and alerts share the incident workflow.
