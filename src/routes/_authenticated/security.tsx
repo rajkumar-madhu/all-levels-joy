@@ -7,6 +7,7 @@ import { z } from "zod";
 import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell";
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { RecordActivity } from "@/components/record-activity";
+import { ScannerConnections } from "@/components/scanner-connections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -178,6 +179,11 @@ function SecurityPage() {
           </Button>
         ))}
       </div>
+
+      <ScannerConnections
+        findings={findings as never}
+        onRefresh={async () => { await queryClient.invalidateQueries({ queryKey: ["security-board"] }); }}
+      />
 
       {board.isPending || workspace.isPending ? (
         <div className="mt-6">
