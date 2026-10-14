@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Security fix-window timezone conversion and real-finding verification
+- [x] Security fix-window timezone conversion; regression tests pass in UTC, New York and Kolkata
+- [ ] Confirm saved security window on a real finding (blocked: SEC0001001 is pending independent approval; current staff account cannot approve it)
 
 - [ ] Administration catalogue routing rules with upcoming-request preview (plan prepared; awaiting approval)
 - [ ] Obtain and share real IT documentation, replace starter Knowledge articles, and verify public help search (blocked: documentation pages or files needed)
