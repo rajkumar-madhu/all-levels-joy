@@ -26,3 +26,7 @@
 - [ ] Assign people to the Service Desk and Platform Operations teams (needs user: who belongs to each team) so reply notifications reach someone
 - [ ] Submit Software installation request from catalogue; verify Platform Operations / Low / deadline on Requests page (approved plan)
 - [ ] SLA dashboard per team at /sla: open counts, due-soon, breached; linked from dashboard and global search (approved plan)
+
+- [x] Integrations hub: Prometheus/Grafana/webhook alerts create deduplicated incidents; dashboard Connected stack + CMDB; Slack/Teams critical notifications
+- [ ] Configure MONITORING_WEBHOOK_TOKEN (and optional SLACK_WEBHOOK_URL / TEAMS_WEBHOOK_URL) and point Alertmanager/Grafana at /api/public/alerts (needs user)
+- [ ] Jira/GitHub/Linear two-way sync (planned)

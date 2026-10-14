@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AppShell, WorkspaceLoading, useWorkspace } from "@/components/app-shell";
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { SecurityMetrics } from "@/components/security-metrics";
+import { ConnectedStack } from "@/components/connected-stack";
 import { canManage } from "@/lib/itsm-shared";
 import { PriorityBadge, SlaBadge, StateBadge } from "@/components/status-badge";
 import {
@@ -279,6 +280,10 @@ function Dashboard() {
               ),
             )}
           </section>
+
+          {canManage(roles) ? (
+            <ConnectedStack incidents={incidents} assets={(reference.data?.assets ?? []) as never} />
+          ) : null}
 
           <RequestQueues requests={openRequests} groups={reference.data?.groups ?? []} />
 

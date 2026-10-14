@@ -25,6 +25,7 @@ import { Route as AuthenticatedCommandCenterRouteImport } from './routes/_authen
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedIncidentInsightsRouteImport } from './routes/_authenticated/incident-insights'
 import { Route as AuthenticatedIncidentsRouteImport } from './routes/_authenticated/incidents'
+import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
 import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
 import { Route as AuthenticatedProblemsRouteImport } from './routes/_authenticated/problems'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -33,6 +34,7 @@ import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedSlaRouteImport } from './routes/_authenticated/sla'
 import { Route as AuthenticatedAssistantIndexRouteImport } from './routes/_authenticated/assistant.index'
 import { Route as AuthenticatedAssistantThreadIdRouteImport } from './routes/_authenticated/assistant.$threadId'
+import { Route as ApiPublicAlertsRouteImport } from './routes/api/public/alerts'
 import { Route as ApiPublicSecurityExceptionsExpireRouteImport } from './routes/api/public/security-exceptions-expire'
 import { Route as ApiPublicSecurityFindingsRouteImport } from './routes/api/public/security-findings'
 
@@ -119,6 +121,12 @@ const AuthenticatedIncidentsRoute = AuthenticatedIncidentsRouteImport.update({
   path: '/incidents',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedIntegrationsRoute =
+  AuthenticatedIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedKnowledgeRoute = AuthenticatedKnowledgeRouteImport.update({
   id: '/knowledge',
   path: '/knowledge',
@@ -161,6 +169,11 @@ const AuthenticatedAssistantThreadIdRoute =
     path: '/assistant/$threadId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicAlertsRoute = ApiPublicAlertsRouteImport.update({
+  id: '/api/public/alerts',
+  path: '/api/public/alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSecurityExceptionsExpireRoute =
   ApiPublicSecurityExceptionsExpireRouteImport.update({
     id: '/api/public/security-exceptions-expire',
@@ -190,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/incident-insights': typeof AuthenticatedIncidentInsightsRoute
   '/incidents': typeof AuthenticatedIncidentsRoute
+  '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/problems': typeof AuthenticatedProblemsRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -197,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/security': typeof AuthenticatedSecurityRoute
   '/sla': typeof AuthenticatedSlaRoute
   '/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
+  '/api/public/alerts': typeof ApiPublicAlertsRoute
   '/api/public/security-exceptions-expire': typeof ApiPublicSecurityExceptionsExpireRoute
   '/api/public/security-findings': typeof ApiPublicSecurityFindingsRoute
   '/assistant/': typeof AuthenticatedAssistantIndexRoute
@@ -217,6 +232,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/incident-insights': typeof AuthenticatedIncidentInsightsRoute
   '/incidents': typeof AuthenticatedIncidentsRoute
+  '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/problems': typeof AuthenticatedProblemsRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -224,6 +240,7 @@ export interface FileRoutesByTo {
   '/security': typeof AuthenticatedSecurityRoute
   '/sla': typeof AuthenticatedSlaRoute
   '/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
+  '/api/public/alerts': typeof ApiPublicAlertsRoute
   '/api/public/security-exceptions-expire': typeof ApiPublicSecurityExceptionsExpireRoute
   '/api/public/security-findings': typeof ApiPublicSecurityFindingsRoute
   '/assistant': typeof AuthenticatedAssistantIndexRoute
@@ -246,6 +263,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/incident-insights': typeof AuthenticatedIncidentInsightsRoute
   '/_authenticated/incidents': typeof AuthenticatedIncidentsRoute
+  '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
   '/_authenticated/problems': typeof AuthenticatedProblemsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
@@ -253,6 +271,7 @@ export interface FileRoutesById {
   '/_authenticated/security': typeof AuthenticatedSecurityRoute
   '/_authenticated/sla': typeof AuthenticatedSlaRoute
   '/_authenticated/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
+  '/api/public/alerts': typeof ApiPublicAlertsRoute
   '/api/public/security-exceptions-expire': typeof ApiPublicSecurityExceptionsExpireRoute
   '/api/public/security-findings': typeof ApiPublicSecurityFindingsRoute
   '/_authenticated/assistant/': typeof AuthenticatedAssistantIndexRoute
@@ -275,6 +294,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/incident-insights'
     | '/incidents'
+    | '/integrations'
     | '/knowledge'
     | '/problems'
     | '/profile'
@@ -282,6 +302,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/sla'
     | '/assistant/$threadId'
+    | '/api/public/alerts'
     | '/api/public/security-exceptions-expire'
     | '/api/public/security-findings'
     | '/assistant/'
@@ -302,6 +323,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/incident-insights'
     | '/incidents'
+    | '/integrations'
     | '/knowledge'
     | '/problems'
     | '/profile'
@@ -309,6 +331,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/sla'
     | '/assistant/$threadId'
+    | '/api/public/alerts'
     | '/api/public/security-exceptions-expire'
     | '/api/public/security-findings'
     | '/assistant'
@@ -330,6 +353,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/incident-insights'
     | '/_authenticated/incidents'
+    | '/_authenticated/integrations'
     | '/_authenticated/knowledge'
     | '/_authenticated/problems'
     | '/_authenticated/profile'
@@ -337,6 +361,7 @@ export interface FileRouteTypes {
     | '/_authenticated/security'
     | '/_authenticated/sla'
     | '/_authenticated/assistant/$threadId'
+    | '/api/public/alerts'
     | '/api/public/security-exceptions-expire'
     | '/api/public/security-findings'
     | '/_authenticated/assistant/'
@@ -348,6 +373,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PortalRoute: typeof PortalRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicAlertsRoute: typeof ApiPublicAlertsRoute
   ApiPublicSecurityExceptionsExpireRoute: typeof ApiPublicSecurityExceptionsExpireRoute
   ApiPublicSecurityFindingsRoute: typeof ApiPublicSecurityFindingsRoute
 }
@@ -466,6 +492,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIncidentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/integrations': {
+      id: '/_authenticated/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof AuthenticatedIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/knowledge': {
       id: '/_authenticated/knowledge'
       path: '/knowledge'
@@ -522,6 +555,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssistantThreadIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/alerts': {
+      id: '/api/public/alerts'
+      path: '/api/public/alerts'
+      fullPath: '/api/public/alerts'
+      preLoaderRoute: typeof ApiPublicAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/security-exceptions-expire': {
       id: '/api/public/security-exceptions-expire'
       path: '/api/public/security-exceptions-expire'
@@ -551,6 +591,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedIncidentInsightsRoute: typeof AuthenticatedIncidentInsightsRoute
   AuthenticatedIncidentsRoute: typeof AuthenticatedIncidentsRoute
+  AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
   AuthenticatedProblemsRoute: typeof AuthenticatedProblemsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
@@ -573,6 +614,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedIncidentInsightsRoute: AuthenticatedIncidentInsightsRoute,
   AuthenticatedIncidentsRoute: AuthenticatedIncidentsRoute,
+  AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
   AuthenticatedProblemsRoute: AuthenticatedProblemsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
@@ -592,6 +634,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PortalRoute: PortalRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicAlertsRoute: ApiPublicAlertsRoute,
   ApiPublicSecurityExceptionsExpireRoute:
     ApiPublicSecurityExceptionsExpireRoute,
   ApiPublicSecurityFindingsRoute: ApiPublicSecurityFindingsRoute,

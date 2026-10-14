@@ -74,6 +74,7 @@ const navigationGroups = [
       { to: "/security", label: "Security findings", icon: ShieldAlert, requiresManage: true },
       { to: "/knowledge", label: "Knowledge", icon: BookOpen, requiresManage: false },
       { to: "/assets", label: "Assets & CMDB", icon: Boxes, requiresManage: true },
+      { to: "/integrations", label: "Integrations", icon: Boxes, requiresManage: true },
       { to: "/audit", label: "Audit trail", icon: ScrollText, requiresManage: true },
       {
         to: "/administration",
