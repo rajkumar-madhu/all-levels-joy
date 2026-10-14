@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Administration catalogue routing rules with upcoming-request preview (plan prepared; awaiting approval)
+- [ ] Obtain and share real IT documentation, replace starter Knowledge articles, and verify public help search (blocked: documentation pages or files needed)
+
 - [ ] Scanner module: signed intake, manual-field parity, scanner activity and end-to-end verification
 
 - [ ] Incident response timeline, assignment/closure history and SLA breach details
