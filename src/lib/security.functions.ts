@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { DEMO_ORG_ID } from "@/lib/itsm-shared";
+import { requireSecurityStaff } from "@/lib/security-access";
 import {
   exceptionInputSchema,
   findingInputSchema,
@@ -13,6 +14,7 @@ export const getSecurityBoard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase } = context;
+    await requireSecurityStaff(() => supabase.rpc("can_manage", { _org_id: DEMO_ORG_ID }));
     const [findings, exceptions, changes, incidents] = await Promise.all([
       supabase
         .from("security_findings")

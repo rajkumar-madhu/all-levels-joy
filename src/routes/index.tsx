@@ -22,6 +22,8 @@ export const Route = createFileRoute("/")({
           "Incident, request, change, knowledge, and CMDB management with role-based access, SLA tracking, and audit evidence for core workflows.",
       },
       { property: "og:title", content: "WeCrew ITSM — Governed Service Management Platform" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content:
@@ -85,17 +87,18 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
           <div className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded bg-primary font-mono text-sm font-semibold text-primary-foreground">
               W
             </span>
             <span className="text-sm font-semibold tracking-tight">WeCrew ITSM</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
           <Button asChild variant="outline" size="sm">
             <Link to="/portal">Customer portal login</Link>
           </Button>
+          <Button asChild variant="outline" size="sm"><Link to="/security">Security workspace</Link></Button>
           {signedIn ? (
             <Button asChild size="sm">
               <Link to="/dashboard">Open workspace</Link>

@@ -9,6 +9,7 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 - Security findings change state only through security-definer RPCs (`itsm_*security*`); tables are read-only to staff via RLS. Why: lifecycle gates, approvals and audit stay atomic in the database.
+- Security board reads verify staff access before querying findings or linked records; public entry links reuse the existing protected workspace. Why: customers must not receive staff-only choices or misleading editable views.
 - Security window selections convert from local time in the browser through the shared security-window helper; the server accepts only offset-aware timestamps. Why: server timezone must never shift selected remediation windows.
 - Scanner findings arrive at `/api/public/security-findings` signed with HMAC (`SECURITY_SCANNER_SECRET`) and dedupe on scanner+reference+asset. Why: external callers bypass site auth.
 - Scanner intake maps assessment, remediation and workspace-scoped asset references into existing security findings; repeated scans preserve approved plans and lifecycle state. Why: scanners and manual findings share one review workflow without bypassing approvals.
