@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Staff-only Security workspace: landing links, explicit access restriction and staff/customer verification
+- [x] Staff-only Security workspace: landing links, server staff gate, staff finding inspection and non-staff direct-board rejection; 15 security tests passed
+- [ ] Verify Security restriction with an active requester-only workspace member (blocked: available customer test account has no active workspace membership; direct-board rejection verified)
 - [ ] Team email notifications (blocked: staff work-email/team assignments and verified sender domain needed)
 
 - [x] Security fix-window timezone conversion; regression tests pass in UTC, New York and Kolkata
@@ -11,7 +12,7 @@
 
 - [ ] Scanner module: signed intake, manual-field parity, scanner activity and end-to-end verification
 
-- [ ] Incident response timeline, assignment/closure history and SLA breach details
+- [x] Finish ticket response timelines for incidents and requests: opened, assigned, closed and SLA breach details; 12 tests passed, staff preview verified assignment, live breaches and labeled test request resolution/closure
 
 - [x] Knowledge base: categories, tags, 21 starter articles, sample articles retired, assistant grounded with linked citations
 - [x] Change register with filters, wired into dashboard and global search

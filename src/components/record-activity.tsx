@@ -6,6 +6,7 @@ import { addComment } from "@/lib/itsm.functions";
 import { activityQuery } from "@/lib/workspace-queries";
 import { formatDateTime } from "@/lib/itsm-shared";
 import { RecordAttachments } from "@/components/record-attachments";
+import { TicketResponseTimeline } from "@/components/ticket-response-timeline";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -36,6 +37,8 @@ export function RecordActivity({
 
   return (
     <section className="space-y-6">
+      {activity.isPending && ["incident", "request"].includes(recordType) ? <p className="text-xs text-muted-foreground">Loading response history…</p> : null}
+      {activity.data?.ticket ? <TicketResponseTimeline ticket={activity.data.ticket} audit={activity.data.audit} slas={activity.data.slas} /> : null}
       <RecordAttachments recordType={recordType} recordId={recordId} />
 
       <div className="space-y-4">

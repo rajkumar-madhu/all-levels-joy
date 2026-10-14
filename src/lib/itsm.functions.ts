@@ -215,24 +215,41 @@ export const getRecordActivity = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const [comments, audit] = await Promise.all([
+    const isTicket = data.recordType === "incident" || data.recordType === "request";
+    const [comments, audit, ticket, slas] = await Promise.all([
       supabase
         .from("record_comments")
         .select("*")
         .eq("record_type", data.recordType)
         .eq("record_id", data.recordId)
         .order("created_at", { ascending: true }),
-      supabase
-        .from("audit_events")
-        .select("*")
-        .eq("record_type", data.recordType)
-        .eq("record_id", data.recordId)
-        .order("created_at", { ascending: false })
-        .limit(50),
+      (async () => {
+        const rows: Database["public"]["Tables"]["audit_events"]["Row"][] = [];
+        for (let offset = 0; ; offset += 500) {
+          const page = await supabase.from("audit_events").select("*")
+            .eq("record_type", data.recordType).eq("record_id", data.recordId)
+            .order("created_at", { ascending: false }).order("id")
+            .range(offset, offset + 499);
+          if (page.error) return { data: null, error: page.error };
+          rows.push(...(page.data ?? []));
+          if ((page.data?.length ?? 0) < 500) return { data: rows, error: null };
+        }
+      })(),
+      data.recordType === "incident"
+        ? supabase.from("incidents").select("created_at,state,resolved_at,first_responded_at,assignee_id,sla_due_at").eq("id", data.recordId).maybeSingle()
+        : data.recordType === "request"
+          ? supabase.from("service_requests").select("created_at,state,assignee_id,due_at").eq("id", data.recordId).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+      isTicket
+        ? supabase.from("sla_instances").select("id,target_type,started_at,due_at,completed_at,paused_at,status")
+          .eq("record_type", data.recordType).eq("record_id", data.recordId).order("started_at")
+        : Promise.resolve({ data: [], error: null }),
     ]);
     if (comments.error) throw new Error(comments.error.message);
     if (audit.error) throw new Error(audit.error.message);
-    return { comments: comments.data ?? [], audit: audit.data ?? [] };
+    if (ticket.error) throw new Error(ticket.error.message);
+    if (slas.error) throw new Error(slas.error.message);
+    return { comments: comments.data ?? [], audit: audit.data ?? [], ticket: ticket.data, slas: slas.data ?? [] };
   });
 
 export const addComment = createServerFn({ method: "POST" })
