@@ -25,6 +25,7 @@ import { Route as AuthenticatedCommandCenterRouteImport } from './routes/_authen
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedIncidentInsightsRouteImport } from './routes/_authenticated/incident-insights'
 import { Route as AuthenticatedIncidentsRouteImport } from './routes/_authenticated/incidents'
+import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
 import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
 import { Route as AuthenticatedProblemsRouteImport } from './routes/_authenticated/problems'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -120,6 +121,12 @@ const AuthenticatedIncidentsRoute = AuthenticatedIncidentsRouteImport.update({
   path: '/incidents',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedIntegrationsRoute =
+  AuthenticatedIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedKnowledgeRoute = AuthenticatedKnowledgeRouteImport.update({
   id: '/knowledge',
   path: '/knowledge',
@@ -196,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/incident-insights': typeof AuthenticatedIncidentInsightsRoute
   '/incidents': typeof AuthenticatedIncidentsRoute
+  '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/problems': typeof AuthenticatedProblemsRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -224,6 +232,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/incident-insights': typeof AuthenticatedIncidentInsightsRoute
   '/incidents': typeof AuthenticatedIncidentsRoute
+  '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/problems': typeof AuthenticatedProblemsRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -254,6 +263,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/incident-insights': typeof AuthenticatedIncidentInsightsRoute
   '/_authenticated/incidents': typeof AuthenticatedIncidentsRoute
+  '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
   '/_authenticated/problems': typeof AuthenticatedProblemsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/incident-insights'
     | '/incidents'
+    | '/integrations'
     | '/knowledge'
     | '/problems'
     | '/profile'
@@ -312,6 +323,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/incident-insights'
     | '/incidents'
+    | '/integrations'
     | '/knowledge'
     | '/problems'
     | '/profile'
@@ -341,6 +353,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/incident-insights'
     | '/_authenticated/incidents'
+    | '/_authenticated/integrations'
     | '/_authenticated/knowledge'
     | '/_authenticated/problems'
     | '/_authenticated/profile'
@@ -479,6 +492,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIncidentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/integrations': {
+      id: '/_authenticated/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof AuthenticatedIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/knowledge': {
       id: '/_authenticated/knowledge'
       path: '/knowledge'
@@ -571,6 +591,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedIncidentInsightsRoute: typeof AuthenticatedIncidentInsightsRoute
   AuthenticatedIncidentsRoute: typeof AuthenticatedIncidentsRoute
+  AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
   AuthenticatedProblemsRoute: typeof AuthenticatedProblemsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
@@ -593,6 +614,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedIncidentInsightsRoute: AuthenticatedIncidentInsightsRoute,
   AuthenticatedIncidentsRoute: AuthenticatedIncidentsRoute,
+  AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
   AuthenticatedProblemsRoute: AuthenticatedProblemsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
