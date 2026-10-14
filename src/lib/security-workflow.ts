@@ -44,8 +44,6 @@ export const transitionSchema = z.discriminatedUnion("action", [
     action: z.literal("schedule"),
     windowStart: windowTimestamp,
     windowEnd: windowTimestamp,
-  }).refine((value) => Date.parse(value.windowEnd) > Date.parse(value.windowStart), {
-    message: "The fix window must end after it starts.", path: ["windowEnd"],
   }),
   z.object({ action: z.literal("start") }),
   z.object({
@@ -62,7 +60,9 @@ export const transitionSchema = z.discriminatedUnion("action", [
     changeId: z.string().uuid().or(z.literal("")).optional(),
     incidentId: z.string().uuid().or(z.literal("")).optional(),
   }),
-]);
+]).refine((value) => value.action !== "schedule" || Date.parse(value.windowEnd) > Date.parse(value.windowStart), {
+  message: "The fix window must end after it starts.", path: ["windowEnd"],
+});
 export type TransitionInput = z.input<typeof transitionSchema>;
 
 export const exceptionInputSchema = z
