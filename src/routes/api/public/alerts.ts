@@ -26,9 +26,9 @@ async function notifyChat(alert: NormalizedAlert, number: string) {
 // Service-role numbering using compare-and-set on the shared counter (same series as next_record_number).
 async function nextIncidentNumber(admin: any): Promise<string | null> {
   for (let attempt = 0; attempt < 5; attempt++) {
-    const { data: row } = await admin.from("record_counters").select("current_value")
+    const { data: row, error: rowErr } = await admin.from("record_counters").select("current_value")
       .eq("organization_id", DEMO_ORG_ID).eq("prefix", "INC").maybeSingle();
-    if (!row) return null;
+    if (!row) { console.error("alert counter missing", rowErr?.message); return null; }
     const next = Number(row.current_value) + 1;
     const { data: updated } = await admin.from("record_counters")
       .update({ current_value: next, updated_at: new Date().toISOString() })
@@ -115,7 +115,7 @@ export const Route = createFileRoute("/api/public/alerts")({
             service_id: serviceId,
             sla_due_at: new Date(Date.now() + hours * 3600_000).toISOString(),
           });
-          if (error) { console.error("alert incident failed", error.code); results.push({ alert: alert.name, status: "firing", action: "failed" }); continue; }
+          if (error) { console.error("alert incident failed", error.code, error.message); results.push({ alert: alert.name, status: "firing", action: "failed" }); continue; }
           if (impact === 1) await notifyChat(alert, number as string);
           results.push({ alert: alert.name, status: "firing", number: number as string, action: "created" });
         }
