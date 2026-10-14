@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Staff-only Security workspace: landing links, explicit access restriction and staff/customer verification
+- [x] Staff-only Security workspace: landing links, server staff gate, staff finding inspection and non-staff direct-board rejection; 15 security tests passed
+- [ ] Verify Security restriction with an active requester-only workspace member (blocked: available customer test account has no active workspace membership; direct-board rejection verified)
 - [ ] Team email notifications (blocked: staff work-email/team assignments and verified sender domain needed)
 
 - [x] Security fix-window timezone conversion; regression tests pass in UTC, New York and Kolkata
