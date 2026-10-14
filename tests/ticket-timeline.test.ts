@@ -1,9 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { ticketTimeline, ticketSlaDetails, type HistoryEvent, type TicketSla } from "../src/lib/ticket-timeline";
+import { ticketTimeline, ticketSlaDetails, ticketSlaTargets, type HistoryEvent, type TicketSla } from "../src/lib/ticket-timeline";
 const ticket = { created_at: "2026-10-14T08:00:00Z", state: "open" };
 const event = (id: string, at: string, before: unknown, after: unknown): HistoryEvent => ({ id, created_at: at, source: "database", action: "updated", actor_id: "staff", before_values: before, after_values: after });
 const sla: TicketSla = { id: "sla", target_type: "resolution", started_at: ticket.created_at, due_at: "2026-10-14T10:00:00Z", completed_at: null, paused_at: null, status: "running" };
 describe("ticket response history", () => {
+  test("legacy incidents still show their recorded SLA deadline", () => {
+    expect(ticketSlaTargets({ ...ticket, sla_due_at: "2026-10-14T10:00:00Z" }, [])[0]?.due_at).toBe("2026-10-14T10:00:00Z");
+  });
   test("opened, assigned and closed use exact recorded times", () => {
     const timeline = ticketTimeline(ticket, [event("a", "2026-10-14T09:00:00Z", { assignee_id: null }, { assignee_id: "staff" }), event("c", "2026-10-14T12:00:00Z", { state: "resolved" }, { state: "closed" })]);
     expect(timeline.map(e => [e.label, e.at])).toEqual([["Opened", ticket.created_at], ["Assigned", "2026-10-14T09:00:00Z"], ["Closed", "2026-10-14T12:00:00Z"]]);

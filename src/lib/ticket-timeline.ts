@@ -1,6 +1,7 @@
 export type TicketSnapshot = {
   created_at: string; state: string; resolved_at?: string | null;
   first_responded_at?: string | null; assignee_id?: string | null;
+  sla_due_at?: string | null; due_at?: string | null;
 };
 export type HistoryEvent = {
   id: string; action: string; source: string; created_at: string;
@@ -33,6 +34,11 @@ export function ticketTimeline(ticket: TicketSnapshot, audit: HistoryEvent[]): T
 }
 
 export type TicketSla = { id: string; target_type: string; started_at: string; due_at: string; completed_at: string | null; paused_at: string | null; status: string };
+export function ticketSlaTargets(ticket: TicketSnapshot, slas: TicketSla[]): TicketSla[] {
+  const due = ticket.sla_due_at ?? ticket.due_at;
+  if (slas.length || !due) return slas;
+  return [{ id: "record-target", target_type: ticket.sla_due_at ? "resolution" : "fulfillment", started_at: ticket.created_at, due_at: due, completed_at: ticket.resolved_at ?? null, paused_at: null, status: "running" }];
+}
 export function ticketSlaDetails(sla: TicketSla, timeline: TimelineEntry[], now: number, ticket: TicketSnapshot) {
   const completionLabel = sla.target_type === "response" ? "First response" : "Resolved";
   const completion = timeline.find(e => e.label === completionLabel && Date.parse(e.at) >= Date.parse(sla.started_at));

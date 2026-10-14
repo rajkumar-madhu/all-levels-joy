@@ -3,13 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Clock, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { referenceQuery } from "@/lib/workspace-queries";
 import { formatDateTime } from "@/lib/itsm-shared";
-import { elapsedLabel, ticketTimeline, ticketSlaDetails, type TicketSnapshot, type HistoryEvent, type TicketSla } from "@/lib/ticket-timeline";
+import { elapsedLabel, ticketTimeline, ticketSlaDetails, ticketSlaTargets, type TicketSnapshot, type HistoryEvent, type TicketSla } from "@/lib/ticket-timeline";
 
 export function TicketResponseTimeline({ ticket, audit, slas }: { ticket: TicketSnapshot; audit: HistoryEvent[]; slas: TicketSla[] }) {
   const reference = useQuery(referenceQuery());
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(timer); }, []);
   const timeline = ticketTimeline(ticket, audit);
+  const targets = ticketSlaTargets(ticket, slas);
   const person = (id?: string | null) => reference.data?.people.find(p => p.id === id)?.display_name ?? "Workspace colleague";
   return <div className="space-y-6">
     <section aria-label="Response timeline">
@@ -26,8 +27,8 @@ export function TicketResponseTimeline({ ticket, audit, slas }: { ticket: Ticket
     </section>
     <section aria-label="SLA breach details">
       <h3 className="text-sm font-semibold text-foreground">SLA breach details</h3>
-      {slas.length === 0 ? <p className="mt-2 text-xs text-muted-foreground">No SLA targets recorded for this ticket.</p> : <ul className="mt-3 divide-y divide-border">
-        {slas.map(sla => {
+      {targets.length === 0 ? <p className="mt-2 text-xs text-muted-foreground">No SLA targets recorded for this ticket.</p> : <ul className="mt-3 divide-y divide-border">
+        {targets.map(sla => {
           const detail = ticketSlaDetails(sla, timeline, now, ticket);
           const breached = detail.state.startsWith("Breached");
           const Icon = breached ? AlertTriangle : detail.state === "Met" ? CheckCircle2 : Clock;

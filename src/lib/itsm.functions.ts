@@ -236,9 +236,9 @@ export const getRecordActivity = createServerFn({ method: "GET" })
         }
       })(),
       data.recordType === "incident"
-        ? supabase.from("incidents").select("created_at,state,resolved_at,first_responded_at,assignee_id").eq("id", data.recordId).maybeSingle()
+        ? supabase.from("incidents").select("created_at,state,resolved_at,first_responded_at,assignee_id,sla_due_at").eq("id", data.recordId).maybeSingle()
         : data.recordType === "request"
-          ? supabase.from("service_requests").select("created_at,state,assignee_id").eq("id", data.recordId).maybeSingle()
+          ? supabase.from("service_requests").select("created_at,state,assignee_id,due_at").eq("id", data.recordId).maybeSingle()
           : Promise.resolve({ data: null, error: null }),
       isTicket
         ? supabase.from("sla_instances").select("id,target_type,started_at,due_at,completed_at,paused_at,status")
