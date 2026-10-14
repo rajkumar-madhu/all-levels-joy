@@ -77,10 +77,6 @@ export const transitionSecurityFinding = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { action, ...rest } = data.step;
     const payload: Record<string, unknown> = { ...rest };
-    if (action === "schedule") {
-      payload["windowStart"] = new Date(String(payload["windowStart"])).toISOString();
-      payload["windowEnd"] = new Date(String(payload["windowEnd"])).toISOString();
-    }
     const { error } = await context.supabase.rpc("itsm_transition_security_finding", {
       _finding_id: data.id,
       _action: action as string,

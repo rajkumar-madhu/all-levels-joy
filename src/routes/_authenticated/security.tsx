@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -20,6 +20,7 @@ import {
   transitionSecurityFinding,
 } from "@/lib/security.functions";
 import { SEVERITIES, SEVERITY_DAYS, type TransitionInput } from "@/lib/security-workflow";
+import { securityWindowPayload, windowTimeToLocalInput } from "@/lib/security-window";
 
 const FILTERS = ["all", "open", "overdue", "critical_high", "scanner", "exceptions_expiring"] as const;
 
@@ -325,8 +326,8 @@ function FindingDetail({
     rollbackPlan: f.rollback_plan ?? "",
     rollbackTrigger: f.rollback_trigger ?? "",
     notes: "",
-    windowStart: "",
-    windowEnd: "",
+    windowStart: windowTimeToLocalInput(f.window_start),
+    windowEnd: windowTimeToLocalInput(f.window_end),
     outcome: "successful",
     validationResults: "",
     reviewNotes: "",
@@ -337,6 +338,18 @@ function FindingDetail({
     exceptionNotes: "",
   });
   const set = (k: string) => (e: { target: { value: string } }) => setForm({ ...form, [k]: e.target.value });
+  const [windowTimezone, setWindowTimezone] = useState("");
+  const [windowError, setWindowError] = useState("");
+  useEffect(() => { setWindowTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone); }, []);
+  const saveWindow = () => {
+    try {
+      const payload = securityWindowPayload(form["windowStart"] ?? "", form["windowEnd"] ?? "");
+      setWindowError("");
+      step.mutate(payload);
+    } catch (error) {
+      setWindowError(error instanceof Error ? error.message : "Choose valid window times.");
+    }
+  };
 
   const step = useMutation({
     mutationFn: (s: TransitionInput) => transitionSecurityFinding({ data: { id: f.id, step: s } }),
@@ -469,6 +482,7 @@ function FindingDetail({
       {f.state === "scheduled" ? (
         <section className="space-y-2 rounded-md border border-border bg-background p-3">
           <h3 className="text-sm font-semibold text-foreground">Schedule</h3>
+          {windowTimezone ? <p className="text-xs text-muted-foreground">Timezone: {windowTimezone}</p> : null}
           {f.window_start ? (
             <p className="text-xs text-muted-foreground">
               Window {formatDateTime(f.window_start)} → {formatDateTime(f.window_end)}
@@ -485,13 +499,14 @@ function FindingDetail({
             </div>
           </div>
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" disabled={busy} onClick={() => step.mutate({ action: "schedule", windowStart: form["windowStart"]!, windowEnd: form["windowEnd"]! })}>
+            <Button size="sm" variant="outline" disabled={busy} onClick={saveWindow}>
               Save window
             </Button>
             <Button size="sm" disabled={busy || !f.window_start} onClick={() => step.mutate({ action: "start" })}>
               Start remediation
             </Button>
           </div>
+          {windowError ? <p role="alert" className="text-sm text-destructive">{windowError}</p> : null}
         </section>
       ) : null}
 
