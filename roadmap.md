@@ -12,7 +12,7 @@
 
 - [ ] Scanner module: signed intake, manual-field parity, scanner activity and end-to-end verification
 
-- [ ] Finish ticket response timelines for incidents and requests: opened, assigned, closed and SLA breach details
+- [x] Finish ticket response timelines for incidents and requests: opened, assigned, closed and SLA breach details; 12 tests passed, staff preview verified assignment, live breaches and labeled test request resolution/closure
 
 - [x] Knowledge base: categories, tags, 21 starter articles, sample articles retired, assistant grounded with linked citations
 - [x] Change register with filters, wired into dashboard and global search
