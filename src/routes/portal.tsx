@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -40,13 +40,16 @@ function Portal() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-5 py-4">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-5 py-4">
           <p className="font-semibold text-foreground">WeCrew Support</p>
+          <div className="flex flex-wrap items-center gap-2">
+          <Button asChild size="sm" variant="outline"><Link to="/security">Security workspace</Link></Button>
           {signedIn ? (
             <Button size="sm" variant="ghost" onClick={() => void supabase.auth.signOut()}>
               Sign out
             </Button>
           ) : null}
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-4xl space-y-10 px-5 py-8">

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { formatDateTime, type AppRole } from "@/lib/itsm-shared";
+import { canManage, formatDateTime, type AppRole } from "@/lib/itsm-shared";
 import {
   createSecurityFinding,
   decideSecurityException,
@@ -72,8 +72,9 @@ function SecurityPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/security" });
   const queryClient = useQueryClient();
-  const board = useQuery({ queryKey: ["security-board"], queryFn: () => getSecurityBoard() });
   const roles = (workspace.data?.roles ?? []) as AppRole[];
+  const staff = canManage(roles);
+  const board = useQuery({ queryKey: ["security-board"], queryFn: () => getSecurityBoard(), enabled: Boolean(workspace.data) && staff });
   const userId = workspace.data?.userId;
   const canApprove = roles.some((r) => ["manager", "admin", "change_manager"].includes(r));
   const canDecideException = roles.some((r) => ["manager", "admin"].includes(r));
@@ -128,6 +129,16 @@ function SecurityPage() {
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Finding was not saved."),
   });
+
+  if (workspace.isPending) return <AppShell workspace={workspace.data}><WorkspaceLoading /></AppShell>;
+  if (workspace.isError) return <AppShell workspace={workspace.data}><p role="alert" className="mt-6 text-sm text-destructive">Workspace access could not be verified. Please try again.</p></AppShell>;
+  if (!staff) return (
+    <AppShell workspace={workspace.data}>
+      <PageHeader eyebrow="Security" title="Staff access required" />
+      <p className="mt-4 text-sm text-muted-foreground">The Security workspace is available to workspace staff only.</p>
+      <Button asChild variant="outline" className="mt-4"><Link to="/portal">Customer portal</Link></Button>
+    </AppShell>
+  );
 
   return (
     <AppShell workspace={workspace.data}>
@@ -219,8 +230,8 @@ function SecurityPage() {
               key={selected.id}
               finding={selected}
               exceptions={exceptions.filter((e) => e.finding_id === selected.id)}
-              changes={board.data!.changes}
-              incidents={board.data!.incidents}
+              changes={board.data?.changes ?? []}
+              incidents={board.data?.incidents ?? []}
               canApprove={canApprove && selected.requester_id !== userId}
               canDecideException={canDecideException}
               userId={userId}

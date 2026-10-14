@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Staff-only Security workspace: landing links, explicit access restriction and staff/customer verification
+- [ ] Team email notifications (blocked: staff work-email/team assignments and verified sender domain needed)
+
 - [x] Security fix-window timezone conversion; regression tests pass in UTC, New York and Kolkata
 - [ ] Confirm saved security window on a real finding (blocked: SEC0001001 is pending independent approval; current staff account cannot approve it)
 
