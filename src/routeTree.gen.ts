@@ -33,6 +33,7 @@ import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedSlaRouteImport } from './routes/_authenticated/sla'
 import { Route as AuthenticatedAssistantIndexRouteImport } from './routes/_authenticated/assistant.index'
 import { Route as AuthenticatedAssistantThreadIdRouteImport } from './routes/_authenticated/assistant.$threadId'
+import { Route as ApiPublicAlertsRouteImport } from './routes/api/public/alerts'
 import { Route as ApiPublicSecurityExceptionsExpireRouteImport } from './routes/api/public/security-exceptions-expire'
 import { Route as ApiPublicSecurityFindingsRouteImport } from './routes/api/public/security-findings'
 
@@ -161,6 +162,11 @@ const AuthenticatedAssistantThreadIdRoute =
     path: '/assistant/$threadId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicAlertsRoute = ApiPublicAlertsRouteImport.update({
+  id: '/api/public/alerts',
+  path: '/api/public/alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSecurityExceptionsExpireRoute =
   ApiPublicSecurityExceptionsExpireRouteImport.update({
     id: '/api/public/security-exceptions-expire',
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/security': typeof AuthenticatedSecurityRoute
   '/sla': typeof AuthenticatedSlaRoute
   '/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
+  '/api/public/alerts': typeof ApiPublicAlertsRoute
   '/api/public/security-exceptions-expire': typeof ApiPublicSecurityExceptionsExpireRoute
   '/api/public/security-findings': typeof ApiPublicSecurityFindingsRoute
   '/assistant/': typeof AuthenticatedAssistantIndexRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByTo {
   '/security': typeof AuthenticatedSecurityRoute
   '/sla': typeof AuthenticatedSlaRoute
   '/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
+  '/api/public/alerts': typeof ApiPublicAlertsRoute
   '/api/public/security-exceptions-expire': typeof ApiPublicSecurityExceptionsExpireRoute
   '/api/public/security-findings': typeof ApiPublicSecurityFindingsRoute
   '/assistant': typeof AuthenticatedAssistantIndexRoute
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/_authenticated/security': typeof AuthenticatedSecurityRoute
   '/_authenticated/sla': typeof AuthenticatedSlaRoute
   '/_authenticated/assistant/$threadId': typeof AuthenticatedAssistantThreadIdRoute
+  '/api/public/alerts': typeof ApiPublicAlertsRoute
   '/api/public/security-exceptions-expire': typeof ApiPublicSecurityExceptionsExpireRoute
   '/api/public/security-findings': typeof ApiPublicSecurityFindingsRoute
   '/_authenticated/assistant/': typeof AuthenticatedAssistantIndexRoute
@@ -282,6 +291,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/sla'
     | '/assistant/$threadId'
+    | '/api/public/alerts'
     | '/api/public/security-exceptions-expire'
     | '/api/public/security-findings'
     | '/assistant/'
@@ -309,6 +319,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/sla'
     | '/assistant/$threadId'
+    | '/api/public/alerts'
     | '/api/public/security-exceptions-expire'
     | '/api/public/security-findings'
     | '/assistant'
@@ -337,6 +348,7 @@ export interface FileRouteTypes {
     | '/_authenticated/security'
     | '/_authenticated/sla'
     | '/_authenticated/assistant/$threadId'
+    | '/api/public/alerts'
     | '/api/public/security-exceptions-expire'
     | '/api/public/security-findings'
     | '/_authenticated/assistant/'
@@ -348,6 +360,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PortalRoute: typeof PortalRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicAlertsRoute: typeof ApiPublicAlertsRoute
   ApiPublicSecurityExceptionsExpireRoute: typeof ApiPublicSecurityExceptionsExpireRoute
   ApiPublicSecurityFindingsRoute: typeof ApiPublicSecurityFindingsRoute
 }
@@ -522,6 +535,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssistantThreadIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/alerts': {
+      id: '/api/public/alerts'
+      path: '/api/public/alerts'
+      fullPath: '/api/public/alerts'
+      preLoaderRoute: typeof ApiPublicAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/security-exceptions-expire': {
       id: '/api/public/security-exceptions-expire'
       path: '/api/public/security-exceptions-expire'
@@ -592,6 +612,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PortalRoute: PortalRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicAlertsRoute: ApiPublicAlertsRoute,
   ApiPublicSecurityExceptionsExpireRoute:
     ApiPublicSecurityExceptionsExpireRoute,
   ApiPublicSecurityFindingsRoute: ApiPublicSecurityFindingsRoute,
