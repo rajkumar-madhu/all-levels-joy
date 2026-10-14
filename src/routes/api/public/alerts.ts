@@ -23,6 +23,22 @@ async function notifyChat(alert: NormalizedAlert, number: string) {
   );
 }
 
+// Service-role numbering using compare-and-set on the shared counter (same series as next_record_number).
+async function nextIncidentNumber(admin: any): Promise<string | null> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { data: row, error: rowErr } = await admin.from("record_counters").select("current_value")
+      .eq("organization_id", DEMO_ORG_ID).eq("prefix", "INC").maybeSingle();
+    if (!row) { console.error("alert counter missing", rowErr?.message); return null; }
+    const next = Number(row.current_value) + 1;
+    const { data: updated } = await admin.from("record_counters")
+      .update({ current_value: next, updated_at: new Date().toISOString() })
+      .eq("organization_id", DEMO_ORG_ID).eq("prefix", "INC").eq("current_value", row.current_value)
+      .select("current_value");
+    if (updated?.length) return "INC" + String(next).padStart(7, "0");
+  }
+  return null;
+}
+
 export const Route = createFileRoute("/api/public/alerts")({
   server: {
     handlers: {
@@ -74,8 +90,8 @@ export const Route = createFileRoute("/api/public/alerts")({
               .or(`name.eq.${host},ip_address.eq.${host}`).limit(1).maybeSingle();
             serviceId = ci?.service_id ?? null;
           }
-          const { data: number, error: numErr } = await supabaseAdmin.rpc("next_record_number", { _org_id: DEMO_ORG_ID, _prefix: "INC" });
-          if (numErr || !number) { results.push({ alert: alert.name, status: "firing", action: "failed" }); continue; }
+          const number = await nextIncidentNumber(supabaseAdmin);
+          if (!number) { results.push({ alert: alert.name, status: "firing", action: "failed" }); continue; }
           const { impact, urgency } = severityToImpact(alert.severity);
           const hours = impact + urgency <= 2 ? 2 : impact + urgency <= 4 ? 8 : 24;
           const description = [
@@ -99,7 +115,7 @@ export const Route = createFileRoute("/api/public/alerts")({
             service_id: serviceId,
             sla_due_at: new Date(Date.now() + hours * 3600_000).toISOString(),
           });
-          if (error) { console.error("alert incident failed", error.code); results.push({ alert: alert.name, status: "firing", action: "failed" }); continue; }
+          if (error) { console.error("alert incident failed", error.code, error.message); results.push({ alert: alert.name, status: "firing", action: "failed" }); continue; }
           if (impact === 1) await notifyChat(alert, number as string);
           results.push({ alert: alert.name, status: "firing", number: number as string, action: "created" });
         }
