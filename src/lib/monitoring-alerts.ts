@@ -57,17 +57,17 @@ export function parseAlertPayload(json: unknown): NormalizedAlert[] | null {
   if (am.success) {
     const source = am.data.orgId !== undefined || am.data.alerts.some((a) => a.dashboardURL || a.panelURL) ? "grafana" : "prometheus";
     return am.data.alerts.map((a) => {
-      const name = a.labels.alertname || a.labels.rulename || am.data.title || "Unnamed alert";
-      const instance = a.labels.instance || a.labels.host || null;
+      const name = a.labels["alertname"] || a.labels["rulename"] || am.data.title || "Unnamed alert";
+      const instance = a.labels["instance"] || a.labels["host"] || null;
       return {
         source,
-        fingerprint: slug(a.fingerprint || `${name}|${instance ?? ""}|${a.labels.job ?? ""}`),
+        fingerprint: slug(a.fingerprint || `${name}|${instance ?? ""}|${a.labels["job"] ?? ""}`),
         name: name.slice(0, 200),
         status: a.status,
-        severity: (a.labels.severity || "warning").toLowerCase(),
+        severity: (a.labels["severity"] || "warning").toLowerCase(),
         instance,
-        service: a.labels.service || a.labels.job || null,
-        summary: (a.annotations.summary || a.annotations.description || "").slice(0, 4000),
+        service: a.labels["service"] || a.labels["job"] || null,
+        summary: (a.annotations["summary"] || a.annotations["description"] || "").slice(0, 4000),
         link: a.dashboardURL || a.panelURL || a.generatorURL || null,
         startsAt: a.startsAt ?? null,
       };
@@ -112,5 +112,5 @@ export const ALERT_SOURCE_LABELS: Record<string, string> = {
 /** Extracts the source from a monitoring incident's description marker. */
 export function alertSourceOf(description: string): string | null {
   const m = description.match(/\[alert:([a-z]+):/);
-  return m ? m[1] : null;
+  return m?.[1] ?? null;
 }
