@@ -158,7 +158,7 @@ export const Route = createFileRoute("/api/public/pagerduty")({
           occurred_at: occurredAt ?? null,
         };
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data: saved, error } = await supabaseAdmin.rpc("itsm_upsert_pagerduty_incident", {
+        const { data: saved, error } = await (supabaseAdmin.rpc as any)("itsm_upsert_pagerduty_incident", {
           _org_id: DEMO_ORG_ID,
           _input: input,
         });

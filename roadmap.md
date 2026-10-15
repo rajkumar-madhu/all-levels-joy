@@ -20,7 +20,8 @@
 - [x] Change register with filters, wired into dashboard and global search
 - [x] Linked records panel on incidents (changes + problem)
 - [x] Security findings module: findings lifecycle, risk exceptions, workspace wiring
-- [ ] Scanner intake secret + nightly exception expiry schedule (blocked: user must create the shared scanner secret)
+- [x] Nightly exception expiry (02:00 UTC)
+- [ ] Scanner signing secret (user declined secure form)
 - [x] Portal replies drive ticket status and target dates; request queue panel on dashboard
 - [x] Catalogue request + portal sign-up/ticket end-to-end test
 - [ ] Assign people to the Service Desk and Platform Operations teams (needs user: who belongs to each team) so reply notifications reach someone
