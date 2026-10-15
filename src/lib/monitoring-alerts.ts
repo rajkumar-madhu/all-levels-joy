@@ -14,6 +14,29 @@ export type NormalizedAlert = {
   startsAt: string | null;
 };
 
+export const MAX_ALERTS_PER_REQUEST = 25;
+export const MAX_NEW_INCIDENTS_PER_WINDOW = 20;
+export const RATE_WINDOW_MS = 10 * 60_000;
+export const MIN_TOKEN_LENGTH = 32;
+
+/** Keeps only hostname-safe characters; anything else is rejected (null). */
+export function safeInstance(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const v = value.trim().slice(0, 300);
+  return /^[A-Za-z0-9.:-]+$/.test(v) ? v : null;
+}
+
+/** Keeps only http(s) links. */
+export function safeLink(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const u = new URL(value);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.toString().slice(0, 2000) : null;
+  } catch {
+    return null;
+  }
+}
+
 const str = z.string().max(2000);
 const labels = z.record(z.string(), z.string().max(500)).default({});
 
@@ -32,7 +55,7 @@ const amAlert = z.object({
 const amPayload = z.object({
   receiver: str.optional(),
   status: z.enum(["firing", "resolved"]).optional(),
-  alerts: z.array(amAlert).min(1).max(100),
+  alerts: z.array(amAlert).min(1).max(MAX_ALERTS_PER_REQUEST),
   orgId: z.union([z.number(), z.string()]).optional(),
   title: str.optional(),
 });
@@ -45,11 +68,11 @@ const genericPayload = z.object({
   instance: z.string().max(300).optional(),
   service: z.string().max(200).optional(),
   summary: z.string().max(4000).default(""),
-  link: z.string().url().max(2000).optional(),
+  link: z.string().max(2000).optional(),
 });
 
 function slug(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9._:-]+/g, "-").slice(0, 200);
+  return value.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 200) || "alert";
 }
 
 export function parseAlertPayload(json: unknown): NormalizedAlert[] | null {
@@ -58,7 +81,7 @@ export function parseAlertPayload(json: unknown): NormalizedAlert[] | null {
     const source = am.data.orgId !== undefined || am.data.alerts.some((a) => a.dashboardURL || a.panelURL) ? "grafana" : "prometheus";
     return am.data.alerts.map((a) => {
       const name = a.labels["alertname"] || a.labels["rulename"] || am.data.title || "Unnamed alert";
-      const instance = a.labels["instance"] || a.labels["host"] || null;
+      const instance = safeInstance(a.labels["instance"] || a.labels["host"]);
       return {
         source,
         fingerprint: slug(a.fingerprint || `${name}|${instance ?? ""}|${a.labels["job"] ?? ""}`),
@@ -68,7 +91,7 @@ export function parseAlertPayload(json: unknown): NormalizedAlert[] | null {
         instance,
         service: a.labels["service"] || a.labels["job"] || null,
         summary: (a.annotations["summary"] || a.annotations["description"] || "").slice(0, 4000),
-        link: a.dashboardURL || a.panelURL || a.generatorURL || null,
+        link: safeLink(a.dashboardURL || a.panelURL || a.generatorURL),
         startsAt: a.startsAt ?? null,
       };
     });
@@ -81,10 +104,10 @@ export function parseAlertPayload(json: unknown): NormalizedAlert[] | null {
       name: g.data.name,
       status: g.data.status,
       severity: g.data.severity.toLowerCase(),
-      instance: g.data.instance ?? null,
+      instance: safeInstance(g.data.instance),
       service: g.data.service ?? null,
       summary: g.data.summary,
-      link: g.data.link ?? null,
+      link: safeLink(g.data.link),
       startsAt: null,
     }];
   }

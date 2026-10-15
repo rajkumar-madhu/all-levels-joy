@@ -32,3 +32,4 @@
 - [ ] Configure MONITORING_WEBHOOK_TOKEN (and optional SLACK_WEBHOOK_URL / TEAMS_WEBHOOK_URL) and point Alertmanager/Grafana at /api/public/alerts (needs user)
 - [ ] Jira/GitHub/Linear two-way sync (planned)
 - [ ] Post critical alerts to Slack via incoming webhook (SLACK_WEBHOOK_URL; needs user to paste real URL in secure form)
+- [x] Hardened alert webhook (filter-safe lookups, exact dedupe, 25/request + 20 per 10 min, http(s) links only, uniform 401, min token length)

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DEMO_ORG_ID } from "@/lib/itsm-shared";
-import { alertMarker, parseAlertPayload, severityToImpact, ALERT_SOURCE_LABELS, type NormalizedAlert } from "@/lib/monitoring-alerts";
+import { alertMarker, parseAlertPayload, MIN_TOKEN_LENGTH, MAX_NEW_INCIDENTS_PER_WINDOW, RATE_WINDOW_MS, severityToImpact, ALERT_SOURCE_LABELS, type NormalizedAlert } from "@/lib/monitoring-alerts";
 
 // Prometheus Alertmanager / Grafana / generic webhooks.
 // Auth: header "Authorization: Bearer <MONITORING_WEBHOOK_TOKEN>".
@@ -44,8 +44,7 @@ export const Route = createFileRoute("/api/public/alerts")({
     handlers: {
       POST: async ({ request }) => {
         const secret = process.env["MONITORING_WEBHOOK_TOKEN"];
-        if (!secret) return new Response("Alert intake is not configured", { status: 503 });
-        if (!(await verify(request, secret))) return new Response("Unauthorized", { status: 401 });
+        if (!secret || secret.length < MIN_TOKEN_LENGTH || !(await verify(request, secret))) return new Response("Unauthorized", { status: 401 });
         const body = await request.text();
         if (body.length > 512_000) return new Response("Payload too large", { status: 413 });
         let json: unknown;
@@ -63,7 +62,7 @@ export const Route = createFileRoute("/api/public/alerts")({
             .eq("organization_id", DEMO_ORG_ID)
             .eq("contact_type", "monitoring")
             .not("state", "in", "(resolved,closed,cancelled)")
-            .ilike("description", `%${marker}%`)
+            .like("description", `%${marker}%`) // marker has only [a-z0-9:-] so no LIKE wildcards
             .limit(1)
             .maybeSingle();
 
@@ -81,14 +80,26 @@ export const Route = createFileRoute("/api/public/alerts")({
             continue;
           }
 
+          const { count } = await supabaseAdmin.from("incidents").select("id", { count: "exact", head: true })
+            .eq("organization_id", DEMO_ORG_ID).eq("contact_type", "monitoring")
+            .gte("created_at", new Date(Date.now() - RATE_WINDOW_MS).toISOString());
+          if ((count ?? 0) >= MAX_NEW_INCIDENTS_PER_WINDOW) {
+            return Response.json({ error: "Too many requests", results }, { status: 429, headers: { "Retry-After": "600" } });
+          }
           let serviceId: string | null = null;
           if (alert.instance) {
-            const host = alert.instance.split(":")[0];
+            const host = alert.instance.split(":")[0] ?? "";
             const { data: ci } = await supabaseAdmin
               .from("configuration_items").select("service_id")
               .eq("organization_id", DEMO_ORG_ID)
-              .or(`name.eq.${host},ip_address.eq.${host}`).limit(1).maybeSingle();
-            serviceId = ci?.service_id ?? null;
+              .eq("name", host).limit(1).maybeSingle();
+            let found = ci;
+            if (!found) {
+              const { data: byIp } = await supabaseAdmin.from("configuration_items").select("service_id")
+                .eq("organization_id", DEMO_ORG_ID).eq("ip_address", host).limit(1).maybeSingle();
+              found = byIp;
+            }
+            serviceId = found?.service_id ?? null;
           }
           const number = await nextIncidentNumber(supabaseAdmin);
           if (!number) { results.push({ alert: alert.name, status: "firing", action: "failed" }); continue; }
