@@ -24,3 +24,27 @@ describe("monitoring alerts", () => {
     expect(parseAlertPayload({ foo: 1 })).toBeNull();
   });
 });
+
+import { safeInstance, safeLink, MAX_ALERTS_PER_REQUEST } from "../src/lib/monitoring-alerts";
+describe("alert webhook hardening", () => {
+  test("instance names with filter characters are dropped", () => {
+    expect(safeInstance("web-01:9100")).toBe("web-01:9100");
+    expect(safeInstance("x,service_id.neq.null")).toBeNull();
+    expect(safeInstance("a)b")).toBeNull();
+  });
+  test("only http(s) links are kept", () => {
+    expect(safeLink("javascript:alert(1)")).toBeNull();
+    expect(safeLink("data:text/html,hi")).toBeNull();
+    expect(safeLink("https://grafana.example.com/d/1")).toBe("https://grafana.example.com/d/1");
+  });
+  test("fingerprints contain no LIKE wildcards", () => {
+    const a = parseAlertPayload({ name: "x", fingerprint: "a_b%c" })![0];
+    expect(a.fingerprint).toMatch(/^[a-z0-9-]+$/);
+  });
+  test("batches over 25 alerts are rejected", () => {
+    const one = { status: "firing", labels: { alertname: "A" }, annotations: {} };
+    expect(MAX_ALERTS_PER_REQUEST).toBe(25);
+    expect(parseAlertPayload({ alerts: Array(26).fill(one) })).toBeNull();
+    expect(parseAlertPayload({ alerts: Array(25).fill(one) })).not.toBeNull();
+  });
+});

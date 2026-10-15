@@ -62,7 +62,7 @@ export const Route = createFileRoute("/api/public/alerts")({
             .eq("organization_id", DEMO_ORG_ID)
             .eq("contact_type", "monitoring")
             .not("state", "in", "(resolved,closed,cancelled)")
-            .like("description", `%${marker}`)
+            .like("description", `%${marker}%`) // marker has only [a-z0-9:-] so no LIKE wildcards
             .limit(1)
             .maybeSingle();
 
