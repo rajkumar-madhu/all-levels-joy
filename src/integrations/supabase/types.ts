@@ -1172,6 +1172,98 @@ export type Database = {
         }
         Relationships: []
       }
+      pagerduty_events: {
+        Row: {
+          event_id: string
+          event_type: string
+          organization_id: string
+          pagerduty_id: string
+          received_at: string
+        }
+        Insert: {
+          event_id: string
+          event_type: string
+          organization_id: string
+          pagerduty_id: string
+          received_at?: string
+        }
+        Update: {
+          event_id?: string
+          event_type?: string
+          organization_id?: string
+          pagerduty_id?: string
+          received_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagerduty_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pagerduty_incidents: {
+        Row: {
+          created_at: string
+          html_url: string | null
+          id: string
+          incident_id: string
+          last_event_id: string | null
+          last_occurred_at: string | null
+          organization_id: string
+          pagerduty_id: string
+          service_name: string | null
+          status: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          created_at?: string
+          html_url?: string | null
+          id?: string
+          incident_id: string
+          last_event_id?: string | null
+          last_occurred_at?: string | null
+          organization_id: string
+          pagerduty_id: string
+          service_name?: string | null
+          status: string
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          created_at?: string
+          html_url?: string | null
+          id?: string
+          incident_id?: string
+          last_event_id?: string | null
+          last_occurred_at?: string | null
+          organization_id?: string
+          pagerduty_id?: string
+          service_name?: string | null
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagerduty_incidents_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagerduty_incidents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       problem_incidents: {
         Row: {
           created_at: string
@@ -2120,6 +2212,10 @@ export type Database = {
       }
       itsm_transition_security_finding: {
         Args: { _action: string; _finding_id: string; _input: Json }
+        Returns: Json
+      }
+      itsm_upsert_pagerduty_incident: {
+        Args: { _input: Json; _org_id: string }
         Returns: Json
       }
       itsm_upsert_scanner_finding: {
