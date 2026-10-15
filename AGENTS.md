@@ -16,3 +16,4 @@
 - Ticket response timelines derive assignment and lifecycle times from paginated immutable database audit snapshots; SLA lateness stops at recorded completion or pause, never at an unrelated last-update timestamp. Why: incident and request history must reflect real events without inventing historical times.
 
 - Monitoring alerts arrive at `/api/public/alerts` with a bearer token (`MONITORING_WEBHOOK_TOKEN`), become `contact_type=monitoring` incidents and dedupe on an `[alert:source:fingerprint]` marker in the description. Why: no extra table needed and alerts share the incident workflow.
+- PagerDuty webhooks (`/api/public/pagerduty`, HMAC `PAGERDUTY_WEBHOOK_SECRET`) save through service-role-only `itsm_upsert_pagerduty_incident`, linking each PagerDuty incident to one workspace incident and deduping by event id. Why: retries and out-of-order events must not create duplicate tickets.
