@@ -88,7 +88,7 @@ export const Route = createFileRoute("/api/public/alerts")({
           }
           let serviceId: string | null = null;
           if (alert.instance) {
-            const host = alert.instance.split(":")[0];
+            const host = alert.instance.split(":")[0] ?? "";
             const { data: ci } = await supabaseAdmin
               .from("configuration_items").select("service_id")
               .eq("organization_id", DEMO_ORG_ID)
