@@ -467,7 +467,7 @@ export function AppShell({
           <main
             id="main-content"
             tabIndex={-1}
-            className="min-w-0 flex-1 px-4 py-6 focus:outline-none sm:px-6 lg:px-8 lg:py-8"
+            className="min-w-0 flex-1 px-4 py-4 focus:outline-none sm:px-6 lg:px-8"
           >
             {workspaceState?.status === "error" ? (
               <div
