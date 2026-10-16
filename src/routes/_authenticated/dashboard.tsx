@@ -659,42 +659,102 @@ function Dashboard() {
                   ) : null}
                 </ul>
               </div>
-            </div>
-          </section>
 
-          <section className="mt-8 space-y-6">
+              <div className="rounded-lg border border-border bg-card">
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                  <h2 className="text-sm font-semibold text-foreground">Approvals waiting on you</h2>
+                  <Link to="/approvals" className="text-xs underline underline-offset-4">
+                    Open approvals
+                  </Link>
+                </div>
+                {pendingApprovals.length === 0 ? (
+                  <p className="px-4 py-6 text-sm text-muted-foreground">No approvals are waiting.</p>
+                ) : (
+                  <ul className="divide-y divide-border">
+                    {pendingApprovals.slice(0, 12).map((approval) => (
+                      <li key={approval.id} className="px-4 py-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Link
+                            to="/approvals"
+                            className="font-mono text-xs capitalize text-primary underline underline-offset-4"
+                          >
+                            {approval.record_type}
+                          </Link>
+                          <span className="rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
+                            {approval.status}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Raised {formatDateTime(approval.created_at)}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <section className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             <div className="rounded-lg border border-border bg-card">
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <h2 className="text-sm font-semibold text-foreground">Approvals waiting on you</h2>
-                <Link to="/approvals" className="text-xs underline underline-offset-4">
-                  Open approvals
+                <h2 className="text-sm font-semibold text-foreground">Service health</h2>
+                <Link to="/assets" className="text-xs underline underline-offset-4">
+                  Assets
                 </Link>
               </div>
-              {pendingApprovals.length === 0 ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">No approvals are waiting.</p>
+              {reference.isError ? (
+                <p className="px-4 py-6 text-sm text-destructive">Service health could not be loaded.</p>
+              ) : serviceHealth.length === 0 ? (
+                <p className="px-4 py-6 text-sm text-muted-foreground">No services are registered.</p>
               ) : (
                 <ul className="divide-y divide-border">
-                  {pendingApprovals.slice(0, 12).map((approval) => (
-                    <li key={approval.id} className="px-4 py-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Link
-                          to="/approvals"
-                          className="font-mono text-xs capitalize text-primary underline underline-offset-4"
-                        >
-                          {approval.record_type}
-                        </Link>
-                        <span className="rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
-                          {approval.status}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Raised {formatDateTime(approval.created_at)}
+                  {serviceHealth.map((service) => (
+                    <li key={service.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                      <p className="text-sm font-medium text-foreground">{service.name}</p>
+                      <p className="font-mono text-xs text-muted-foreground">
+                        {service.open} open · {service.hurt} breached
                       </p>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
+
+            {roles.includes("admin") ? (
+              <div className="rounded-lg border border-border bg-card">
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                  <h2 className="text-sm font-semibold text-foreground">Integrate your stack</h2>
+                  <Link to="/integrations" className="text-xs underline underline-offset-4">
+                    How they connect
+                  </Link>
+                </div>
+                {integrations.isPending ? (
+                  <p className="px-4 py-6 text-sm text-muted-foreground">Checking platform tools…</p>
+                ) : integrations.isError ? (
+                  <p className="px-4 py-6 text-sm text-destructive">Platform tools could not be checked.</p>
+                ) : (
+                  <ul className="divide-y divide-border">
+                    {(integrations.data?.tools ?? []).map((tool) => (
+                      <li key={tool.name} className="px-4 py-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium text-foreground">{tool.name}</p>
+                          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                            {tool.state === "up" ? "Reachable" : tool.state === "absent" ? "Not installed" : "Unreachable"}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">{tool.kind}</p>
+                        {tool.url ? (
+                          <a href={tool.url} className="mt-1 block truncate font-mono text-xs text-primary underline underline-offset-4">
+                            {tool.url.replace("https://", "")}
+                          </a>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ) : null}
 
             <div className="rounded-lg border border-border bg-card">
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
