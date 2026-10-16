@@ -584,6 +584,9 @@ function Dashboard() {
               )}
             </div>
 
+            <RequestQueues requests={openRequests} groups={reference.data?.groups ?? []} />
+            </div>
+
             <div className="space-y-6">
               <div className="rounded-lg border border-border bg-card">
                 <div className="flex items-center justify-between border-b border-border px-4 py-3">
