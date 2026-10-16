@@ -545,9 +545,7 @@ function Dashboard() {
                 </ul>
               )}
             </div>
-          </section>
 
-          <section className="mt-8 space-y-6">
             <div className="rounded-lg border border-border bg-card">
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <h2 className="text-sm font-semibold text-foreground">Priority incident queue</h2>
