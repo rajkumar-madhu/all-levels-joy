@@ -282,66 +282,66 @@ function Dashboard() {
 
   return (
     <AppShell workspace={data}>
-      <section className="rounded-lg bg-sidebar px-6 py-6 text-white">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70">
-          Unified service operations
-        </p>
-        <h1 className="mt-2 text-4xl text-white">
-          {data?.organization?.name ?? "Service workspace"}
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-white/75">
-          Operational overview and prioritized records across modules. Open a module for its full
-          searchable queue and record workflows.
-        </p>
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-          <span
-            className={`h-2 w-2 rounded-full ${breached.length > 0 || p1Open > 0 ? "bg-brand" : "bg-success"}`}
-            aria-hidden
-          />
-          <span>
-            {breached.length > 0 || p1Open > 0 ? "Attention needed" : "Holding steady"}
-          </span>
-          <span className="text-white/40">·</span>
-          <span className="font-mono text-white/70">
-            {now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false })}
-          </span>
-          <span className="text-white/40">·</span>
-          <span className="font-mono text-white/60">
-            {now.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}
-          </span>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link to="/incidents" className="rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white">
-            Incidents
-          </Link>
-          <Link to="/changes" className="rounded-md border border-white/25 px-3 py-2 text-xs font-semibold text-white">
-            Changes
-          </Link>
-          {canManage(roles) ? (
-            <Link to="/security" className="rounded-md border border-white/25 px-3 py-2 text-xs font-semibold text-white">
-              Security
+      <section className="rounded-lg bg-sidebar px-6 py-5 text-white">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70">
+              Unified service operations
+            </p>
+            <h1 className="mt-1.5 text-3xl text-white">
+              {data?.organization?.name ?? "Service workspace"}
+            </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+              <span
+                className={`h-2 w-2 rounded-full ${breached.length > 0 || p1Open > 0 ? "bg-brand" : "bg-success"}`}
+                aria-hidden
+              />
+              <span>
+                {breached.length > 0 || p1Open > 0 ? "Attention needed" : "Holding steady"}
+              </span>
+              <span className="text-white/40">·</span>
+              <span className="font-mono text-white/70">
+                {now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false })}
+              </span>
+              <span className="text-white/40">·</span>
+              <span className="font-mono text-white/60">
+                {now.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/incidents" className="rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white">
+              Incidents
             </Link>
-          ) : null}
-          {roles.includes("admin") ? (
-            <Link to="/integrations" className="rounded-md border border-white/25 px-3 py-2 text-xs font-semibold text-white">
-              Integrations
+            <Link to="/changes" className="rounded-md border border-white/25 px-3 py-2 text-xs font-semibold text-white">
+              Changes
             </Link>
-          ) : null}
-          <button
-            type="button"
-            className="rounded-md border border-white/25 px-3 py-2 text-xs font-semibold text-white"
-            onClick={() => {
-              void queryClient.invalidateQueries({ queryKey: ["workspace"] });
-              void queryClient.invalidateQueries({ queryKey: ["incident-metrics"] });
-              void queryClient.invalidateQueries({ queryKey: ["reference"] });
-              void queryClient.invalidateQueries({ queryKey: ["problem-board"] });
-              void queryClient.invalidateQueries({ queryKey: ["command-center"] });
-            }}
-          >
-            Refresh
-          </button>
+            {canManage(roles) ? (
+              <Link to="/security" className="rounded-md border border-white/25 px-3 py-2 text-xs font-semibold text-white">
+                Security
+              </Link>
+            ) : null}
+            {roles.includes("admin") ? (
+              <Link to="/integrations" className="rounded-md border border-white/25 px-3 py-2 text-xs font-semibold text-white">
+                Integrations
+              </Link>
+            ) : null}
+            <button
+              type="button"
+              className="rounded-md border border-white/25 px-3 py-2 text-xs font-semibold text-white"
+              onClick={() => {
+                void queryClient.invalidateQueries({ queryKey: ["workspace"] });
+                void queryClient.invalidateQueries({ queryKey: ["incident-metrics"] });
+                void queryClient.invalidateQueries({ queryKey: ["reference"] });
+                void queryClient.invalidateQueries({ queryKey: ["problem-board"] });
+                void queryClient.invalidateQueries({ queryKey: ["command-center"] });
+              }}
+            >
+              Refresh
+            </button>
+          </div>
         </div>
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        <div className="mt-5 grid gap-px overflow-hidden rounded-md border border-white/15 bg-white/15 sm:grid-cols-3">
           {[
             { label: "SLA · 30d", value: slaComplianceValue, hint: slaComplianceHint },
             { label: "P1 open", value: String(p1Open), hint: "critical" },
@@ -351,9 +351,9 @@ function Dashboard() {
               hint: reference.isError ? "unavailable" : assetDown ? `${assetDown} not operational` : "in CMDB",
             },
           ].map((item) => (
-            <div key={item.label} className="rounded-md border border-white/15 px-4 py-3">
+            <div key={item.label} className="bg-sidebar px-4 py-3">
               <p className="text-[10px] uppercase tracking-[0.14em] text-white/60">{item.label}</p>
-              <p className="mt-1 font-mono text-3xl text-white">{item.value}</p>
+              <p className="mt-1 font-mono text-2xl text-white">{item.value}</p>
               <p className="text-xs text-white/60">{item.hint}</p>
             </div>
           ))}
@@ -392,77 +392,17 @@ function Dashboard() {
               </div>
             ))}
           </section>
-          <p className="text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             Queue counts use the records loaded for this dashboard, up to 200 per module. Open a module for its full searchable queue.
           </p>
 
-          <section className="mt-6 rounded-lg border border-border bg-card">
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <h2 className="text-sm font-semibold text-foreground">Service health</h2>
-              <Link to="/assets" className="text-xs underline underline-offset-4">
-                Assets
-              </Link>
-            </div>
-            {reference.isError ? (
-              <p className="px-4 py-6 text-sm text-destructive">Service health could not be loaded.</p>
-            ) : serviceHealth.length === 0 ? (
-              <p className="px-4 py-6 text-sm text-muted-foreground">No services are registered.</p>
-            ) : (
-              <ul className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
-                {serviceHealth.map((service) => (
-                  <li key={service.id} className="rounded-md border border-border px-3 py-3">
-                    <p className="text-sm font-medium text-foreground">{service.name}</p>
-                    <p className="mt-1 font-mono text-xs text-muted-foreground">
-                      {service.open} open · {service.hurt} breached
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          {roles.includes("admin") ? (
-            <section className="mt-6 rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <h2 className="text-sm font-semibold text-foreground">Integrate your stack</h2>
-                <Link to="/integrations" className="text-xs underline underline-offset-4">
-                  How they connect
-                </Link>
-              </div>
-              {integrations.isPending ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">Checking platform tools…</p>
-              ) : integrations.isError ? (
-                <p className="px-4 py-6 text-sm text-destructive">Platform tools could not be checked.</p>
-              ) : (
-                <ul className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
-                  {(integrations.data?.tools ?? []).map((tool) => (
-                    <li key={tool.name} className="bg-card px-4 py-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-medium text-foreground">{tool.name}</p>
-                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              {tool.state === "up" ? "Reachable" : tool.state === "absent" ? "Not installed" : "Unreachable"}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">{tool.kind}</p>
-                      {tool.url ? (
-                        <a href={tool.url} className="mt-1 block truncate font-mono text-xs text-primary underline underline-offset-4">
-                          {tool.url.replace("https://", "")}
-                        </a>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          ) : null}
-
-          <section className="mt-6 flex gap-3 overflow-x-auto pb-1">
+          <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {metrics.map((metric) =>
               metric.to ? (
                 <Link
                   key={metric.label}
                   to={metric.to}
-                  className="min-w-[180px] shrink-0 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/60"
+                  className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/60"
                 >
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
                     {metric.label}
@@ -473,7 +413,7 @@ function Dashboard() {
                   <p className="mt-1 text-xs text-muted-foreground">{metric.hint}</p>
                 </Link>
               ) : (
-                <div key={metric.label} className="min-w-[180px] shrink-0 rounded-lg border border-border bg-card p-4">
+                <div key={metric.label} className="rounded-lg border border-border bg-card p-4">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
                     {metric.label}
                   </p>
@@ -490,14 +430,13 @@ function Dashboard() {
             <ConnectedStack incidents={incidents} assets={(reference.data?.assets ?? []) as never} />
           ) : null}
 
-          <RequestQueues requests={openRequests} groups={reference.data?.groups ?? []} />
-
-          <section className="mt-8 space-y-6">
-            <div className="rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <h2 className="text-sm font-semibold text-foreground">Active major incidents</h2>
-                <Link to="/command-center" className="text-xs underline underline-offset-4">
-                  Open command
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            <div className="space-y-6 lg:col-span-2">
+              <div className="rounded-lg border border-border bg-card">
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                  <h2 className="text-sm font-semibold text-foreground">Active major incidents</h2>
+                  <Link to="/command-center" className="text-xs underline underline-offset-4">
+                    Open command
                 </Link>
               </div>
               {commandCenter.isPending ? (
