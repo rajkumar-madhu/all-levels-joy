@@ -56,21 +56,21 @@
 }
 
 :root {
-  --radius: 0.375rem;
-  --brand: #ff5b2e;
-  --background: #f4f1ea;
+  --radius: 0.25rem;
+  --brand: #da291c;
+  --background: #f3f5f8;
   --foreground: #0e1116;
-  --card: #fffcf7;
+  --card: #ffffff;
   --card-foreground: #0e1116;
-  --popover: #fffcf7;
+  --popover: #ffffff;
   --popover-foreground: #0e1116;
-  --primary: #2b4cff;
+  --primary: #1f6fd1;
   --primary-foreground: #ffffff;
-  --secondary: #ebe6dc;
-  --secondary-foreground: #5c5a56;
-  --muted: #ebe6dc;
-  --muted-foreground: #5c5a56;
-  --accent: #ebe6dc;
+  --secondary: #eef1f5;
+  --secondary-foreground: #4a5565;
+  --muted: #eef1f5;
+  --muted-foreground: #5f6b7a;
+  --accent: #e6effa;
   --accent-foreground: #0e1116;
   --destructive: #c03638;
   --destructive-foreground: #ffffff;
@@ -78,22 +78,22 @@
   --success-foreground: #ffffff;
   --warning: #d97706;
   --warning-foreground: #7a3e00;
-  --border: #ddd6c8;
-  --input: #d4cdc0;
-  --ring: #2b4cff;
-  --chart-1: #2b4cff;
+  --border: #dfe3e8;
+  --input: #cfd5dd;
+  --ring: #1f6fd1;
+  --chart-1: #1f6fd1;
   --chart-2: #0e7490;
   --chart-3: #0f7a55;
   --chart-4: #d97706;
   --chart-5: #c03638;
-  --sidebar: #0e1116;
-  --sidebar-foreground: #c8c4bc;
-  --sidebar-primary: #ff5b2e;
+  --sidebar: #34404f;
+  --sidebar-foreground: #dbe1e8;
+  --sidebar-primary: #4f9be8;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(255, 91, 46, 0.16);
+  --sidebar-accent: rgba(255, 255, 255, 0.12);
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #252b36;
-  --sidebar-ring: #ff7a54;
+  --sidebar-border: #455265;
+  --sidebar-ring: #4f9be8;
 }
 
 .dark {
@@ -149,10 +149,14 @@
   }
 
   h1 {
-    font-family: var(--font-serif);
-    font-weight: 560;
-    font-optical-sizing: auto;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
+
+  table { font-size: 0.8125rem; }
+  th { font-weight: 600; color: var(--color-foreground); background: var(--color-muted); }
+  tbody tr:hover { background: var(--color-accent); }
 
   :focus-visible {
     outline: 2px solid var(--color-ring);
