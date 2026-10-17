@@ -74,7 +74,7 @@ export function IncidentWorkbench(props: Props) {
     (id ? "Assigned colleague" : "Unassigned");
 
   return (
-    <section aria-label="Incident workbench" className="mt-3 space-y-3">
+    <section aria-label="Incident workbench" className="mt-2 space-y-2">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {(
           [
