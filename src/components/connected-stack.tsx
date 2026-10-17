@@ -23,9 +23,9 @@ export function ConnectedStack({ incidents, assets }: { incidents: Incident[]; a
     { name: "Microsoft Teams", on: status.data?.teams, count: null, unit: "" },
   ];
   return (
-    <section className="mt-8 grid gap-6 xl:grid-cols-3" aria-label="Connected stack">
+    <section className="mt-6 grid gap-4 xl:grid-cols-3" aria-label="Connected stack">
       <div className="rounded-lg border border-border bg-card xl:col-span-2">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between border-b border-border px-3 py-2">
           <h2 className="flex items-center gap-2 text-sm font-semibold"><Plug className="size-4" />Connected stack</h2>
           <Link to="/integrations" className="text-xs underline underline-offset-4">Manage integrations</Link>
         </div>
@@ -40,7 +40,7 @@ export function ConnectedStack({ incidents, assets }: { incidents: Incident[]; a
             </div>
           ))}
         </div>
-        <div className="border-t border-border px-4 py-3">
+        <div className="border-t border-border px-3 py-2">
           <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"><Activity className="size-3" />Recent alerts</h3>
           {alerts.length === 0 ? (
             <p className="mt-2 text-sm text-muted-foreground">No alerts received from monitoring yet.</p>
@@ -59,11 +59,11 @@ export function ConnectedStack({ incidents, assets }: { incidents: Incident[]; a
         </div>
       </div>
       <div className="rounded-lg border border-border bg-card">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between border-b border-border px-3 py-2">
           <h2 className="flex items-center gap-2 text-sm font-semibold"><Boxes className="size-4" />Assets & CMDB</h2>
           <Link to="/assets" className="text-xs underline underline-offset-4">Open CMDB</Link>
         </div>
-        <dl className="grid grid-cols-2 gap-3 p-4 text-sm">
+        <dl className="grid grid-cols-2 gap-3 p-3 text-sm">
           <div><dt className="text-xs text-muted-foreground">Configuration items</dt><dd className="font-mono text-xl">{assets.length}</dd></div>
           <div><dt className="text-xs text-muted-foreground">Not operational</dt><dd className="font-mono text-xl text-warning">{degraded.length}</dd></div>
           <div><dt className="text-xs text-muted-foreground">Production</dt><dd className="font-mono text-xl">{assets.filter((a) => a.environment === "production").length}</dd></div>
