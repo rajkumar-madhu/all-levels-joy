@@ -236,7 +236,7 @@ function Incidents() {
 
       {creating ? (
         <form
-          className="mt-6 grid gap-4 rounded-lg border border-border bg-card p-5 sm:grid-cols-2"
+          className="mt-3 grid gap-4 rounded-lg border border-border bg-card p-5 sm:grid-cols-2"
           onSubmit={(event) => {
             event.preventDefault();
             create.mutate();
@@ -389,7 +389,7 @@ function Incidents() {
       {workspace.isError ? (
         <div
           role="alert"
-          className="mt-6 rounded-lg border border-destructive/30 bg-destructive/5 p-5"
+          className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-5"
         >
           <h2 className="font-semibold">Workspace unavailable</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -402,13 +402,13 @@ function Incidents() {
           </Button>
         </div>
       ) : workspace.isPending ? (
-        <div className="mt-6">
+        <div className="mt-2">
           <WorkspaceLoading />
         </div>
       ) : (
         <>
           {reference.isError ? (
-            <p role="status" className="mt-4 text-sm text-destructive">
+            <p role="status" className="mt-2 text-sm text-destructive">
               Service and assignment details are unavailable.{" "}
               <button className="underline" onClick={() => void reference.refetch()}>
                 Retry
