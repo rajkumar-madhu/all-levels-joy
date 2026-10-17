@@ -23,7 +23,7 @@ export function ConnectedStack({ incidents, assets }: { incidents: Incident[]; a
     { name: "Microsoft Teams", on: status.data?.teams, count: null, unit: "" },
   ];
   return (
-    <section className="mt-8 grid gap-6 xl:grid-cols-3" aria-label="Connected stack">
+    <section className="mt-6 grid gap-4 xl:grid-cols-3" aria-label="Connected stack">
       <div className="rounded-lg border border-border bg-card xl:col-span-2">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h2 className="flex items-center gap-2 text-sm font-semibold"><Plug className="size-4" />Connected stack</h2>

@@ -37,7 +37,7 @@ export function SecurityMetrics() {
           key={c.filter}
           to="/security"
           search={{ filter: c.filter }}
-          className="rounded-lg border border-border bg-card p-4 hover:bg-muted"
+          className="rounded-lg border border-border bg-card p-3 hover:bg-muted"
         >
           <p className="text-xs text-muted-foreground">{c.label}</p>
           <p className="mt-1 text-2xl font-semibold text-foreground">{c.value}</p>
