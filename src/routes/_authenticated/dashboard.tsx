@@ -56,8 +56,8 @@ function RequestQueues({
   }
   const list = [...rows.values()].sort((a, b) => a.team.localeCompare(b.team) || a.priority - b.priority);
   return (
-    <section className="mt-8 rounded-lg border border-border bg-card">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+    <section className="mt-6 rounded-lg border border-border bg-card">
+      <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <h2 className="text-sm font-semibold text-foreground">Request queues</h2>
         <div className="flex items-center gap-3">
           <Link to="/sla" className="text-xs underline underline-offset-4">
@@ -69,22 +69,22 @@ function RequestQueues({
         </div>
       </div>
       {list.length === 0 ? (
-        <p className="px-4 py-6 text-sm text-muted-foreground">No open requests.</p>
+        <p className="px-3 py-4 text-sm text-muted-foreground">No open requests.</p>
       ) : (
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <th className="px-4 py-2 font-semibold">Team</th>
-              <th className="px-4 py-2 font-semibold">Priority</th>
-              <th className="px-4 py-2 font-semibold">On track</th>
-              <th className="px-4 py-2 font-semibold">At risk</th>
-              <th className="px-4 py-2 font-semibold">Breached</th>
+              <th className="px-3 py-1.5 font-semibold">Team</th>
+              <th className="px-3 py-1.5 font-semibold">Priority</th>
+              <th className="px-3 py-1.5 font-semibold">On track</th>
+              <th className="px-3 py-1.5 font-semibold">At risk</th>
+              <th className="px-3 py-1.5 font-semibold">Breached</th>
             </tr>
           </thead>
           <tbody>
             {list.map((row) => (
               <tr key={`${row.groupId}:${row.priority}`} className="border-t border-border">
-                <td className="px-4 py-2">
+                <td className="px-3 py-1.5">
                   <Link
                     to="/requests"
                     search={{ team: row.groupId ?? undefined, priority: String(row.priority) }}
@@ -93,10 +93,10 @@ function RequestQueues({
                     {row.team}
                   </Link>
                 </td>
-                <td className="px-4 py-2">{PRIORITY_NAMES[row.priority] ?? row.priority}</td>
-                <td className="px-4 py-2">{row.onTrack}</td>
-                <td className="px-4 py-2 text-warning">{row.atRisk}</td>
-                <td className="px-4 py-2 text-destructive">{row.breached}</td>
+                <td className="px-3 py-1.5">{PRIORITY_NAMES[row.priority] ?? row.priority}</td>
+                <td className="px-3 py-1.5">{row.onTrack}</td>
+                <td className="px-3 py-1.5 text-warning">{row.atRisk}</td>
+                <td className="px-3 py-1.5 text-destructive">{row.breached}</td>
               </tr>
             ))}
           </tbody>
@@ -282,7 +282,7 @@ function Dashboard() {
 
   return (
     <AppShell workspace={data}>
-      <section className="rounded-lg bg-sidebar px-6 py-5 text-white">
+      <section className="rounded-lg bg-sidebar px-5 py-4 text-white">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70">
@@ -341,7 +341,7 @@ function Dashboard() {
             </button>
           </div>
         </div>
-        <div className="mt-5 grid gap-px overflow-hidden rounded-md border border-white/15 bg-white/15 sm:grid-cols-3">
+        <div className="mt-4 grid gap-px overflow-hidden rounded-md border border-white/15 bg-white/15 sm:grid-cols-3">
           {[
             { label: "SLA · 30d", value: slaComplianceValue, hint: slaComplianceHint },
             { label: "P1 open", value: String(p1Open), hint: "critical" },
@@ -351,7 +351,7 @@ function Dashboard() {
               hint: reference.isError ? "unavailable" : assetDown ? `${assetDown} not operational` : "in CMDB",
             },
           ].map((item) => (
-            <div key={item.label} className="bg-sidebar px-4 py-3">
+            <div key={item.label} className="bg-sidebar px-3 py-2">
               <p className="text-[10px] uppercase tracking-[0.14em] text-white/60">{item.label}</p>
               <p className="mt-1 font-mono text-2xl text-white">{item.value}</p>
               <p className="text-xs text-white/60">{item.hint}</p>
@@ -402,7 +402,7 @@ function Dashboard() {
                 <Link
                   key={metric.label}
                   to={metric.to}
-                  className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/60"
+                  className="rounded-lg border border-border bg-card p-3 transition-colors hover:bg-muted/60"
                 >
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
                     {metric.label}
@@ -413,7 +413,7 @@ function Dashboard() {
                   <p className="mt-1 text-xs text-muted-foreground">{metric.hint}</p>
                 </Link>
               ) : (
-                <div key={metric.label} className="rounded-lg border border-border bg-card p-4">
+                <div key={metric.label} className="rounded-lg border border-border bg-card p-3">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
                     {metric.label}
                   </p>
@@ -430,23 +430,23 @@ function Dashboard() {
             <ConnectedStack incidents={incidents} assets={(reference.data?.assets ?? []) as never} />
           ) : null}
 
-          <div className="mt-8 grid gap-6 lg:grid-cols-3">
-            <div className="space-y-6 lg:col-span-2">
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <div className="space-y-4 lg:col-span-2">
               <div className="rounded-lg border border-border bg-card">
-                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <div className="flex items-center justify-between border-b border-border px-3 py-2">
                   <h2 className="text-sm font-semibold text-foreground">Active major incidents</h2>
                   <Link to="/command-center" className="text-xs underline underline-offset-4">
                     Open command
                 </Link>
               </div>
               {commandCenter.isPending ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">Loading command bridges…</p>
+                <p className="px-3 py-4 text-sm text-muted-foreground">Loading command bridges…</p>
               ) : commandCenter.isError ? (
-                <p className="px-4 py-6 text-sm text-destructive">
+                <p className="px-3 py-4 text-sm text-destructive">
                   Command bridges are temporarily unavailable.
                 </p>
               ) : activeBridges.length === 0 ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">
+                <p className="px-3 py-4 text-sm text-muted-foreground">
                   No active major incidents.
                 </p>
               ) : (
@@ -457,7 +457,7 @@ function Dashboard() {
                       bridge.next_update_at && new Date(bridge.next_update_at) < new Date(),
                     );
                     return (
-                      <li key={bridge.id} className="px-4 py-3">
+                      <li key={bridge.id} className="px-3 py-2">
                         <div className="flex flex-wrap items-center gap-2">
                           <Link
                             to="/command-center"
@@ -495,7 +495,7 @@ function Dashboard() {
             </div>
 
             <div className="rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex items-center justify-between border-b border-border px-3 py-2">
                 <h2 className="text-sm font-semibold text-foreground">
                   Open problem investigations
                 </h2>
@@ -504,21 +504,21 @@ function Dashboard() {
                 </Link>
               </div>
               {problemBoard.isPending ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">
+                <p className="px-3 py-4 text-sm text-muted-foreground">
                   Loading problem investigations…
                 </p>
               ) : problemBoard.isError ? (
-                <p className="px-4 py-6 text-sm text-destructive">
+                <p className="px-3 py-4 text-sm text-destructive">
                   Problem investigations are temporarily unavailable.
                 </p>
               ) : openProblems.length === 0 ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">
+                <p className="px-3 py-4 text-sm text-muted-foreground">
                   No open problem investigations.
                 </p>
               ) : (
                 <ul className="divide-y divide-border">
                   {openProblems.slice(0, 12).map((problem) => (
-                    <li key={problem.id} className="px-4 py-3">
+                    <li key={problem.id} className="px-3 py-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
                           to="/problems"
@@ -547,20 +547,20 @@ function Dashboard() {
             </div>
 
             <div className="rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex items-center justify-between border-b border-border px-3 py-2">
                 <h2 className="text-sm font-semibold text-foreground">Priority incident queue</h2>
                 <Link to="/incidents" className="text-xs underline underline-offset-4">
                   Open queue
                 </Link>
               </div>
               {openIncidents.length === 0 ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">
+                <p className="px-3 py-4 text-sm text-muted-foreground">
                   No open incidents. Nice and quiet.
                 </p>
               ) : (
                 <ul className="divide-y divide-border">
                   {openIncidents.slice(0, 12).map((incident) => (
-                    <li key={incident.id} className="px-4 py-3">
+                    <li key={incident.id} className="px-3 py-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
                           to="/incidents"
@@ -587,20 +587,20 @@ function Dashboard() {
             <RequestQueues requests={openRequests} groups={reference.data?.groups ?? []} />
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="rounded-lg border border-border bg-card">
-                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <div className="flex items-center justify-between border-b border-border px-3 py-2">
                   <h2 className="text-sm font-semibold text-foreground">Change schedule</h2>
                   <Link to="/changes" className="text-xs underline underline-offset-4">
                     View all
                   </Link>
                 </div>
                 {upcomingChanges.length === 0 ? (
-                  <p className="px-4 py-6 text-sm text-muted-foreground">No changes scheduled.</p>
+                  <p className="px-3 py-4 text-sm text-muted-foreground">No changes scheduled.</p>
                 ) : (
                   <ul className="divide-y divide-border">
                     {upcomingChanges.slice(0, 12).map((change) => (
-                      <li key={change.id} className="px-4 py-3 text-sm">
+                      <li key={change.id} className="px-3 py-2 text-sm">
                         <div className="flex items-center gap-2">
                           <Link
                             to="/changes"
@@ -621,7 +621,7 @@ function Dashboard() {
                 )}
               </div>
 
-              <div className="rounded-lg border border-border bg-card p-4">
+              <div className="rounded-lg border border-border bg-card p-3">
                 <h2 className="text-sm font-semibold text-foreground">Your access</h2>
                 <ul className="mt-3 flex flex-wrap gap-1.5">
                   {roles.length === 0 ? (
@@ -640,12 +640,12 @@ function Dashboard() {
               </div>
 
               <div className="rounded-lg border border-border bg-card">
-                <h2 className="border-b border-border px-4 py-3 text-sm font-semibold text-foreground">
+                <h2 className="border-b border-border px-3 py-2 text-sm font-semibold text-foreground">
                   Recent notifications
                 </h2>
                 <ul className="divide-y divide-border">
                   {(data?.notifications ?? []).slice(0, 12).map((item) => (
-                    <li key={item.id} className="px-4 py-3 text-sm">
+                    <li key={item.id} className="px-3 py-2 text-sm">
                       <p className="font-medium text-foreground">{item.title}</p>
                       <p className="text-xs text-muted-foreground">
                         {item.body} · {relativeTime(item.created_at)}
@@ -653,7 +653,7 @@ function Dashboard() {
                     </li>
                   ))}
                   {(data?.notifications ?? []).length === 0 ? (
-                    <li className="px-4 py-6 text-sm text-muted-foreground">
+                    <li className="px-3 py-4 text-sm text-muted-foreground">
                       Nothing new for you.
                     </li>
                   ) : null}
@@ -661,18 +661,18 @@ function Dashboard() {
               </div>
 
               <div className="rounded-lg border border-border bg-card">
-                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <div className="flex items-center justify-between border-b border-border px-3 py-2">
                   <h2 className="text-sm font-semibold text-foreground">Approvals waiting on you</h2>
                   <Link to="/approvals" className="text-xs underline underline-offset-4">
                     Open approvals
                   </Link>
                 </div>
                 {pendingApprovals.length === 0 ? (
-                  <p className="px-4 py-6 text-sm text-muted-foreground">No approvals are waiting.</p>
+                  <p className="px-3 py-4 text-sm text-muted-foreground">No approvals are waiting.</p>
                 ) : (
                   <ul className="divide-y divide-border">
                     {pendingApprovals.slice(0, 12).map((approval) => (
-                      <li key={approval.id} className="px-4 py-3">
+                      <li key={approval.id} className="px-3 py-2">
                         <div className="flex flex-wrap items-center gap-2">
                           <Link
                             to="/approvals"
@@ -695,22 +695,22 @@ function Dashboard() {
             </div>
           </div>
 
-          <section className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <div className="rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex items-center justify-between border-b border-border px-3 py-2">
                 <h2 className="text-sm font-semibold text-foreground">Service health</h2>
                 <Link to="/assets" className="text-xs underline underline-offset-4">
                   Assets
                 </Link>
               </div>
               {reference.isError ? (
-                <p className="px-4 py-6 text-sm text-destructive">Service health could not be loaded.</p>
+                <p className="px-3 py-4 text-sm text-destructive">Service health could not be loaded.</p>
               ) : serviceHealth.length === 0 ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">No services are registered.</p>
+                <p className="px-3 py-4 text-sm text-muted-foreground">No services are registered.</p>
               ) : (
                 <ul className="divide-y divide-border">
                   {serviceHealth.map((service) => (
-                    <li key={service.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <li key={service.id} className="flex items-center justify-between gap-3 px-3 py-2">
                       <p className="text-sm font-medium text-foreground">{service.name}</p>
                       <p className="font-mono text-xs text-muted-foreground">
                         {service.open} open · {service.hurt} breached
@@ -723,20 +723,20 @@ function Dashboard() {
 
             {roles.includes("admin") ? (
               <div className="rounded-lg border border-border bg-card">
-                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <div className="flex items-center justify-between border-b border-border px-3 py-2">
                   <h2 className="text-sm font-semibold text-foreground">Integrate your stack</h2>
                   <Link to="/integrations" className="text-xs underline underline-offset-4">
                     How they connect
                   </Link>
                 </div>
                 {integrations.isPending ? (
-                  <p className="px-4 py-6 text-sm text-muted-foreground">Checking platform tools…</p>
+                  <p className="px-3 py-4 text-sm text-muted-foreground">Checking platform tools…</p>
                 ) : integrations.isError ? (
-                  <p className="px-4 py-6 text-sm text-destructive">Platform tools could not be checked.</p>
+                  <p className="px-3 py-4 text-sm text-destructive">Platform tools could not be checked.</p>
                 ) : (
                   <ul className="divide-y divide-border">
                     {(integrations.data?.tools ?? []).map((tool) => (
-                      <li key={tool.name} className="px-4 py-3">
+                      <li key={tool.name} className="px-3 py-2">
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-sm font-medium text-foreground">{tool.name}</p>
                           <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -757,22 +757,22 @@ function Dashboard() {
             ) : null}
 
             <div className="rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex items-center justify-between border-b border-border px-3 py-2">
                 <h2 className="text-sm font-semibold text-foreground">Knowledge</h2>
                 <Link to="/knowledge" className="text-xs underline underline-offset-4">
                   Open knowledge
                 </Link>
               </div>
               {reference.isPending ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">Loading articles…</p>
+                <p className="px-3 py-4 text-sm text-muted-foreground">Loading articles…</p>
               ) : reference.isError ? (
-                <p className="px-4 py-6 text-sm text-destructive">Knowledge could not be loaded.</p>
+                <p className="px-3 py-4 text-sm text-destructive">Knowledge could not be loaded.</p>
               ) : articles.length === 0 ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">No articles yet.</p>
+                <p className="px-3 py-4 text-sm text-muted-foreground">No articles yet.</p>
               ) : (
                 <ul className="divide-y divide-border">
                   {articles.map((article) => (
-                    <li key={article.id} className="px-4 py-3">
+                    <li key={article.id} className="px-3 py-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
                           to="/knowledge"
@@ -796,20 +796,20 @@ function Dashboard() {
             </div>
 
             <div className="rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex items-center justify-between border-b border-border px-3 py-2">
                 <h2 className="text-sm font-semibold text-foreground">Service catalogue</h2>
                 <Link to="/catalog" className="text-xs underline underline-offset-4">
                   Open catalogue
                 </Link>
               </div>
               {reference.isError ? (
-                <p className="px-4 py-6 text-sm text-destructive">The catalogue could not be loaded.</p>
+                <p className="px-3 py-4 text-sm text-destructive">The catalogue could not be loaded.</p>
               ) : catalog.length === 0 ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">No catalogue items.</p>
+                <p className="px-3 py-4 text-sm text-muted-foreground">No catalogue items.</p>
               ) : (
                 <ul className="divide-y divide-border">
                   {catalog.map((item) => (
-                    <li key={item.id} className="px-4 py-3">
+                    <li key={item.id} className="px-3 py-2">
                       <p className="text-xs text-muted-foreground">{item.category}</p>
                       <p className="mt-1 text-sm font-medium text-foreground">{item.name}</p>
                     </li>
@@ -819,20 +819,20 @@ function Dashboard() {
             </div>
 
             <div className="rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex items-center justify-between border-b border-border px-3 py-2">
                 <h2 className="text-sm font-semibold text-foreground">Assets and CMDB</h2>
                 <Link to="/assets" className="text-xs underline underline-offset-4">
                   Open assets
                 </Link>
               </div>
               {reference.isError ? (
-                <p className="px-4 py-6 text-sm text-destructive">Configuration items could not be loaded.</p>
+                <p className="px-3 py-4 text-sm text-destructive">Configuration items could not be loaded.</p>
               ) : assets.length === 0 ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">No configuration items.</p>
+                <p className="px-3 py-4 text-sm text-muted-foreground">No configuration items.</p>
               ) : (
                 <ul className="divide-y divide-border">
                   {assets.map((asset) => (
-                    <li key={asset.id} className="px-4 py-3">
+                    <li key={asset.id} className="px-3 py-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
                           to="/assets"
