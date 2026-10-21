@@ -30,6 +30,13 @@ with Keycloak.
 - **Major incident command** (`/command-center?record=<id>`, staff only): declare a bridge from an active
   incident, take command or comms, change bridge state, escalate, link a problem, and post internal, customer
   or executive updates on a cadence. Refreshes every 30 seconds and flags overdue updates.
+- **Support assistant** (`/assistant`): conversations with the AI assistant; replies stream in as they are
+  written, cite knowledge articles, and can include a ticket proposal the employee raises with one click.
+  Markdown is parsed into React elements (`src/lib/markdown.ts`), so model output can never inject HTML.
+- **Integrations** (`/integrations`, administrators): configured channels, intake URLs to copy, scheduled jobs and
+  tool reachability. Secret values are never shown.
+- **Customer portal** (`/portal`, its own layout): public knowledge search without signing in; signed-in
+  requesters with a company email raise tickets, follow them, see workarounds and outage updates, and reply.
 - **Knowledge base**: search and read articles.
 - **Security findings**: staff only. Record a finding, submit the fix plan, approve or reject it, schedule the
   window, start, deliver and close the fix, link a change or incident, and request or decide risk exceptions.

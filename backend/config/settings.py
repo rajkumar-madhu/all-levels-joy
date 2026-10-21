@@ -46,6 +46,9 @@ INSTALLED_APPS = [
     "apps.approvals",
     "apps.comments",
     "apps.major_incidents",
+    "apps.assistant",
+    "apps.portal",
+    "apps.integration_status",
     "apps.integrations",
 ]
 
@@ -113,6 +116,14 @@ TEAMS_WEBHOOK_URL = env("TEAMS_WEBHOOK_URL")
 # Workspace that webhook traffic is filed into (legacy DEMO_ORG_ID).
 INTEGRATION_ORG_ID = env("INTEGRATION_ORG_ID", "10000000-0000-0000-0000-000000000001")
 APP_PUBLIC_URL = env("APP_PUBLIC_URL", "http://localhost:5173")
+
+# Support assistant (Anthropic API). Empty key = assistant reports "not configured".
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY")
+ANTHROPIC_MODEL = env("ANTHROPIC_MODEL", "claude-opus-5-5")
+ASSISTANT_MAX_TOKENS = int(env("ASSISTANT_MAX_TOKENS", "16000") or 16000)
+
+# Customer portal: the workspace portal tickets are filed into (legacy DEMO_ORG_ID).
+PORTAL_ORG_ID = env("PORTAL_ORG_ID", "10000000-0000-0000-0000-000000000001")
 
 # Legacy schema sources applied by `manage.py apply_legacy_schema`.
 LEGACY_SQL_ROOT = Path(env("LEGACY_SQL_ROOT", str(BASE_DIR.parent)) or BASE_DIR.parent)

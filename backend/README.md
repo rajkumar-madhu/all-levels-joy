@@ -79,6 +79,15 @@ Request bodies use the same camelCase fields as the legacy server functions; res
 | `POST /api/v1/orgs/{org}/major-incidents` | `major_incident.run` (service desk, fulfiller, manager, admin, change manager) | declare: bridge, declaration update, incident flag and audit in one transaction; 409 and full rollback if the incident changed meanwhile |
 | `PATCH /api/v1/orgs/{org}/major-incidents/{id}` | `major_incident.run` | bridge state, take command/comms, escalate, link a problem (also links the incident) |
 | `POST /api/v1/orgs/{org}/major-incidents/{id}/updates` | `major_incident.run` | stakeholder update with audience and next-update cadence |
+| `GET, POST /api/v1/orgs/{org}/assistant/threads` | `assistant.use` (member) | the caller's own conversations (RLS on `ai_chat_threads`) |
+| `GET, DELETE /api/v1/orgs/{org}/assistant/threads/{id}` | `assistant.use` | conversation with its messages; other users get 404 |
+| `POST /api/v1/orgs/{org}/assistant/threads/{id}/messages` | `assistant.use` | **server-sent events**: `delta` {text} … `done` {message} or `error`; answers grounded in knowledge the caller can read |
+| `POST /api/v1/orgs/{org}/assistant/messages/{id}/ticket` | `assistant.use` | raises the proposed ticket via `itsm_self_service_incident` (contact type `chat`) |
+| `GET /api/v1/portal` | `portal.use` (confirmed `@PORTAL_EMAIL_DOMAIN` account) | the caller's incidents and requests, public comments, known-error workarounds, customer outage updates |
+| `POST /api/v1/portal/tickets` | `portal.use` | `portal_submit_ticket` |
+| `POST /api/v1/portal/{incidents,requests}/{id}/replies` | `portal.use` | `portal_reply` / `portal_reply_request` (can resume or reopen) |
+| `GET /api/public/knowledge?query=&category=`, `GET /api/public/knowledge/{id}` | none (anonymous) | runs as `anon`: published articles and active categories only |
+| `GET /api/v1/orgs/{org}/integrations/status?force=1` | `integrations.read` (admin) | which channels are configured (booleans only), intake URLs, scheduled jobs, tool reachability |
 | `POST /api/public/alerts` | bearer token | port of `monitoring-alerts.ts` |
 | `GET, POST /api/public/pagerduty` | HMAC | `itsm_upsert_pagerduty_incident` |
 | `POST /api/public/security-findings` | HMAC | `itsm_upsert_scanner_finding` |
@@ -137,6 +146,17 @@ notes hidden from requesters, and all three webhooks. `tests/test_incident_workf
 - Declaration notifications are not sent. The legacy code inserted them as the signed-in user, but
   `notifications` has no insert policy, so those inserts were always refused (and the error ignored).
   Sending them needs a security-definer function or a Celery task with the service role.
+
+### Support assistant
+
+The legacy assistant called the Lovable AI gateway, which only exists inside Lovable hosting. This one calls the
+Anthropic API (`anthropic` Python SDK) with `ANTHROPIC_API_KEY`; the model defaults to `claude-opus-5-5` and can
+be changed with `ANTHROPIC_MODEL`. It streams the reply token by token over SSE (the API must run under ASGI,
+as the Dockerfile does), uses low effort for short chat answers, and enables the server-side refusal fallback.
+Ticket proposals come from a `propose_ticket` tool the model may call; its input is validated and clamped
+before it is stored, and nothing is created until the employee confirms. The model only ever sees knowledge
+articles and catalogue items the caller can read. Without a key the threads still load and the page says the
+assistant is not configured. Tests replace the client with a fake and never call the API.
 
 ### Known limitation in the existing schema
 

@@ -11,6 +11,8 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquare,
+  Plug,
   ShieldAlert,
   Siren,
   X,
@@ -23,12 +25,24 @@ import { ROLE_LABELS } from "@/lib/format";
 import { useSession } from "@/stores/session";
 import { useUi } from "@/stores/ui";
 
-type NavItem = { to: string; label: string; icon: ComponentType<{ className?: string }>; staffOnly?: boolean };
+type NavItem = {
+  to: string;
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+  staffOnly?: boolean;
+  adminOnly?: boolean;
+};
 
 // Same sections, labels and icons as the existing app's sidebar (src/components/app-shell.tsx), limited to
 // the screens this app implements. Labels double as page titles so sidebar, breadcrumb and heading agree.
 export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
-  { label: "Overview", items: [{ to: "/", label: "Dashboard", icon: LayoutDashboard }] },
+  {
+    label: "Overview",
+    items: [
+      { to: "/", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/assistant", label: "Support assistant", icon: MessageSquare },
+    ],
+  },
   {
     label: "ITSM",
     items: [
@@ -45,6 +59,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { to: "/approvals", label: "Approvals", icon: BadgeCheck },
       { to: "/security", label: "Security findings", icon: ShieldAlert, staffOnly: true },
       { to: "/knowledge", label: "Knowledge", icon: BookOpen },
+      { to: "/integrations", label: "Integrations", icon: Plug, adminOnly: true },
     ],
   },
 ];
@@ -99,7 +114,10 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <nav aria-label="Main" className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 pb-5">
         {NAV_GROUPS.map((group) => {
-          const items = group.items.filter((item) => !item.staffOnly || workspace?.is_staff);
+          const items = group.items.filter(
+            (item) =>
+              (!item.staffOnly || workspace?.is_staff) && (!item.adminOnly || workspace?.roles.includes("admin")),
+          );
           if (!items.length) return null;
           return (
             <div key={group.label}>

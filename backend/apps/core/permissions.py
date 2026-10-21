@@ -26,7 +26,10 @@ class PolicyPermission(IsAuthenticatedPrincipal):
         action = getattr(view, "policy_actions", {}).get(request.method)
         if not action:
             return False
-        resource = {"org_id": str(view.kwargs["org_id"])} if "org_id" in view.kwargs else {}
+        if hasattr(view, "policy_resource"):
+            resource = view.policy_resource(request)
+        else:
+            resource = {"org_id": str(view.kwargs["org_id"])} if "org_id" in view.kwargs else {}
         try:
             return policy.evaluate(request.user, action, resource)
         except policy.PolicyUnavailable as error:
