@@ -31,6 +31,11 @@ with Keycloak.
   incident, take command or comms, change bridge state, escalate, link a problem, and post internal, customer
   or executive updates on a cadence. Refreshes every 30 seconds and flags overdue updates.
 - **Knowledge base**: search and read articles.
+- **Knowledge authoring** (service desk, engineers, managers, admins): write articles, move them through
+  draft, review, published and retired, tag them, and manage categories. Edits are refused if someone saved
+  the article after you opened it.
+- **Problems** (staff): list open problems and known errors, raise a problem, link and unlink incidents, record
+  workaround, root cause, fix plan and resolution, and link a known-error article.
 - **Security findings**: staff only. Record a finding, submit the fix plan, approve or reject it, schedule the
   window, start, deliver and close the fix, link a change or incident, and request or decide risk exceptions.
   Requesters never load the board, and the nav item is hidden from them.

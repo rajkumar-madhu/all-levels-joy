@@ -1,9 +1,10 @@
-import { Search } from "lucide-react";
+import { Plus, Search, Tags } from "lucide-react";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useArticles } from "@/api/hooks";
 import { Badge, Button, Input, PageHeader, Panel, StateMessage } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
+import { KNOWLEDGE_AUTHOR_ROLES, hasAnyRole } from "@/lib/roles";
 import { formatDateTime, humanize } from "@/lib/format";
 
 export function KnowledgePage() {
@@ -12,10 +13,27 @@ export function KnowledgePage() {
   const q = params.get("q") ?? "";
   const [draft, setDraft] = useState(q);
   const articles = useArticles(workspace.id, q);
+  const author = hasAnyRole(workspace.roles, KNOWLEDGE_AUTHOR_ROLES);
 
   return (
     <>
-      <PageHeader eyebrow="Governance and knowledge" title="Knowledge" description="Answers and how-to guides for common problems." />
+      <PageHeader
+        eyebrow="Governance and knowledge"
+        title="Knowledge"
+        description={author ? "Answers and how-to guides. Drafts, reviews and retired articles are visible to staff only." : "Answers and how-to guides for common problems."}
+        actions={
+          author && (
+            <>
+              <Link to="/knowledge/categories" className="inline-flex h-9 items-center gap-2 rounded-md border border-input bg-card px-3 text-sm hover:bg-accent">
+                <Tags className="size-4" /> Categories
+              </Link>
+              <Link to="/knowledge/new" className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+                <Plus className="size-4" /> New article
+              </Link>
+            </>
+          )
+        }
+      />
       <form
         className="flex max-w-xl gap-2"
         onSubmit={(e) => {
@@ -41,7 +59,7 @@ export function KnowledgePage() {
               <Panel className="grid h-full gap-2 p-4 hover:border-primary">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span className="font-mono">{a.number}</span>
-                  {a.status !== "published" && <Badge tone="warn">{humanize(a.status)}</Badge>}
+                  {a.status !== "published" && <Badge tone={a.status === "retired" ? "muted" : "warn"}>{humanize(a.status)}</Badge>}
                   <span className="ml-auto">Updated {formatDateTime(a.updated_at)}</span>
                 </div>
                 <h2 className="font-semibold">{a.title}</h2>

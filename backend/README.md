@@ -59,6 +59,13 @@ Request bodies use the same camelCase fields as the legacy server functions; res
 | `GET /api/v1/orgs/{org}/groups` | `group.read` | active assignment groups |
 | `GET /api/v1/orgs/{org}/knowledge?q=` | `knowledge.read` | RLS on `knowledge_articles` |
 | `GET /api/v1/orgs/{org}/knowledge/{id}` | `knowledge.read` | RLS |
+| `POST /api/v1/orgs/{org}/knowledge` | `knowledge.author` (service desk, fulfiller, manager, admin) | new article (draft, review, published or retired); tags normalised as in the legacy app |
+| `PATCH /api/v1/orgs/{org}/knowledge/{id}` | `knowledge.author` | edit and move between statuses; needs `expectedUpdatedAt` (409 when stale); saving a published article bumps its version |
+| `GET, POST /api/v1/orgs/{org}/knowledge/categories` | `knowledge.read` / `knowledge.author` | categories with article counts |
+| `PATCH /api/v1/orgs/{org}/knowledge/categories/{id}` | `knowledge.author` | rename (moves its articles in the same transaction) or deactivate |
+| `GET, POST /api/v1/orgs/{org}/problems?state=&knownError=` | `problem.read` (staff) / `problem.run` (service desk, fulfiller, manager, admin, change manager) | list with incident counts; create, optionally from an incident (linked in the same transaction) |
+| `GET, PATCH /api/v1/orgs/{org}/problems/{id}` | `problem.read` / `problem.run` | detail with linked incidents; state, known error, workaround, root cause, fix plan, resolution, impact/urgency, known-error article; versioned by `expectedUpdatedAt` |
+| `POST /api/v1/orgs/{org}/problems/{id}/incidents` | `problem.run` | link or unlink an incident (keeps `incidents.problem_id` and `problem_incidents` in step) |
 | `GET /api/v1/orgs/{org}/security/board` | `security.board.read` | `can_manage` + RLS |
 | `POST /api/v1/orgs/{org}/security/findings` | `security.finding.create` | `itsm_create_security_finding` |
 | `POST /api/v1/orgs/{org}/security/findings/{id}/transition` | `security.finding.transition` | `itsm_transition_security_finding` |
@@ -148,7 +155,7 @@ needing OPA are skipped when no `opa` binary is found.
 
 ## Not migrated yet
 
-Staff-raised incidents (with group and service), request tasks, problems (beyond linking from a bridge), CMDB, catalogue
+Staff-raised incidents (with group and service), request tasks, CMDB, catalogue
 administration, workspace administration, comments, attachments (Supabase Storage → object storage) and the
 AI assistant still run only in the current app. Each one should
 follow the same pattern: an OPA action, a `CallerAPIView`, and calls to the existing SQL functions.

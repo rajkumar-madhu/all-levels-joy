@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { AppShell } from "@/components/AppShell";
 import { RequireWorkspace } from "@/components/RequireWorkspace";
 import { ApprovalsPage } from "@/pages/ApprovalsPage";
+import { ArticleEditorPage } from "@/pages/ArticleEditorPage";
 import { ArticlePage } from "@/pages/ArticlePage";
 import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
 import { CatalogPage } from "@/pages/CatalogPage";
@@ -11,9 +12,12 @@ import { CommandCenterPage } from "@/pages/CommandCenterPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { IncidentDetailPage } from "@/pages/IncidentDetailPage";
 import { IncidentsPage } from "@/pages/IncidentsPage";
+import { KnowledgeCategoriesPage } from "@/pages/KnowledgeCategoriesPage";
 import { KnowledgePage } from "@/pages/KnowledgePage";
 import { NewChangePage } from "@/pages/NewChangePage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
+import { ProblemDetailPage } from "@/pages/ProblemDetailPage";
+import { ProblemsPage } from "@/pages/ProblemsPage";
 import { RequestDetailPage } from "@/pages/RequestDetailPage";
 import { RequestsPage } from "@/pages/RequestsPage";
 import { SecurityPage } from "@/pages/SecurityPage";
@@ -40,6 +44,11 @@ export const router = createBrowserRouter([
           { path: "catalog", element: <CatalogPage />, handle: { title: "Service catalogue" } },
           { path: "knowledge", element: <KnowledgePage />, handle: { title: "Knowledge" } },
           { path: "knowledge/:articleId", element: <ArticlePage />, handle: { title: "Knowledge" } },
+          { path: "knowledge/new", element: <ArticleEditorPage />, handle: { title: "Knowledge" } },
+          { path: "knowledge/:articleId/edit", element: <ArticleEditorPage />, handle: { title: "Knowledge" } },
+          { path: "knowledge/categories", element: <KnowledgeCategoriesPage />, handle: { title: "Knowledge" } },
+          { path: "problems", element: <ProblemsPage />, handle: { title: "Problems" } },
+          { path: "problems/:problemId", element: <ProblemDetailPage />, handle: { title: "Problems" } },
           { path: "security", element: <SecurityPage />, handle: { title: "Security findings" } },
           { path: "*", element: <NotFoundPage />, handle: { title: "Not found" } },
         ],

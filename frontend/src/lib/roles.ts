@@ -8,3 +8,7 @@ export function hasAnyRole(roles: readonly string[], allowed: readonly string[])
 }
 // problem.functions.ts requireProblemRole: who may declare and run a major incident bridge.
 export const MAJOR_INCIDENT_ROLES = ["service_desk", "fulfiller", "manager", "admin", "change_manager"];
+// Legacy canRunProblems: who may raise and work problems (staff can read them).
+export const PROBLEM_ROLES = ["service_desk", "fulfiller", "manager", "admin", "change_manager"];
+// public.can_author_knowledge(): who may write knowledge articles and categories.
+export const KNOWLEDGE_AUTHOR_ROLES = ["service_desk", "fulfiller", "manager", "admin"];
