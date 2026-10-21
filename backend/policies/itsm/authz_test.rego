@@ -41,3 +41,21 @@ test_non_member_denied if {
 test_unknown_action_denied if {
 	not authz.allow with input as req({org: ["admin"]}, "incident.delete_everything", org)
 }
+
+test_requester_raises_requests_but_not_changes if {
+	authz.allow with input as req({org: ["requester"]}, "request.create", org)
+	not authz.allow with input as req({org: ["requester"]}, "change.create", org)
+	authz.allow with input as req({org: ["fulfiller"]}, "change.create", org)
+}
+
+test_only_fulfilment_staff_update_requests if {
+	authz.allow with input as req({org: ["fulfiller"]}, "request.update", org)
+	not authz.allow with input as req({org: ["cab_member"]}, "request.update", org)
+	not authz.allow with input as req({org: ["requester"]}, "request.update", org)
+}
+
+test_only_change_managers_move_changes if {
+	authz.allow with input as req({org: ["change_manager"]}, "change.update", org)
+	not authz.allow with input as req({org: ["service_desk"]}, "change.update", org)
+	not authz.allow with input as req({org: ["change_manager"]}, "change.update", other)
+}

@@ -17,11 +17,20 @@ default allow := false
 # public.can_manage(): every role except a plain requester.
 staff_roles := {"service_desk", "fulfiller", "change_manager", "cab_member", "cmdb_manager", "manager", "admin"}
 
+# Row visibility (own records vs. the whole queue) is decided by RLS underneath.
 member_actions := {
 	"incident.list",
 	"incident.read",
 	"incident.create_self_service",
 	"knowledge.read",
+	"catalog.read",
+	"request.list",
+	"request.read",
+	"request.create",
+	"change.list",
+	"change.read",
+	"approval.list",
+	"approval.decide",
 }
 
 staff_actions := {
@@ -42,6 +51,21 @@ has_any(allowed) if {
 	role in allowed
 }
 
+# Legacy updateServiceRequest role check.
+request_update_roles := {"service_desk", "fulfiller", "manager", "admin"}
+
+# Legacy updateChange role check and the changes_update RLS policy.
+change_update_roles := {"change_manager", "admin"}
+
+# itsm_create_change role check.
+change_create_roles := {"fulfiller", "change_manager", "manager", "admin"}
+
+role_actions := {
+	"request.update": request_update_roles,
+	"change.create": change_create_roles,
+	"change.update": change_update_roles,
+}
+
 allow if {
 	input.action in member_actions
 	is_member
@@ -51,4 +75,11 @@ allow if {
 	input.action in staff_actions
 	is_member
 	has_any(staff_roles)
+}
+
+allow if {
+	some action, roles in role_actions
+	input.action == action
+	is_member
+	has_any(roles)
 }

@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { useIncidents, useSecurityBoard } from "@/api/hooks";
+import { useIncidents, useMyApprovals, useSecurityBoard } from "@/api/hooks";
 import { PriorityBadge } from "@/components/badges";
 import { PageHeader, Panel, StateMessage } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
@@ -11,6 +11,7 @@ export function DashboardPage() {
   const workspace = useWorkspace();
   const incidents = useIncidents(workspace.id, { state: OPEN_STATES });
   const security = useSecurityBoard(workspace.id, workspace.is_staff);
+  const approvals = useMyApprovals(workspace.id, "requested");
   const open = incidents.data ?? [];
   const breached = open.filter((i) => dueIn(i.sla_due_at).overdue);
   const activeFindings = (security.data?.findings ?? []).filter((f) => !["closed", "cancelled", "risk_accepted"].includes(f.state));
@@ -18,6 +19,7 @@ export function DashboardPage() {
   const tiles = [
     { label: workspace.is_staff ? "Open incidents" : "Your open tickets", value: open.length, to: "/incidents" },
     { label: "Past SLA target", value: breached.length, to: "/incidents", alert: breached.length > 0 },
+    { label: "Waiting for my approval", value: approvals.data?.length ?? 0, to: "/approvals", alert: false },
     ...(workspace.is_staff
       ? [{ label: "Active security findings", value: activeFindings.length, to: "/security", alert: false }]
       : []),
@@ -32,7 +34,7 @@ export function DashboardPage() {
         <StateMessage kind="error">{incidents.error.message}</StateMessage>
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {tiles.map((t) => (
               <Link key={t.label} to={t.to}>
                 <Panel className="p-4 hover:border-brand-500">

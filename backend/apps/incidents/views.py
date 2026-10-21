@@ -2,7 +2,7 @@ from django.http import Http404
 from rest_framework import status
 from rest_framework.response import Response
 
-from apps.core.db import call_function, fetch_all, fetch_one
+from apps.core.db import call_function, fetch_all, fetch_one, like_pattern
 from apps.core.views import CallerAPIView
 
 from .serializers import SelfServiceIncidentSerializer
@@ -32,7 +32,7 @@ class IncidentListView(CallerAPIView):
         query = (request.query_params.get("q") or "").strip()[:120]
         if query:
             clauses.append("(i.number ILIKE %s OR i.title ILIKE %s)")
-            like = "%" + query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+            like = like_pattern(query)
             params += [like, like]
         try:
             limit = min(max(int(request.query_params.get("limit", 100)), 1), 500)

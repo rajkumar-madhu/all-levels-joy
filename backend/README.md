@@ -60,6 +60,17 @@ Request bodies use the same camelCase fields as the legacy server functions; res
 | `POST /api/v1/orgs/{org}/security/findings/{id}/transition` | `security.finding.transition` | `itsm_transition_security_finding` |
 | `POST /api/v1/orgs/{org}/security/findings/{id}/exceptions` | `security.exception.request` | `itsm_request_security_exception` |
 | `POST /api/v1/orgs/{org}/security/exceptions/{id}/decision` | `security.exception.decide` | `itsm_decide_security_exception` |
+| `GET /api/v1/orgs/{org}/catalog` | `catalog.read` | active `catalog_items` |
+| `GET /api/v1/orgs/{org}/requests?state=&q=` | `request.list` | RLS on `service_requests` |
+| `POST /api/v1/orgs/{org}/requests` | `request.create` | `itsm_create_service_request` |
+| `GET /api/v1/orgs/{org}/requests/{id}` | `request.read` | RLS, with its approvals |
+| `PATCH /api/v1/orgs/{org}/requests/{id}` | `request.update` (service desk, fulfiller, manager, admin) | update guarded by `expectedUpdatedAt` (409 when stale) and the table's approval triggers |
+| `GET /api/v1/orgs/{org}/changes?state=&q=` | `change.list` | RLS on `changes` |
+| `POST /api/v1/orgs/{org}/changes` | `change.create` (fulfiller, change manager, manager, admin) | `itsm_create_change` |
+| `GET /api/v1/orgs/{org}/changes/{id}` | `change.read` | RLS, with its CAB approvals |
+| `POST /api/v1/orgs/{org}/changes/{id}/actions` | `change.update` (change manager, admin) | start / deliver / close / cancel, with the same gates as the legacy `updateChange` |
+| `GET /api/v1/orgs/{org}/approvals?status=` | `approval.list` | approvals assigned to the caller |
+| `POST /api/v1/orgs/{org}/approvals/{id}/decision` | `approval.decide` | `itsm_decide_approval` |
 | `POST /api/public/alerts` | bearer token | port of `monitoring-alerts.ts` |
 | `GET, POST /api/public/pagerduty` | HMAC | `itsm_upsert_pagerduty_incident` |
 | `POST /api/public/security-findings` | HMAC | `itsm_upsert_scanner_finding` |
@@ -106,11 +117,13 @@ ruff check . && ruff format --check .
 
 The pytest suite builds a fresh PostgreSQL 16 database with the full legacy schema and starts a real OPA
 server. It covers identity linking, token checks, OPA fail-closed, RLS isolation between requesters and
-workspaces, the security lifecycle through the database functions, and all three webhooks. Policy tests
+workspaces, the security lifecycle through the database functions, request approval and fulfilment, the
+change lifecycle through CAB approval, and all three webhooks. Policy tests
 needing OPA are skipped when no `opa` binary is found.
 
 ## Not migrated yet
 
-Requests, changes, approvals, problems, major incidents, CMDB, catalogue, administration, attachments
-(Supabase Storage → object storage) and the AI assistant still run only in the current app. Each one should
+Incident updates (assignment, hold and resolve), request tasks, problems, major incidents, CMDB, catalogue
+administration, workspace administration, comments, attachments (Supabase Storage → object storage) and the
+AI assistant still run only in the current app. Each one should
 follow the same pattern: an OPA action, a `CallerAPIView`, and calls to the existing SQL functions.

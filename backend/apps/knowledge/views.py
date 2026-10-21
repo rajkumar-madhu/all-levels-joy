@@ -1,7 +1,7 @@
 from django.http import Http404
 from rest_framework.response import Response
 
-from apps.core.db import fetch_all, fetch_one
+from apps.core.db import fetch_all, fetch_one, like_pattern
 from apps.core.views import CallerAPIView
 
 COLUMNS = """
@@ -20,7 +20,7 @@ class ArticleListView(CallerAPIView):
         query = (request.query_params.get("q") or "").strip()[:120]
         if query:
             clauses.append("(k.title ILIKE %s OR k.summary ILIKE %s OR %s = ANY(k.tags))")
-            like = "%" + query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+            like = like_pattern(query)
             params += [like, like, query.lower()]
         rows = fetch_all(
             f"SELECT {COLUMNS} FROM public.knowledge_articles k WHERE {' AND '.join(clauses)} "

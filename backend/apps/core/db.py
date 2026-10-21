@@ -82,3 +82,8 @@ def fetch_all(sql: str, params: Sequence[Any] = ()) -> list[dict[str, Any]]:
 def fetch_one(sql: str, params: Sequence[Any] = ()) -> dict[str, Any] | None:
     rows = fetch_all(sql, params)
     return rows[0] if rows else None
+
+
+def like_pattern(text: str) -> str:
+    """`%text%` for ILIKE with the user's own wildcards escaped."""
+    return "%" + text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"

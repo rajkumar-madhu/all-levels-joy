@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { BookOpen, LayoutDashboard, LogOut, Menu, ShieldAlert, Siren, X } from "lucide-react";
+import { BookOpen, CalendarClock, Inbox, LayoutDashboard, ListChecks, LogOut, Menu, ShieldAlert, ShoppingBag, Siren, X } from "lucide-react";
 import type { ComponentType } from "react";
 import { NavLink, Outlet, useMatches } from "react-router";
 import { useActiveWorkspace, useMe } from "@/api/hooks";
@@ -12,7 +12,16 @@ type NavItem = { to: string; label: string; icon: ComponentType<{ className?: st
 // Labels here are also the page titles (route `handle.title`) so the sidebar, breadcrumb and heading agree.
 export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   { label: "Workspace", items: [{ to: "/", label: "Dashboard", icon: LayoutDashboard }] },
-  { label: "ITSM", items: [{ to: "/incidents", label: "Incidents", icon: Siren }] },
+  {
+    label: "ITSM",
+    items: [
+      { to: "/incidents", label: "Incidents", icon: Siren },
+      { to: "/requests", label: "Requests", icon: Inbox },
+      { to: "/changes", label: "Changes", icon: CalendarClock },
+      { to: "/approvals", label: "Approvals", icon: ListChecks },
+      { to: "/catalog", label: "Service catalogue", icon: ShoppingBag },
+    ],
+  },
   { label: "Knowledge", items: [{ to: "/knowledge", label: "Knowledge base", icon: BookOpen }] },
   { label: "Security", items: [{ to: "/security", label: "Security findings", icon: ShieldAlert, staffOnly: true }] },
 ];

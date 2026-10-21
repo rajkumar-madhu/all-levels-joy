@@ -40,8 +40,9 @@ bun run build
 
 `frontend/` (React + Vite SPA with React Router, Zustand and TanStack Query) and `backend/` (Django REST
 Framework with Keycloak sign-in, OPA policies, Celery and Redis) are the new stack. They run beside this app
-on the same PostgreSQL schema: incidents, knowledge, the security board and the monitoring, PagerDuty and
-scanner webhooks are implemented so far. See [backend/README.md](backend/README.md) and
-[frontend/README.md](frontend/README.md). The existing app in `src/` is unchanged.
+on the same PostgreSQL schema. Incidents, the service catalogue, requests, changes, approvals, knowledge, the
+security board, and the monitoring, PagerDuty and scanner webhooks are implemented so far. See
+[backend/README.md](backend/README.md) and [frontend/README.md](frontend/README.md). The existing app in `src/`
+is unchanged.
 
 See the [product comparison and gap analysis](docs/itsm-product-gap-analysis.md), [workspace design system](docs/itsm-design-system.md), and [database/browser validation instructions](docs/itsm-validation.md). Incident workflows, the enterprise workspace UI, active-membership access, requester privacy, atomic approvals and transactional core audit are implemented locally. `bun run test:db` runs the database regression suite; `bun run test:e2e` starts a disposable local Supabase stack and tests authenticated browser workflows. See the report for remaining product gaps and rollout prerequisites.

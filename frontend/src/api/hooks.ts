@@ -3,6 +3,15 @@ import { useSession } from "@/stores/session";
 import { api } from "./client";
 import type {
   Article,
+  CatalogItem,
+  Change,
+  ChangeAction,
+  ChangeSummary,
+  MyApproval,
+  NewChange,
+  RecordState,
+  ServiceRequest,
+  ServiceRequestSummary,
   ArticleSummary,
   Incident,
   IncidentSummary,
@@ -21,7 +30,18 @@ export const keys = {
   articles: (org: string, q: string) => ["orgs", org, "knowledge", q] as const,
   article: (org: string, id: string) => ["orgs", org, "article", id] as const,
   security: (org: string) => ["orgs", org, "security"] as const,
+  catalog: (org: string) => ["orgs", org, "catalog"] as const,
+  requests: (org: string) => ["orgs", org, "requests"] as const,
+  changes: (org: string) => ["orgs", org, "changes"] as const,
+  approvals: (org: string) => ["orgs", org, "approvals"] as const,
 };
+
+function listParams(filters: { state?: string; q?: string }) {
+  const params = new URLSearchParams();
+  if (filters.state) params.set("state", filters.state);
+  if (filters.q) params.set("q", filters.q);
+  return params;
+}
 
 export function useMe() {
   const signedIn = useSession((s) => s.status === "signed-in");
@@ -115,4 +135,91 @@ export function useDecideException(org: string) {
     ({ id, ...body }: { id: string; decision: "approved" | "rejected"; notes?: string }) =>
       api(`orgs/${org}/security/exceptions/${id}/decision`, { method: "POST", body }),
   );
+}
+
+export function useCatalog(org: string) {
+  return useQuery({
+    queryKey: keys.catalog(org),
+    queryFn: () => api<{ results: CatalogItem[] }>(`orgs/${org}/catalog`).then((r) => r.results),
+    staleTime: 60_000,
+  });
+}
+
+export function useRequests(org: string, filters: { state?: string; q?: string }) {
+  return useQuery({
+    queryKey: [...keys.requests(org), filters],
+    queryFn: () =>
+      api<{ results: ServiceRequestSummary[] }>(`orgs/${org}/requests?${listParams(filters)}`).then((r) => r.results),
+  });
+}
+
+export function useServiceRequest(org: string, id: string) {
+  return useQuery({ queryKey: [...keys.requests(org), id], queryFn: () => api<ServiceRequest>(`orgs/${org}/requests/${id}`) });
+}
+
+export function useCreateRequest(org: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { catalogItemId: string; title: string; description: string }) =>
+      api<{ id: string; number: string; dueAt: string | null }>(`orgs/${org}/requests`, { method: "POST", body }),
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.requests(org) }),
+  });
+}
+
+export function useUpdateRequest(org: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: { id: string; state: RecordState; expectedUpdatedAt: string; awaitingCustomer?: boolean }) =>
+      api<ServiceRequest>(`orgs/${org}/requests/${id}`, { method: "PATCH", body }),
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.requests(org) }),
+  });
+}
+
+export function useChanges(org: string, filters: { state?: string; q?: string }) {
+  return useQuery({
+    queryKey: [...keys.changes(org), filters],
+    queryFn: () => api<{ results: ChangeSummary[] }>(`orgs/${org}/changes?${listParams(filters)}`).then((r) => r.results),
+  });
+}
+
+export function useChange(org: string, id: string) {
+  return useQuery({ queryKey: [...keys.changes(org), id], queryFn: () => api<Change>(`orgs/${org}/changes/${id}`) });
+}
+
+export function useCreateChange(org: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: NewChange) => api<{ id: string; number: string }>(`orgs/${org}/changes`, { method: "POST", body }),
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.changes(org) }),
+  });
+}
+
+export function useChangeAction(org: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, step }: { id: string; step: ChangeAction }) =>
+      api<Change>(`orgs/${org}/changes/${id}/actions`, { method: "POST", body: step }),
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.changes(org) }),
+  });
+}
+
+export function useMyApprovals(org: string, status: string) {
+  return useQuery({
+    queryKey: [...keys.approvals(org), status],
+    queryFn: () => api<{ results: MyApproval[] }>(`orgs/${org}/approvals?status=${status}`).then((r) => r.results),
+  });
+}
+
+export function useDecideApproval(org: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: { id: string; decision: "approved" | "rejected"; notes?: string }) =>
+      api(`orgs/${org}/approvals/${id}/decision`, { method: "POST", body }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: keys.approvals(org) }),
+        client.invalidateQueries({ queryKey: keys.requests(org) }),
+        client.invalidateQueries({ queryKey: keys.changes(org) }),
+      ]),
+  });
 }

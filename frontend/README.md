@@ -15,9 +15,15 @@ with Keycloak.
 
 ## Screens
 
-- **Dashboard**: open incidents, incidents past their SLA target, and active security findings for staff.
+- **Dashboard**: open incidents, incidents past their SLA target, approvals waiting for you, and active
+  security findings for staff.
 - **Incidents**: queue for staff, own tickets for requesters (the API's row-level security decides). Filter,
   search, raise a ticket, and open a detail page.
+- **Requests and service catalogue**: browse the catalogue and ask for an item. Requests that need approval
+  wait for an independent manager. Fulfilment staff move requests on, with stale-edit protection.
+- **Changes**: plan standard, normal or emergency changes in your own timezone. Change managers start,
+  deliver and close them after CAB approval.
+- **Approvals**: the requests and changes waiting for your decision.
 - **Knowledge base**: search and read articles.
 - **Security findings**: staff only. Record a finding, submit the fix plan, approve or reject it, schedule the
   window, start, deliver and close the fix, link a change or incident, and request or decide risk exceptions.

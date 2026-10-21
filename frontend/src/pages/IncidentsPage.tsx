@@ -1,35 +1,18 @@
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Link } from "react-router";
 import { useCreateIncident, useIncidents } from "@/api/hooks";
 import { IncidentStateBadge, PriorityBadge } from "@/components/badges";
+import { ListToolbar, OPEN_RECORD_STATES, RECORD_FILTERS, useListParams } from "@/components/ListToolbar";
 import { Button, Field, FormError, Input, PageHeader, Panel, Select, StateMessage, Textarea } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
 import { dueIn, formatDateTime } from "@/lib/format";
 
-const FILTERS = [
-  { value: "new,open,in_progress,pending", label: "Open" },
-  { value: "resolved", label: "Resolved" },
-  { value: "", label: "All" },
-];
-
 export function IncidentsPage() {
   const workspace = useWorkspace();
-  const [params, setParams] = useSearchParams();
-  const state = params.get("state") ?? FILTERS[0]!.value;
-  const q = params.get("q") ?? "";
-  const [draftQuery, setDraftQuery] = useState(q);
+  const { state, q, apiState, update } = useListParams(OPEN_RECORD_STATES);
   const [creating, setCreating] = useState(false);
-  const incidents = useIncidents(workspace.id, { state: state === "all" ? "" : state, q });
-
-  const update = (next: Record<string, string>) => {
-    const merged = new URLSearchParams(params);
-    for (const [k, v] of Object.entries(next)) {
-      if (v) merged.set(k, v);
-      else merged.delete(k);
-    }
-    setParams(merged, { replace: true });
-  };
+  const incidents = useIncidents(workspace.id, { state: apiState, q });
 
   return (
     <>
@@ -43,33 +26,7 @@ export function IncidentsPage() {
         }
       />
       {creating && <NewIncidentForm orgId={workspace.id} onDone={() => setCreating(false)} />}
-
-      <div className="flex flex-wrap items-center gap-3">
-        <div role="group" aria-label="Filter by state" className="flex rounded-md border border-slate-300 dark:border-slate-700">
-          {FILTERS.map((f) => (
-            <button
-              key={f.label}
-              onClick={() => update({ state: f.value || "all" })}
-              aria-pressed={state === (f.value || "all")}
-              className="px-3 py-1.5 text-sm first:rounded-l-md last:rounded-r-md aria-pressed:bg-brand-600 aria-pressed:text-white"
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-        <form
-          className="flex min-w-0 flex-1 items-center gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            update({ q: draftQuery.trim() });
-          }}
-        >
-          <Input id="incident-search" aria-label="Search incidents" placeholder="Search by number or title" value={draftQuery} onChange={(e) => setDraftQuery(e.target.value)} />
-          <Button variant="secondary" type="submit" aria-label="Search">
-            <Search className="size-4" />
-          </Button>
-        </form>
-      </div>
+      <ListToolbar id="incident-search" filters={RECORD_FILTERS} state={state} q={q} placeholder="Search by number or title" update={update} />
 
       {incidents.isPending ? (
         <StateMessage kind="loading">Loading incidents…</StateMessage>

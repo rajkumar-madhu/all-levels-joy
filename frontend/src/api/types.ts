@@ -144,3 +144,123 @@ export type Transition =
   | { action: "close" }
   | { action: "cancel" }
   | { action: "link"; changeId?: string; incidentId?: string };
+
+export type RecordState = IncidentState;
+
+export type CatalogItem = {
+  id: string;
+  name: string;
+  category: string | null;
+  description: string | null;
+  delivery_days: number;
+  approval_required: boolean;
+  default_priority: number | null;
+  group_name: string | null;
+};
+
+export type ApprovalLine = {
+  id: string;
+  approver_id: string;
+  approver_name: string | null;
+  status: "requested" | "approved" | "rejected" | "cancelled";
+  decision_notes: string | null;
+  decided_at: string | null;
+};
+
+export type ServiceRequestSummary = {
+  id: string;
+  number: string;
+  title: string;
+  state: RecordState;
+  approval_status: "not_required" | "requested" | "approved" | "rejected";
+  priority: number | null;
+  due_at: string | null;
+  awaiting_customer_since: string | null;
+  created_at: string;
+  updated_at: string;
+  catalog_item_name: string | null;
+  group_name: string | null;
+};
+
+export type ServiceRequest = ServiceRequestSummary & { description: string | null; approvals: ApprovalLine[] };
+
+export type ChangeType = "standard" | "normal" | "emergency";
+export type Risk = "low" | "medium" | "high" | "critical";
+
+export type ChangeSummary = {
+  id: string;
+  number: string;
+  title: string;
+  change_type: ChangeType;
+  risk: Risk;
+  state: RecordState;
+  approval_status: "not_required" | "requested" | "approved" | "rejected";
+  start_at: string | null;
+  end_at: string | null;
+  expected_outage_minutes: number;
+  service_name: string | null;
+  created_at: string;
+};
+
+export type Change = ChangeSummary & {
+  description: string | null;
+  implementation_plan: string | null;
+  test_plan: string | null;
+  rollback_plan: string | null;
+  business_justification: string | null;
+  impact_assessment: string | null;
+  validation_plan: string | null;
+  rollback_trigger: string | null;
+  communication_plan: string | null;
+  actual_start_at: string | null;
+  delivery_outcome: string | null;
+  validation_results: string | null;
+  rollback_used: boolean | null;
+  pir_notes: string | null;
+  approvals: ApprovalLine[];
+};
+
+export type NewChange = {
+  title: string;
+  description: string;
+  changeType: ChangeType;
+  risk: Risk;
+  implementationPlan: string;
+  testPlan: string;
+  rollbackPlan: string;
+  businessJustification: string;
+  impactAssessment: string;
+  expectedOutageMinutes: number;
+  affectedCiIds: string[];
+  validationPlan: string;
+  rollbackTrigger: string;
+  communicationPlan: string;
+  startAt: string;
+  endAt: string;
+};
+
+export type ChangeAction =
+  | { action: "start" | "close" | "cancel" }
+  | {
+      action: "deliver";
+      deliveryOutcome: "successful" | "successful_with_issues" | "failed" | "rolled_back";
+      validationResults: string;
+      pirNotes: string;
+      rollbackUsed: boolean;
+    };
+
+export type MyApproval = {
+  id: string;
+  record_type: "request" | "change" | "knowledge";
+  record_id: string;
+  status: ApprovalLine["status"];
+  decision_notes: string | null;
+  decided_at: string | null;
+  created_at: string;
+  record_number: string | null;
+  record_title: string | null;
+  risk: Risk | null;
+  change_type: ChangeType | null;
+  start_at: string | null;
+  end_at: string | null;
+};
