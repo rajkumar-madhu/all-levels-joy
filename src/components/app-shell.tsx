@@ -159,7 +159,7 @@ function WorkspaceNavigation({
             W
           </span>
           <span>
-            <span className="block text-base font-semibold tracking-tight text-white">Argus</span>
+            <span className="block text-base font-semibold tracking-tight text-white">Argus Service Desk</span>
             <span className="block text-[10px] font-medium uppercase tracking-[0.16em] text-sidebar-foreground/70">
               Service management
             </span>
@@ -344,7 +344,7 @@ export function AppShell({
         >
           <SheetTitle className="sr-only">Workspace navigation</SheetTitle>
           <SheetDescription className="sr-only">
-            Navigate Argus service management and access your profile.
+            Navigate Argus Service Desk and access your profile.
           </SheetDescription>
           {navigation}
         </SheetContent>
