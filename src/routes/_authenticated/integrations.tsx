@@ -403,7 +403,7 @@ function IntegrationsPage() {
             lands="Security findings."
             steps={[
               `POST JSON to ${scanner}.`,
-              "Sign the raw body with HMAC-SHA256 and send the hex digest in the x-wecrew-signature header. The key is SECURITY_SCANNER_SECRET.",
+              "Sign the raw body with HMAC-SHA256 and send the hex digest in the x-argus-signature header. The key is SECURITY_SCANNER_SECRET.",
               "Body shape: { findings: [{ scanner, reference, title, severity, description, asset }] }.",
               "Severity is critical, high, medium, or low. Send at most 100 findings per call.",
             ]}
