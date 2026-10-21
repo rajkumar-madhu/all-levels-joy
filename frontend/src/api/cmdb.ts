@@ -136,11 +136,12 @@ export function useServices(org: string) {
   });
 }
 
-export function useAssets(org: string, filters: { q: string; status: string }) {
+export function useAssets(org: string, filters: { q: string; status: string }, enabled = true) {
   const params = new URLSearchParams();
   if (filters.q) params.set("q", filters.q);
   if (filters.status) params.set("status", filters.status);
   return useQuery({
+    enabled,
     queryKey: [...k.assets(org), filters],
     queryFn: () => api<{ results: Asset[] }>(`orgs/${org}/assets?${params}`).then((r) => r.results),
   });

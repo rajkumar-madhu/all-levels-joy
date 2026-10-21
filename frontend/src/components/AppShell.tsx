@@ -262,7 +262,7 @@ export function AppShell() {
             {workspace && <NotificationBell orgId={workspace.id} />}
           </div>
         </header>
-        <main id="main" tabIndex={-1} className="mx-auto grid w-full max-w-[1400px] min-w-0 flex-1 content-start gap-6 px-4 py-6 focus:outline-none sm:px-6 lg:px-8">
+        <main id="main" tabIndex={-1} className="mx-auto grid w-full max-w-[1400px] min-w-0 flex-1 grid-cols-[minmax(0,1fr)] content-start gap-6 px-4 py-6 focus:outline-none sm:px-6 lg:px-8">
           <Outlet />
         </main>
       </div>

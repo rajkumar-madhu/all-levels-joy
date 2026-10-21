@@ -46,7 +46,7 @@ export function AdministrationPage() {
   const [params, setParams] = useSearchParams();
   const tab = (TABS.find(([key]) => key === params.get("tab"))?.[0] ?? "members") as Tab;
   const isAdmin = workspace.roles.includes("admin");
-  const overview = useAdministration(workspace.id);
+  const overview = useAdministration(workspace.id, isAdmin);
 
   if (!isAdmin) return <StateMessage kind="error">Administration is available to workspace administrators only.</StateMessage>;
 
@@ -57,7 +57,7 @@ export function AdministrationPage() {
         title="Administration"
         description="Invite people, manage their access and roles, organise assignment groups, and edit workspace settings. Every change is checked again in the database and recorded in the audit trail."
       />
-      <div role="tablist" aria-label="Administration sections" className="flex gap-1 overflow-x-auto border-b border-border">
+      <div role="tablist" aria-label="Administration sections" className="relative flex gap-1 overflow-x-auto border-b border-border">
         {TABS.map(([key, label]) => (
           <button
             key={key}

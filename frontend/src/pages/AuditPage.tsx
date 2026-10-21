@@ -11,8 +11,8 @@ export function AuditPage() {
   const recordType = params.get("recordType") ?? "";
   const action = params.get("action") ?? "";
   const [draftAction, setDraftAction] = useState(action);
-  const facets = useAuditFacets(workspace.id);
-  const trail = useAuditTrail(workspace.id, { recordType, action });
+  const facets = useAuditFacets(workspace.id, workspace.is_staff);
+  const trail = useAuditTrail(workspace.id, { recordType, action }, workspace.is_staff);
   const events = trail.data?.pages.flatMap((p) => p.results) ?? [];
 
   const update = (next: Record<string, string>) => {
@@ -23,6 +23,8 @@ export function AuditPage() {
     }
     setParams(merged, { replace: true });
   };
+
+  if (!workspace.is_staff) return <StateMessage kind="error">The audit trail is available to workspace staff only.</StateMessage>;
 
   return (
     <>

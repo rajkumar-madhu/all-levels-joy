@@ -102,8 +102,8 @@ export type AuditEvent = {
 
 const adminKey = (org: string) => ["orgs", org, "administration"] as const;
 
-export function useAdministration(org: string) {
-  return useQuery({ queryKey: adminKey(org), queryFn: () => api<AdminOverview>(`orgs/${org}/administration`) });
+export function useAdministration(org: string, enabled = true) {
+  return useQuery({ queryKey: adminKey(org), queryFn: () => api<AdminOverview>(`orgs/${org}/administration`), enabled });
 }
 
 /** Administration screens reload the snapshot after every mutation, rejected or not (versions may have moved). */
@@ -210,16 +210,18 @@ export function useMarkNotificationsRead(org: string) {
   });
 }
 
-export function useAuditFacets(org: string) {
+export function useAuditFacets(org: string, enabled = true) {
   return useQuery({
+    enabled,
     queryKey: ["orgs", org, "audit-facets"],
     queryFn: () => api<{ recordTypes: string[] }>(`orgs/${org}/audit/facets`),
     staleTime: 60_000,
   });
 }
 
-export function useAuditTrail(org: string, filters: { recordType?: string; action?: string }) {
+export function useAuditTrail(org: string, filters: { recordType?: string; action?: string }, enabled = true) {
   return useInfiniteQuery({
+    enabled,
     queryKey: ["orgs", org, "audit", filters],
     initialPageParam: "",
     queryFn: ({ pageParam }) => {

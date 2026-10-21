@@ -156,6 +156,10 @@
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
   }
+  /* Let grid children shrink so wide tables scroll inside their own panel instead of widening the page. */
+  :where(.grid) > * {
+    min-width: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

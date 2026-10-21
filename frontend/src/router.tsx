@@ -1,54 +1,29 @@
+import type { ComponentType } from "react";
 import { createBrowserRouter } from "react-router";
 import { AppShell } from "@/components/AppShell";
 import { RequireSignIn } from "@/components/RequireSignIn";
 import { RequireWorkspace } from "@/components/RequireWorkspace";
-import { AcceptInvitationPage } from "@/pages/AcceptInvitationPage";
-import { AdministrationPage } from "@/pages/AdministrationPage";
-import { AuditPage } from "@/pages/AuditPage";
-import { ProfilePage } from "@/pages/ProfilePage";
-import { ApprovalsPage } from "@/pages/ApprovalsPage";
-import { ArticleEditorPage } from "@/pages/ArticleEditorPage";
-import { AssistantPage } from "@/pages/AssistantPage";
-import { ArticlePage } from "@/pages/ArticlePage";
-import { AssetsPage } from "@/pages/AssetsPage";
 import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
-import { CatalogPage } from "@/pages/CatalogPage";
-import { ChangeDetailPage } from "@/pages/ChangeDetailPage";
-import { ChangesPage } from "@/pages/ChangesPage";
-import { CommandCenterPage } from "@/pages/CommandCenterPage";
-import { DashboardPage } from "@/pages/DashboardPage";
-import { IncidentDetailPage } from "@/pages/IncidentDetailPage";
-import { IncidentInsightsPage } from "@/pages/IncidentInsightsPage";
-import { IncidentsPage } from "@/pages/IncidentsPage";
-import { KnowledgeCategoriesPage } from "@/pages/KnowledgeCategoriesPage";
-import { KnowledgePage } from "@/pages/KnowledgePage";
-import { NewChangePage } from "@/pages/NewChangePage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
-import { ProblemDetailPage } from "@/pages/ProblemDetailPage";
-import { ProblemsPage } from "@/pages/ProblemsPage";
-import { IntegrationsPage } from "@/pages/IntegrationsPage";
-import { PortalArticlePage } from "@/pages/portal/PortalArticlePage";
-import { PortalHomePage } from "@/pages/portal/PortalHomePage";
-import { PortalLayout } from "@/pages/portal/PortalLayout";
-import { PortalTicketPage } from "@/pages/portal/PortalTicketPage";
-import { RequestDetailPage } from "@/pages/RequestDetailPage";
-import { RequestsPage } from "@/pages/RequestsPage";
-import { SecurityPage } from "@/pages/SecurityPage";
-import { SlaPage } from "@/pages/SlaPage";
+
+/** Loads a page module only when its route is first visited, so each screen ships as its own chunk. */
+function page<M extends Record<string, unknown>>(load: () => Promise<M>, name: keyof M & string) {
+  return async () => ({ Component: (await load())[name] as ComponentType });
+}
 
 // `handle.title` feeds the header breadcrumb; it matches the sidebar label for each page.
 export const router = createBrowserRouter([
   { path: "/auth/callback", element: <AuthCallbackPage /> },
   // Opened before the person is a member, so it needs sign-in but not a workspace.
-  { path: "/accept-invitation", element: <RequireSignIn><AcceptInvitationPage /></RequireSignIn> },
+  { path: "/accept-invitation", element: <RequireSignIn />, children: [{ index: true, lazy: page(() => import("@/pages/AcceptInvitationPage"), "AcceptInvitationPage") }] },
   // Customer portal: its own layout; knowledge is public, tickets need sign-in but not workspace membership.
   {
     path: "/portal",
-    element: <PortalLayout />,
+    lazy: page(() => import("@/pages/portal/PortalLayout"), "PortalLayout"),
     children: [
-      { index: true, element: <PortalHomePage /> },
-      { path: "knowledge/:articleId", element: <PortalArticlePage /> },
-      { path: ":recordType/:recordId", element: <PortalTicketPage /> },
+      { index: true, lazy: page(() => import("@/pages/portal/PortalHomePage"), "PortalHomePage") },
+      { path: "knowledge/:articleId", lazy: page(() => import("@/pages/portal/PortalArticlePage"), "PortalArticlePage") },
+      { path: ":recordType/:recordId", lazy: page(() => import("@/pages/portal/PortalTicketPage"), "PortalTicketPage") },
     ],
   },
   {
@@ -57,34 +32,34 @@ export const router = createBrowserRouter([
       {
         element: <AppShell />,
         children: [
-          { index: true, element: <DashboardPage />, handle: { title: "Dashboard" } },
-          { path: "assistant", element: <AssistantPage />, handle: { title: "Support assistant" } },
-          { path: "assistant/:threadId", element: <AssistantPage />, handle: { title: "Support assistant" } },
-          { path: "incidents", element: <IncidentsPage />, handle: { title: "Incidents" } },
-          { path: "incidents/:incidentId", element: <IncidentDetailPage />, handle: { title: "Incidents" } },
-          { path: "requests", element: <RequestsPage />, handle: { title: "Service requests" } },
-          { path: "requests/:requestId", element: <RequestDetailPage />, handle: { title: "Service requests" } },
-          { path: "changes", element: <ChangesPage />, handle: { title: "Changes" } },
-          { path: "changes/new", element: <NewChangePage />, handle: { title: "Changes" } },
-          { path: "changes/:changeId", element: <ChangeDetailPage />, handle: { title: "Changes" } },
-          { path: "command-center", element: <CommandCenterPage />, handle: { title: "Major incident command" } },
-          { path: "sla", element: <SlaPage />, handle: { title: "SLA performance" } },
-          { path: "incident-insights", element: <IncidentInsightsPage />, handle: { title: "Incident insights" } },
-          { path: "approvals", element: <ApprovalsPage />, handle: { title: "Approvals" } },
-          { path: "assets", element: <AssetsPage />, handle: { title: "Assets & CMDB" } },
-          { path: "catalog", element: <CatalogPage />, handle: { title: "Service catalogue" } },
-          { path: "knowledge", element: <KnowledgePage />, handle: { title: "Knowledge" } },
-          { path: "knowledge/:articleId", element: <ArticlePage />, handle: { title: "Knowledge" } },
-          { path: "knowledge/new", element: <ArticleEditorPage />, handle: { title: "Knowledge" } },
-          { path: "knowledge/:articleId/edit", element: <ArticleEditorPage />, handle: { title: "Knowledge" } },
-          { path: "knowledge/categories", element: <KnowledgeCategoriesPage />, handle: { title: "Knowledge" } },
-          { path: "problems", element: <ProblemsPage />, handle: { title: "Problems" } },
-          { path: "problems/:problemId", element: <ProblemDetailPage />, handle: { title: "Problems" } },
-          { path: "security", element: <SecurityPage />, handle: { title: "Security findings" } },
-          { path: "audit", element: <AuditPage />, handle: { title: "Audit trail" } },
-          { path: "administration", element: <AdministrationPage />, handle: { title: "Administration" } },
-          { path: "profile", element: <ProfilePage />, handle: { title: "Profile" } },
-          { path: "integrations", element: <IntegrationsPage />, handle: { title: "Integrations" } },
+          { index: true, lazy: page(() => import("@/pages/DashboardPage"), "DashboardPage"), handle: { title: "Dashboard" } },
+          { path: "assistant", lazy: page(() => import("@/pages/AssistantPage"), "AssistantPage"), handle: { title: "Support assistant" } },
+          { path: "assistant/:threadId", lazy: page(() => import("@/pages/AssistantPage"), "AssistantPage"), handle: { title: "Support assistant" } },
+          { path: "incidents", lazy: page(() => import("@/pages/IncidentsPage"), "IncidentsPage"), handle: { title: "Incidents" } },
+          { path: "incidents/:incidentId", lazy: page(() => import("@/pages/IncidentDetailPage"), "IncidentDetailPage"), handle: { title: "Incidents" } },
+          { path: "requests", lazy: page(() => import("@/pages/RequestsPage"), "RequestsPage"), handle: { title: "Service requests" } },
+          { path: "requests/:requestId", lazy: page(() => import("@/pages/RequestDetailPage"), "RequestDetailPage"), handle: { title: "Service requests" } },
+          { path: "changes", lazy: page(() => import("@/pages/ChangesPage"), "ChangesPage"), handle: { title: "Changes" } },
+          { path: "changes/new", lazy: page(() => import("@/pages/NewChangePage"), "NewChangePage"), handle: { title: "Changes" } },
+          { path: "changes/:changeId", lazy: page(() => import("@/pages/ChangeDetailPage"), "ChangeDetailPage"), handle: { title: "Changes" } },
+          { path: "command-center", lazy: page(() => import("@/pages/CommandCenterPage"), "CommandCenterPage"), handle: { title: "Major incident command" } },
+          { path: "sla", lazy: page(() => import("@/pages/SlaPage"), "SlaPage"), handle: { title: "SLA performance" } },
+          { path: "incident-insights", lazy: page(() => import("@/pages/IncidentInsightsPage"), "IncidentInsightsPage"), handle: { title: "Incident insights" } },
+          { path: "approvals", lazy: page(() => import("@/pages/ApprovalsPage"), "ApprovalsPage"), handle: { title: "Approvals" } },
+          { path: "assets", lazy: page(() => import("@/pages/AssetsPage"), "AssetsPage"), handle: { title: "Assets & CMDB" } },
+          { path: "catalog", lazy: page(() => import("@/pages/CatalogPage"), "CatalogPage"), handle: { title: "Service catalogue" } },
+          { path: "knowledge", lazy: page(() => import("@/pages/KnowledgePage"), "KnowledgePage"), handle: { title: "Knowledge" } },
+          { path: "knowledge/:articleId", lazy: page(() => import("@/pages/ArticlePage"), "ArticlePage"), handle: { title: "Knowledge" } },
+          { path: "knowledge/new", lazy: page(() => import("@/pages/ArticleEditorPage"), "ArticleEditorPage"), handle: { title: "Knowledge" } },
+          { path: "knowledge/:articleId/edit", lazy: page(() => import("@/pages/ArticleEditorPage"), "ArticleEditorPage"), handle: { title: "Knowledge" } },
+          { path: "knowledge/categories", lazy: page(() => import("@/pages/KnowledgeCategoriesPage"), "KnowledgeCategoriesPage"), handle: { title: "Knowledge" } },
+          { path: "problems", lazy: page(() => import("@/pages/ProblemsPage"), "ProblemsPage"), handle: { title: "Problems" } },
+          { path: "problems/:problemId", lazy: page(() => import("@/pages/ProblemDetailPage"), "ProblemDetailPage"), handle: { title: "Problems" } },
+          { path: "security", lazy: page(() => import("@/pages/SecurityPage"), "SecurityPage"), handle: { title: "Security findings" } },
+          { path: "audit", lazy: page(() => import("@/pages/AuditPage"), "AuditPage"), handle: { title: "Audit trail" } },
+          { path: "administration", lazy: page(() => import("@/pages/AdministrationPage"), "AdministrationPage"), handle: { title: "Administration" } },
+          { path: "profile", lazy: page(() => import("@/pages/ProfilePage"), "ProfilePage"), handle: { title: "Profile" } },
+          { path: "integrations", lazy: page(() => import("@/pages/IntegrationsPage"), "IntegrationsPage"), handle: { title: "Integrations" } },
           { path: "*", element: <NotFoundPage />, handle: { title: "Not found" } },
         ],
       },

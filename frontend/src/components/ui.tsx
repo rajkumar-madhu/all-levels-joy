@@ -64,7 +64,7 @@ export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?:
 }
 
 export function Panel({ className, children }: { className?: string; children: ReactNode }) {
-  return <section className={clsx("rounded-md border border-border bg-card shadow-xs", className)}>{children}</section>;
+  return <section className={clsx("relative rounded-md border border-border bg-card shadow-xs", className)}>{children}</section>;
 }
 
 export function StateMessage({ kind, children }: { kind: "loading" | "error" | "empty"; children: ReactNode }) {

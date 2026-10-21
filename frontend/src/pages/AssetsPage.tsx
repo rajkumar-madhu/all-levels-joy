@@ -33,7 +33,7 @@ export function AssetsPage() {
   const [draft, setDraft] = useState(q);
   const [creating, setCreating] = useState(false);
   const canEdit = hasAnyRole(workspace.roles, CMDB_MANAGE_ROLES);
-  const assets = useAssets(workspace.id, { q, status });
+  const assets = useAssets(workspace.id, { q, status }, workspace.is_staff);
 
   if (!workspace.is_staff) return <StateMessage kind="error">Assets & CMDB is available to workspace staff only.</StateMessage>;
 
