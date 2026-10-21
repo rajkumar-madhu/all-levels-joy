@@ -60,7 +60,8 @@ def call_function(name: str, args: Sequence[tuple[str, Any, str]] = ()) -> Any:
     params = []
     parts = []
     for arg_name, value, sql_type in args:
-        if not arg_name.replace("_", "").isalnum() or not sql_type.replace("_", "").isalnum():
+        # Types are plain identifiers, optionally an array (e.g. app_role[]).
+        if not arg_name.replace("_", "").isalnum() or not sql_type.removesuffix("[]").replace("_", "").isalnum():
             raise ValueError("Invalid argument")
         parts.append(f"{arg_name} => %s::{sql_type}")
         params.append(value)

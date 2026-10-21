@@ -34,6 +34,16 @@ with Keycloak.
 - **Security findings**: staff only. Record a finding, submit the fix plan, approve or reject it, schedule the
   window, start, deliver and close the fix, link a change or incident, and request or decide risk exceptions.
   Requesters never load the board, and the nav item is hidden from them.
+- **Administration** (admins only): members (search, access filter, 25 per page, roles and access with
+  stale-edit protection and approver warnings), invitations (create, copy the acceptance link, revoke),
+  assignment groups (create, edit, archive), and workspace name and timezone.
+- **Accept invitation** (`/accept-invitation?invitation=<id>`, `?token=` also accepted): needs sign-in but no
+  workspace, and shows the workspace, roles and expiry before you accept.
+- **Profile** (from the sidebar profile block): name, contact details, department, locale, timezone and the
+  email digest preference.
+- **Notifications**: a header bell with your 20 most recent notifications. Opening it does not mark them
+  read; **Mark all read** is a separate action.
+- **Audit trail** (staff): read-only, filter by record type and action, load older entries page by page.
 
 ## Look and feel
 

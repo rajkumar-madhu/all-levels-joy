@@ -146,6 +146,29 @@ workspace would collide on its first record until the counters are made global o
 per workspace. That needs a schema migration agreed with the Lovable app, so it is not changed here. Policy tests
 needing OPA are skipped when no `opa` binary is found.
 
+## Administration, invitations, profile, notifications and audit
+
+| Method & path | Policy action | Backed by |
+|---|---|---|
+| `GET /api/v1/orgs/{org}/administration` | `admin.read` (admin) | `itsm_admin_overview` |
+| `POST /api/v1/orgs/{org}/administration/invitations` | `admin.invite` | `itsm_admin_invite` |
+| `POST /api/v1/orgs/{org}/administration/invitations/{id}/revoke` | `admin.revoke_invitation` | `itsm_admin_revoke_invitation` |
+| `PATCH /api/v1/orgs/{org}/administration/members/{userId}` | `admin.update_member` | `itsm_admin_update_member` |
+| `POST /api/v1/orgs/{org}/administration/groups`, `PUT …/groups/{id}` | `admin.save_group` | `itsm_admin_save_group` |
+| `PATCH /api/v1/orgs/{org}/administration/workspace` | `admin.update_workspace` | `itsm_admin_update_workspace` |
+| `GET, POST /api/v1/invitations/{id}` | `invitation.read` / `invitation.accept` (any signed-in person) | `itsm_get_invitation` / `itsm_accept_invitation` |
+| `GET, PATCH /api/v1/me/profile` | `profile.read` / `profile.update` (self) | own `profiles` row; updates write a `profile` audit event in each workspace |
+| `GET /api/v1/orgs/{org}/notifications` | `notification.read` (member) | 20 most recent for the caller; listing never marks read |
+| `POST /api/v1/orgs/{org}/notifications/read-all` | `notification.update` | caller's unread rows only (RLS) |
+| `GET /api/v1/orgs/{org}/audit?recordType=&action=&recordId=&before=` | `audit.read` (staff) | keyset-paginated `audit_events`, 50 per page; RLS shows administration evidence to admins only |
+| `GET /api/v1/orgs/{org}/audit/facets` | `audit.read` | record types the caller can see |
+
+Rules live in `policies/itsm/admin.rego`. Accepting an invitation needs no workspace membership. The
+database compares the invitation with the verified email in `auth.users`, which is linked from Keycloak at
+first sign-in. The API also requires the current token's verified email to match, so an address changed in
+Keycloak after linking cannot use an invitation sent to the old one. Existing invitation links
+(`/accept-invitation?invitation=<id>`) keep working.
+
 ## Not migrated yet
 
 Staff-raised incidents (with group and service), request tasks, problems (beyond linking from a bridge), CMDB, catalogue

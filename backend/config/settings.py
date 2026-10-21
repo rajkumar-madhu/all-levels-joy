@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     "apps.approvals",
     "apps.comments",
     "apps.major_incidents",
+    "apps.administration",
+    "apps.account",
     "apps.integrations",
 ]
 
