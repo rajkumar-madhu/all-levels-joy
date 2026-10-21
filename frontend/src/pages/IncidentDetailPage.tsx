@@ -39,7 +39,7 @@ export function IncidentDetailPage() {
 
   return (
     <>
-      <Link to="/incidents" className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400">
+      <Link to="/incidents" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" /> Incidents
       </Link>
       <PageHeader title={`${i.number} · ${i.title}`} />
@@ -52,7 +52,7 @@ export function IncidentDetailPage() {
               <>
                 <h2 className="mt-6 mb-2 text-sm font-semibold">Resolution</h2>
                 <p className="text-sm whitespace-pre-wrap">{i.resolution_notes}</p>
-                {i.close_code && <p className="mt-1 text-xs text-slate-500">{CLOSE_CODES[i.close_code] ?? i.close_code}</p>}
+                {i.close_code && <p className="mt-1 text-xs text-muted-foreground">{CLOSE_CODES[i.close_code] ?? i.close_code}</p>}
               </>
             )}
           </Panel>
@@ -63,7 +63,7 @@ export function IncidentDetailPage() {
             <dl className="grid gap-3 text-sm">
               {facts.map(([label, value]) => (
                 <div key={label} className="grid gap-0.5">
-                  <dt className="text-xs text-slate-500">{label}</dt>
+                  <dt className="text-xs text-muted-foreground">{label}</dt>
                   <dd>{value}</dd>
                 </div>
               ))}

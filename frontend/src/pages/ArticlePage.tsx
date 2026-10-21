@@ -15,8 +15,8 @@ export function ArticlePage() {
   const a = article.data;
   return (
     <>
-      <Link to="/knowledge" className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400">
-        <ArrowLeft className="size-4" /> Knowledge base
+      <Link to="/knowledge" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="size-4" /> Knowledge
       </Link>
       <PageHeader title={a.title} description={`${a.number} · version ${a.version} · updated ${formatDateTime(a.updated_at)}`} />
       <Panel className="p-6">

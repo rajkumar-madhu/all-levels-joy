@@ -25,8 +25,8 @@ export function RequestDetailPage() {
 
   return (
     <>
-      <Link to="/requests" className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400">
-        <ArrowLeft className="size-4" /> Requests
+      <Link to="/requests" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="size-4" /> Service requests
       </Link>
       <PageHeader title={`${r.number} · ${r.title}`} description={r.catalog_item_name ?? undefined} />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -63,7 +63,7 @@ export function RequestDetailPage() {
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid gap-0.5">
-      <dt className="text-xs text-slate-500">{label}</dt>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd>{children}</dd>
     </div>
   );
@@ -86,7 +86,7 @@ function FulfilmentForm({ request: r, orgId }: { request: ServiceRequest; orgId:
       >
         <h2 className="text-sm font-semibold">Fulfilment</h2>
         {blocked && (
-          <p className="text-sm text-amber-800 dark:text-amber-200">
+          <p className="text-sm text-warning-foreground">
             {r.approval_status === "rejected" ? "This request was rejected." : "Work can start once the request is approved."}
           </p>
         )}

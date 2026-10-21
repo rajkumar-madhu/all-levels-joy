@@ -31,7 +31,7 @@ export function ChangeDetailPage() {
 
   return (
     <>
-      <Link to="/changes" className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400">
+      <Link to="/changes" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" /> Changes
       </Link>
       <PageHeader title={`${c.number} · ${c.title}`} />
@@ -46,29 +46,29 @@ export function ChangeDetailPage() {
           {plans.map(([label, text]) => (
             <section key={label}>
               <h2 className="text-sm font-semibold">{label}</h2>
-              <p className="text-sm whitespace-pre-wrap text-slate-700 dark:text-slate-300">{text || "—"}</p>
+              <p className="text-sm whitespace-pre-wrap text-foreground">{text || "—"}</p>
             </section>
           ))}
           {c.delivery_outcome && (
-            <section className="border-t border-slate-200 pt-4 dark:border-slate-800">
+            <section className="border-t border-border pt-4">
               <h2 className="text-sm font-semibold">Delivery</h2>
               <p className="text-sm">
                 {humanize(c.delivery_outcome)}
                 {c.rollback_used ? " · rollback used" : ""}
               </p>
-              <p className="mt-1 text-sm whitespace-pre-wrap text-slate-700 dark:text-slate-300">{c.validation_results}</p>
+              <p className="mt-1 text-sm whitespace-pre-wrap text-foreground">{c.validation_results}</p>
               <h3 className="mt-3 text-sm font-semibold">Post-implementation review</h3>
-              <p className="text-sm whitespace-pre-wrap text-slate-700 dark:text-slate-300">{c.pir_notes}</p>
+              <p className="text-sm whitespace-pre-wrap text-foreground">{c.pir_notes}</p>
             </section>
           )}
         </Panel>
         <div className="grid gap-6">
           <Panel className="p-4">
             <dl className="grid gap-3 text-sm">
-              <div><dt className="text-xs text-slate-500">Window</dt><dd>{formatDateTime(c.start_at)} – {formatDateTime(c.end_at)}</dd></div>
-              <div><dt className="text-xs text-slate-500">Expected outage</dt><dd>{c.expected_outage_minutes} min</dd></div>
-              <div><dt className="text-xs text-slate-500">Service</dt><dd>{c.service_name ?? "—"}</dd></div>
-              <div><dt className="text-xs text-slate-500">Implementation started</dt><dd>{formatDateTime(c.actual_start_at)}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">Window</dt><dd>{formatDateTime(c.start_at)} – {formatDateTime(c.end_at)}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">Expected outage</dt><dd>{c.expected_outage_minutes} min</dd></div>
+              <div><dt className="text-xs text-muted-foreground">Service</dt><dd>{c.service_name ?? "—"}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">Implementation started</dt><dd>{formatDateTime(c.actual_start_at)}</dd></div>
             </dl>
           </Panel>
           <Panel className="p-4">
@@ -94,14 +94,14 @@ function Lifecycle({ change: c, orgId }: { change: Change; orgId: string }) {
       <FormError error={act.error} />
       {c.state === "open" && (
         <>
-          {!approved && <p className="text-sm text-amber-800 dark:text-amber-200">Waiting for CAB approval.</p>}
-          {approved && !windowOpen && <p className="text-sm text-slate-600 dark:text-slate-400">The window opens {formatDateTime(c.start_at)}.</p>}
+          {!approved && <p className="text-sm text-warning-foreground">Waiting for CAB approval.</p>}
+          {approved && !windowOpen && <p className="text-sm text-muted-foreground">The window opens {formatDateTime(c.start_at)}.</p>}
           <Button busy={act.isPending} disabled={!approved || !windowOpen} onClick={() => run({ action: "start" })}>
             Start implementation
           </Button>
         </>
       )}
-      {c.state === "pending" && <p className="text-sm text-amber-800 dark:text-amber-200">Waiting for CAB approval.</p>}
+      {c.state === "pending" && <p className="text-sm text-warning-foreground">Waiting for CAB approval.</p>}
       {c.state === "in_progress" && (
         <form
           className="grid gap-3"
@@ -141,7 +141,7 @@ function Lifecycle({ change: c, orgId }: { change: Change; orgId: string }) {
       {!["resolved", "closed", "cancelled"].includes(c.state) && (
         <Button variant="secondary" busy={act.isPending} onClick={() => run({ action: "cancel" })}>Cancel change</Button>
       )}
-      {["closed", "cancelled"].includes(c.state) && <p className="text-sm text-slate-600 dark:text-slate-400">This change is {c.state}.</p>}
+      {["closed", "cancelled"].includes(c.state) && <p className="text-sm text-muted-foreground">This change is {c.state}.</p>}
     </Panel>
   );
 }

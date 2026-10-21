@@ -20,7 +20,7 @@ export function CatalogPage() {
 
   return (
     <>
-      <PageHeader title="Service catalogue" description="Ask for hardware, software and access. Some items need a manager's approval first." />
+      <PageHeader eyebrow="ITSM" title="Service catalogue" description="Ask for hardware, software and access. Some items need a manager's approval first." />
       {catalog.isPending ? (
         <StateMessage kind="loading">Loading the catalogue…</StateMessage>
       ) : catalog.isError ? (
@@ -32,11 +32,11 @@ export function CatalogPage() {
           <div className="grid gap-6">
             {[...groups].map(([category, items]) => (
               <section key={category} className="grid gap-2">
-                <h2 className="text-xs font-medium tracking-wide text-slate-500 uppercase">{category}</h2>
+                <h2 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{category}</h2>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {items.map((item) => (
                     <button key={item.id} onClick={() => setSelected(item)} className="text-left">
-                      <Panel className={`grid h-full gap-2 p-4 hover:border-brand-500 ${selected?.id === item.id ? "border-brand-500" : ""}`}>
+                      <Panel className={`grid h-full gap-2 p-4 hover:border-primary ${selected?.id === item.id ? "border-primary" : ""}`}>
                         <div className="flex items-start justify-between gap-2">
                           <span className="font-semibold">{item.name}</span>
                           {item.approval_required && (
@@ -46,8 +46,8 @@ export function CatalogPage() {
                             </Badge>
                           )}
                         </div>
-                        {item.description && <p className="text-sm text-slate-600 dark:text-slate-400">{item.description}</p>}
-                        <p className="text-xs text-slate-500">
+                        {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+                        <p className="text-xs text-muted-foreground">
                           Usually delivered in {item.delivery_days} {item.delivery_days === 1 ? "day" : "days"}
                           {item.group_name ? ` by ${item.group_name}` : ""}
                         </p>
@@ -77,12 +77,12 @@ function RequestForm({ item, orgId, onClose }: { item: CatalogItem; orgId: strin
     return (
       <Panel className="grid gap-3 p-4 text-sm lg:sticky lg:top-20">
         <p>
-          <Link className="font-mono text-brand-600 underline dark:text-brand-100" to={`/requests/${create.data.id}`}>
+          <Link className="font-mono text-primary underline" to={`/requests/${create.data.id}`}>
             {create.data.number}
           </Link>{" "}
           was submitted{item.approval_required ? " and is waiting for approval" : ""}.
         </p>
-        {create.data.dueAt && <p className="text-slate-600 dark:text-slate-400">Target date: {formatDateTime(create.data.dueAt)}</p>}
+        {create.data.dueAt && <p className="text-muted-foreground">Target date: {formatDateTime(create.data.dueAt)}</p>}
         <Button variant="secondary" onClick={onClose}>Done</Button>
       </Panel>
     );

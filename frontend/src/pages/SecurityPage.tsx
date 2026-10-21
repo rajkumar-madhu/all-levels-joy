@@ -11,7 +11,7 @@ import {
 } from "@/api/hooks";
 import type { Finding, SecurityBoard, Severity, Transition } from "@/api/types";
 import { FindingStateBadge, SeverityBadge } from "@/components/badges";
-import { Badge, Button, Field, FormError, Input, PageHeader, Panel, Select, StateMessage, Textarea } from "@/components/ui";
+import { Badge, Button, Field, FormError, Input, PageHeader, Panel, Select, StateMessage, Textarea, th } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
 import { dueIn, formatDateTime, humanize } from "@/lib/format";
 import { localWindowTimeToIso, securityWindowPayload, windowTimeToLocalInput } from "@/lib/security-window";
@@ -46,6 +46,7 @@ export function SecurityPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Governance and knowledge"
         title="Security findings"
         description="Vulnerabilities from scanners and staff, each fixed through an approved plan."
         actions={
@@ -56,13 +57,13 @@ export function SecurityPage() {
       />
       {creating && <NewFindingForm orgId={workspace.id} onDone={() => setCreating(false)} />}
 
-      <div role="group" aria-label="Filter findings" className="flex w-fit rounded-md border border-slate-300 dark:border-slate-700">
+      <div role="group" aria-label="Filter findings" className="flex w-fit rounded-md border border-input">
         {["active", "closed", "all"].map((v) => (
           <button
             key={v}
             aria-pressed={view === v}
             onClick={() => setParams({ view: v }, { replace: true })}
-            className="px-3 py-1.5 text-sm capitalize first:rounded-l-md last:rounded-r-md aria-pressed:bg-brand-600 aria-pressed:text-white"
+            className="px-3 py-1.5 text-sm capitalize first:rounded-l-md last:rounded-r-md aria-pressed:bg-primary aria-pressed:text-primary-foreground"
           >
             {v}
           </button>
@@ -80,32 +81,32 @@ export function SecurityPage() {
           ) : (
             <Panel className="overflow-x-auto">
               <table className="w-full min-w-[36rem] text-sm">
-                <thead className="text-left text-xs tracking-wide text-slate-500 uppercase">
-                  <tr className="border-b border-slate-200 dark:border-slate-800">
-                    <th className="px-4 py-2 font-medium">Finding</th>
-                    <th className="px-4 py-2 font-medium">Severity</th>
-                    <th className="px-4 py-2 font-medium">State</th>
-                    <th className="px-4 py-2 font-medium">Fix due</th>
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className={th}>Finding</th>
+                    <th className={th}>Severity</th>
+                    <th className={th}>State</th>
+                    <th className={th}>Fix due</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                <tbody className="divide-y divide-border">
                   {findings.map((f) => {
                     const due = dueIn(f.due_at);
                     return (
                       <tr
                         key={f.id}
                         onClick={() => select(f.id)}
-                        className={`cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 ${f.id === selectedId ? "bg-brand-50 dark:bg-brand-700/20" : ""}`}
+                        className={`cursor-pointer hover:bg-accent ${f.id === selectedId ? "bg-primary/10" : ""}`}
                       >
                         <td className="px-4 py-2">
                           <button className="text-left" onClick={() => select(f.id)}>
-                            <span className="block font-mono text-xs text-slate-500">{f.number}</span>
+                            <span className="block font-mono text-xs text-muted-foreground">{f.number}</span>
                             <span className="line-clamp-1">{f.title}</span>
                           </button>
                         </td>
                         <td className="px-4 py-2"><SeverityBadge severity={f.severity} /></td>
                         <td className="px-4 py-2"><FindingStateBadge state={f.state} /></td>
-                        <td className={`px-4 py-2 tabular-nums whitespace-nowrap ${!CLOSED.has(f.state) && due.overdue ? "text-red-600 dark:text-red-400" : ""}`}>
+                        <td className={`px-4 py-2 tabular-nums whitespace-nowrap ${!CLOSED.has(f.state) && due.overdue ? "text-destructive" : ""}`}>
                           {CLOSED.has(f.state) ? "—" : due.label}
                         </td>
                       </tr>
@@ -187,7 +188,7 @@ function FindingPanel({ finding: f, board, roles, orgId, onClose }: { finding: F
     <Panel className="grid gap-5 p-4 lg:sticky lg:top-20">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-xs text-slate-500">{f.number}{f.reference ? ` · ${f.reference}` : ""}</p>
+          <p className="font-mono text-xs text-muted-foreground">{f.number}{f.reference ? ` · ${f.reference}` : ""}</p>
           <h2 className="font-semibold text-balance">{f.title}</h2>
         </div>
         <button onClick={onClose} aria-label="Close finding"><X className="size-4" /></button>
@@ -203,7 +204,7 @@ function FindingPanel({ finding: f, board, roles, orgId, onClose }: { finding: F
         <Fact label="Window">{f.window_start ? `${formatDateTime(f.window_start)} – ${formatDateTime(f.window_end)}` : "Not scheduled"}</Fact>
         <Fact label="Linked">{[linkedChange?.number, linkedIncident?.number].filter(Boolean).join(", ") || "—"}</Fact>
       </dl>
-      {f.description && <p className="text-sm whitespace-pre-wrap text-slate-700 dark:text-slate-300">{f.description}</p>}
+      {f.description && <p className="text-sm whitespace-pre-wrap text-foreground">{f.description}</p>}
       {f.fix_plan && (
         <details className="text-sm">
           <summary className="cursor-pointer font-medium">{f.approver_id ? "Approved plan" : "Submitted plan"}</summary>
@@ -223,7 +224,7 @@ function FindingPanel({ finding: f, board, roles, orgId, onClose }: { finding: F
         (canApproveFix ? (
           <DecisionForm busy={transition.isPending} onApprove={(notes) => run({ action: "approve", ...(notes ? { notes } : {}) })} onReject={(notes) => run({ action: "reject", notes })} />
         ) : (
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-muted-foreground">
             {ownPlan
               ? "You raised this finding, so another manager, change manager or admin must approve the plan."
               : "Waiting for a manager, change manager or admin to approve the plan."}
@@ -248,7 +249,7 @@ function FindingPanel({ finding: f, board, roles, orgId, onClose }: { finding: F
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="grid min-w-0 gap-0.5">
-      <dt className="text-xs text-slate-500">{label}</dt>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="break-words whitespace-pre-wrap">{children}</dd>
     </div>
   );
@@ -332,7 +333,7 @@ function ScheduleForm({ finding, busy, onSubmit }: { finding: Finding; busy: boo
           <Input id="window-end" name="end" type="datetime-local" required defaultValue={windowTimeToLocalInput(finding.window_end)} />
         </Field>
       </div>
-      {error && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{error}</p>}
+      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       <div className="flex gap-2">
         <Button type="submit" variant="secondary" busy={busy}>Save window</Button>
         <Button type="button" busy={busy} disabled={!windowOpen} onClick={() => onSubmit({ action: "start" })}>
@@ -426,20 +427,20 @@ function ExceptionsSection({ finding, exceptions, roles, orgId, canRequest }: {
   const pending = exceptions.some((e) => e.status === "requested");
 
   return (
-    <div className="grid gap-3 border-t border-slate-200 pt-4 dark:border-slate-800">
+    <div className="grid gap-3 border-t border-border pt-4">
       <h3 className="text-sm font-semibold">Risk exceptions</h3>
-      {exceptions.length === 0 && <p className="text-sm text-slate-600 dark:text-slate-400">None requested.</p>}
+      {exceptions.length === 0 && <p className="text-sm text-muted-foreground">None requested.</p>}
       {exceptions.map((e) => (
-        <div key={e.id} className="grid gap-1 rounded-md border border-slate-200 p-3 text-sm dark:border-slate-800">
+        <div key={e.id} className="grid gap-1 rounded-md border border-border p-3 text-sm">
           <div className="flex items-center gap-2">
             <Badge tone={e.status === "approved" ? "good" : e.status === "rejected" ? "bad" : e.status === "expired" ? "neutral" : "warn"}>
               {humanize(e.status)}
             </Badge>
-            <span className="text-xs text-slate-500">expires {formatDateTime(e.expires_at)}</span>
+            <span className="text-xs text-muted-foreground">expires {formatDateTime(e.expires_at)}</span>
           </div>
           <p>{e.justification}</p>
-          <p className="text-slate-600 dark:text-slate-400">Controls: {e.compensating_controls}</p>
-          {e.decision_notes && <p className="text-slate-600 dark:text-slate-400">Decision: {e.decision_notes}</p>}
+          <p className="text-muted-foreground">Controls: {e.compensating_controls}</p>
+          {e.decision_notes && <p className="text-muted-foreground">Decision: {e.decision_notes}</p>}
           {e.status === "requested" && canDecide && (
             <div className="mt-2 grid gap-2">
               <Textarea id={`exception-notes-${e.id}`} aria-label="Decision notes" placeholder="Decision notes (required to reject)" value={notes} onChange={(ev) => setNotes(ev.target.value)} rows={2} />
@@ -484,7 +485,7 @@ function ExceptionsSection({ finding, exceptions, roles, orgId, canRequest }: {
             <Field label="Exception expires" hint="Within the next year.">
               <Input id="exception-expires" name="expires" type="datetime-local" required />
             </Field>
-            {localError && <p role="alert" className="text-red-700 dark:text-red-300">{localError}</p>}
+            {localError && <p role="alert" className="text-destructive">{localError}</p>}
             <Button type="submit" variant="secondary" busy={request.isPending}>Request exception</Button>
           </form>
         </details>

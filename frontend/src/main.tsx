@@ -17,6 +17,12 @@ const queryClient = new QueryClient({
   },
 });
 
+// The shared tokens define a `.dark` palette; follow the operating system's setting.
+const darkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+const applyScheme = () => document.documentElement.classList.toggle("dark", darkScheme.matches);
+applyScheme();
+darkScheme.addEventListener("change", applyScheme);
+
 void initAuth().finally(() => {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>

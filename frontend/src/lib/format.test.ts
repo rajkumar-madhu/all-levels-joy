@@ -12,6 +12,6 @@ test("due labels count down and flag overdue targets", () => {
 
 test("labels", () => {
   assert.equal(humanize("pending_approval"), "Pending approval");
-  assert.equal(priorityLabel(2), "P2");
-  assert.equal(priorityLabel(null), "—");
+  assert.equal(priorityLabel(2), "P2 High");
+  assert.equal(priorityLabel(null), "P5 Planning");
 });

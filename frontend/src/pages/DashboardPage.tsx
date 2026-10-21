@@ -1,3 +1,4 @@
+import { BadgeCheck, CircleAlert, Inbox, ShieldAlert } from "lucide-react";
 import { Link } from "react-router";
 import { useIncidents, useMyApprovals, useSecurityBoard } from "@/api/hooks";
 import { PriorityBadge } from "@/components/badges";
@@ -16,18 +17,37 @@ export function DashboardPage() {
   const breached = open.filter((i) => dueIn(i.sla_due_at).overdue);
   const activeFindings = (security.data?.findings ?? []).filter((f) => !["closed", "cancelled", "risk_accepted"].includes(f.state));
 
-  const tiles = [
-    { label: workspace.is_staff ? "Open incidents" : "Your open tickets", value: open.length, to: "/incidents" },
-    { label: "Past SLA target", value: breached.length, to: "/incidents", alert: breached.length > 0 },
-    { label: "Waiting for my approval", value: approvals.data?.length ?? 0, to: "/approvals", alert: false },
+  const tiles: { label: string; caption: string; value: number; to: string; icon: typeof Inbox; alert?: boolean }[] = [
+    {
+      label: workspace.is_staff ? "Active incidents" : "Your open tickets",
+      caption: "Awaiting resolution",
+      value: open.length,
+      to: "/incidents",
+      icon: Inbox,
+    },
+    {
+      label: "Overdue incidents",
+      caption: "Resolution target missed",
+      value: breached.length,
+      to: "/incidents",
+      icon: CircleAlert,
+      alert: breached.length > 0,
+    },
+    {
+      label: "Waiting for my approval",
+      caption: "Requests and changes",
+      value: approvals.data?.length ?? 0,
+      to: "/approvals",
+      icon: BadgeCheck,
+    },
     ...(workspace.is_staff
-      ? [{ label: "Active security findings", value: activeFindings.length, to: "/security", alert: false }]
+      ? [{ label: "Active security findings", caption: "Open fix plans and exceptions", value: activeFindings.length, to: "/security", icon: ShieldAlert }]
       : []),
   ];
 
   return (
     <>
-      <PageHeader title="Dashboard" description={`What needs attention in ${workspace.name}.`} />
+      <PageHeader eyebrow="Overview" title="Dashboard" description={`What needs attention in ${workspace.name}.`} />
       {incidents.isPending ? (
         <StateMessage kind="loading">Loading…</StateMessage>
       ) : incidents.isError ? (
@@ -37,19 +57,23 @@ export function DashboardPage() {
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {tiles.map((t) => (
               <Link key={t.label} to={t.to}>
-                <Panel className="p-4 hover:border-brand-500">
-                  <p className="text-sm text-slate-600 dark:text-slate-400">{t.label}</p>
-                  <p className={`mt-1 text-3xl font-semibold tabular-nums ${t.alert ? "text-red-600 dark:text-red-400" : ""}`}>{t.value}</p>
+                <Panel className="h-full p-4 hover:border-primary">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm text-foreground">{t.label}</p>
+                    <t.icon className="size-4 text-muted-foreground" aria-hidden />
+                  </div>
+                  <p className={`mt-2 text-2xl font-semibold tabular-nums ${t.alert ? "text-destructive" : ""}`}>{t.value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{t.caption}</p>
                 </Panel>
               </Link>
             ))}
           </div>
           <Panel>
-            <h2 className="border-b border-slate-200 px-4 py-3 text-sm font-semibold dark:border-slate-800">Closest to their SLA target</h2>
+            <h2 className="border-b border-border px-4 py-3 text-sm font-semibold">Closest to their SLA target</h2>
             {open.length === 0 ? (
-              <p className="px-4 py-6 text-sm text-slate-600 dark:text-slate-400">No open incidents.</p>
+              <p className="px-4 py-6 text-sm text-muted-foreground">No open incidents.</p>
             ) : (
-              <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+              <ul className="divide-y divide-border">
                 {[...open]
                   .sort((a, b) => (a.sla_due_at ?? "9").localeCompare(b.sla_due_at ?? "9"))
                   .slice(0, 6)
@@ -57,11 +81,11 @@ export function DashboardPage() {
                     const due = dueIn(i.sla_due_at);
                     return (
                       <li key={i.id}>
-                        <Link to={`/incidents/${i.id}`} className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                          <span className="font-mono text-xs text-slate-500">{i.number}</span>
+                        <Link to={`/incidents/${i.id}`} className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-accent">
+                          <span className="font-mono text-xs text-muted-foreground">{i.number}</span>
                           <span className="min-w-0 flex-1 truncate">{i.title}</span>
                           <PriorityBadge priority={i.priority} />
-                          <span className={`w-24 text-right tabular-nums ${due.overdue ? "text-red-600 dark:text-red-400" : "text-slate-600 dark:text-slate-400"}`}>
+                          <span className={`w-24 text-right tabular-nums ${due.overdue ? "text-destructive" : "text-muted-foreground"}`}>
                             {due.label}
                           </span>
                         </Link>

@@ -15,7 +15,7 @@ export function KnowledgePage() {
 
   return (
     <>
-      <PageHeader title="Knowledge base" description="Answers and how-to guides for common problems." />
+      <PageHeader eyebrow="Governance and knowledge" title="Knowledge" description="Answers and how-to guides for common problems." />
       <form
         className="flex max-w-xl gap-2"
         onSubmit={(e) => {
@@ -38,14 +38,14 @@ export function KnowledgePage() {
         <div className="grid gap-3 md:grid-cols-2">
           {articles.data.map((a) => (
             <Link key={a.id} to={`/knowledge/${a.id}`}>
-              <Panel className="grid h-full gap-2 p-4 hover:border-brand-500">
-                <div className="flex items-center gap-2 text-xs text-slate-500">
+              <Panel className="grid h-full gap-2 p-4 hover:border-primary">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span className="font-mono">{a.number}</span>
                   {a.status !== "published" && <Badge tone="warn">{humanize(a.status)}</Badge>}
                   <span className="ml-auto">Updated {formatDateTime(a.updated_at)}</span>
                 </div>
                 <h2 className="font-semibold">{a.title}</h2>
-                {a.summary && <p className="line-clamp-2 text-sm text-slate-600 dark:text-slate-400">{a.summary}</p>}
+                {a.summary && <p className="line-clamp-2 text-sm text-muted-foreground">{a.summary}</p>}
                 {!!a.tags?.length && (
                   <div className="flex flex-wrap gap-1">
                     {a.tags.map((t) => (

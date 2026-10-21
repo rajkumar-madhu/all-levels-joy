@@ -6,10 +6,28 @@ export function formatDateTime(value: string | null | undefined): string {
   return Number.isFinite(date.getTime()) ? dateTime.format(date) : "—";
 }
 
-/** Incident priority from impact and urgency (1 = highest), matching the legacy matrix. */
+const PRIORITY_LABELS: Record<number, string> = {
+  1: "P1 Critical",
+  2: "P2 High",
+  3: "P3 Moderate",
+  4: "P4 Low",
+};
+
+/** Same labels as the existing app's priorityLabel (src/lib/itsm-shared.ts). */
 export function priorityLabel(priority: number | null | undefined): string {
-  return priority ? `P${priority}` : "—";
+  return (priority && PRIORITY_LABELS[priority]) || "P5 Planning";
 }
+
+export const ROLE_LABELS: Record<string, string> = {
+  requester: "Requester",
+  service_desk: "Service desk",
+  fulfiller: "Engineer",
+  change_manager: "Change manager",
+  cab_member: "CAB member",
+  cmdb_manager: "CMDB owner",
+  manager: "Manager",
+  admin: "Administrator",
+};
 
 export function humanize(value: string | null | undefined): string {
   if (!value) return "—";

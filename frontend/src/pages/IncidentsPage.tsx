@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import { useCreateIncident, useIncidents } from "@/api/hooks";
 import { IncidentStateBadge, PriorityBadge } from "@/components/badges";
 import { ListToolbar, OPEN_RECORD_STATES, RECORD_FILTERS, useListParams } from "@/components/ListToolbar";
-import { Button, Field, FormError, Input, PageHeader, Panel, Select, StateMessage, Textarea } from "@/components/ui";
+import { Button, Field, FormError, Input, PageHeader, Panel, Select, StateMessage, Textarea, th } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
 import { dueIn, formatDateTime } from "@/lib/format";
 
@@ -17,6 +17,7 @@ export function IncidentsPage() {
   return (
     <>
       <PageHeader
+        eyebrow="ITSM"
         title="Incidents"
         description={workspace.is_staff ? "The workspace incident queue." : "Tickets you have raised."}
         actions={
@@ -37,34 +38,34 @@ export function IncidentsPage() {
       ) : (
         <Panel className="overflow-x-auto">
           <table className="w-full min-w-[44rem] text-sm">
-            <thead className="text-left text-xs tracking-wide text-slate-500 uppercase">
-              <tr className="border-b border-slate-200 dark:border-slate-800">
-                <th className="px-4 py-2 font-medium">Number</th>
-                <th className="px-4 py-2 font-medium">Title</th>
-                <th className="px-4 py-2 font-medium">Priority</th>
-                <th className="px-4 py-2 font-medium">State</th>
-                <th className="px-4 py-2 font-medium">SLA target</th>
-                <th className="px-4 py-2 font-medium">Opened</th>
+            <thead>
+              <tr className="border-b border-border">
+                <th className={th}>Number</th>
+                <th className={th}>Title</th>
+                <th className={th}>Priority</th>
+                <th className={th}>State</th>
+                <th className={th}>SLA target</th>
+                <th className={th}>Opened</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+            <tbody className="divide-y divide-border">
               {incidents.data.map((i) => {
                 const due = dueIn(i.sla_due_at);
                 const done = ["resolved", "closed", "cancelled"].includes(i.state);
                 return (
-                  <tr key={i.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <tr key={i.id} className="hover:bg-accent">
                     <td className="px-4 py-2 font-mono text-xs">
-                      <Link className="text-brand-600 hover:underline dark:text-brand-100" to={`/incidents/${i.id}`}>
+                      <Link className="text-primary hover:underline" to={`/incidents/${i.id}`}>
                         {i.number}
                       </Link>
                     </td>
                     <td className="max-w-80 truncate px-4 py-2">{i.title}</td>
                     <td className="px-4 py-2"><PriorityBadge priority={i.priority} /></td>
                     <td className="px-4 py-2"><IncidentStateBadge state={i.state} /></td>
-                    <td className={`px-4 py-2 tabular-nums ${!done && due.overdue ? "text-red-600 dark:text-red-400" : ""}`}>
+                    <td className={`px-4 py-2 tabular-nums ${!done && due.overdue ? "text-destructive" : ""}`}>
                       {done ? "—" : due.label}
                     </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-slate-600 dark:text-slate-400">{formatDateTime(i.created_at)}</td>
+                    <td className="px-4 py-2 whitespace-nowrap text-muted-foreground">{formatDateTime(i.created_at)}</td>
                   </tr>
                 );
               })}

@@ -14,8 +14,8 @@ export function ApprovalsPage() {
 
   return (
     <>
-      <PageHeader title="Approvals" description="Requests and changes waiting for your decision." />
-      <div role="group" aria-label="Filter approvals" className="flex w-fit rounded-md border border-slate-300 dark:border-slate-700">
+      <PageHeader eyebrow="Governance and knowledge" title="Approvals" description="Requests and changes waiting for your decision." />
+      <div role="group" aria-label="Filter approvals" className="flex w-fit rounded-md border border-input">
         {(
           [
             ["requested", "Waiting for me"],
@@ -26,7 +26,7 @@ export function ApprovalsPage() {
             key={value}
             aria-pressed={status === value}
             onClick={() => setStatus(value)}
-            className="px-3 py-1.5 text-sm first:rounded-l-md last:rounded-r-md aria-pressed:bg-brand-600 aria-pressed:text-white"
+            className="px-3 py-1.5 text-sm first:rounded-l-md last:rounded-r-md aria-pressed:bg-primary aria-pressed:text-primary-foreground"
           >
             {label}
           </button>
@@ -58,14 +58,14 @@ function ApprovalCard({ approval: a, orgId }: { approval: MyApproval; orgId: str
     <Panel className="grid gap-3 p-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge>{humanize(a.record_type)}</Badge>
-        <Link to={href} className="font-mono text-sm text-brand-600 hover:underline dark:text-brand-100">
+        <Link to={href} className="font-mono text-sm text-primary hover:underline">
           {a.record_number ?? "Record"}
         </Link>
         <span className="min-w-0 flex-1 truncate font-medium">{a.record_title}</span>
         {a.risk && <RiskBadge risk={a.risk} />}
         <ApprovalBadge status={a.status} />
       </div>
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-muted-foreground">
         Asked {formatDateTime(a.created_at)}
         {a.start_at ? ` · window ${formatDateTime(a.start_at)} – ${formatDateTime(a.end_at)}` : ""}
       </p>
@@ -96,7 +96,7 @@ function ApprovalCard({ approval: a, orgId }: { approval: MyApproval; orgId: str
           </div>
         </div>
       ) : (
-        a.decision_notes && <p className="text-sm text-slate-600 dark:text-slate-400">{a.decision_notes}</p>
+        a.decision_notes && <p className="text-sm text-muted-foreground">{a.decision_notes}</p>
       )}
     </Panel>
   );

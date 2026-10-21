@@ -47,13 +47,13 @@ export function ListToolbar({
   const [draft, setDraft] = useState(q);
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <div role="group" aria-label="Filter by state" className="flex rounded-md border border-slate-300 dark:border-slate-700">
+      <div role="group" aria-label="Filter by state" className="flex rounded-md border border-input">
         {filters.map((f) => (
           <button
             key={f.label}
             onClick={() => update({ state: f.value })}
             aria-pressed={state === f.value}
-            className="px-3 py-1.5 text-sm first:rounded-l-md last:rounded-r-md aria-pressed:bg-brand-600 aria-pressed:text-white"
+            className="px-3 py-1.5 text-sm first:rounded-l-md last:rounded-r-md aria-pressed:bg-primary aria-pressed:text-primary-foreground"
           >
             {f.label}
           </button>

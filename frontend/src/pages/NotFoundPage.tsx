@@ -5,7 +5,7 @@ export function NotFoundPage() {
   return (
     <div className="grid gap-3">
       <PageHeader title="Page not found" description="The link may be old, or the record may not be visible to you." />
-      <Link className="text-sm text-brand-600 underline" to="/">
+      <Link className="text-sm text-primary underline" to="/">
         Go to the dashboard
       </Link>
     </div>

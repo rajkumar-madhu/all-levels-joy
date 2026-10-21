@@ -3,7 +3,7 @@ import { formatDateTime } from "@/lib/format";
 import { ApprovalBadge } from "./badges";
 
 export function ApprovalTrail({ approvals }: { approvals: ApprovalLine[] }) {
-  if (!approvals.length) return <p className="text-sm text-slate-600 dark:text-slate-400">No approval is needed.</p>;
+  if (!approvals.length) return <p className="text-sm text-muted-foreground">No approval is needed.</p>;
   return (
     <ul className="grid gap-2 text-sm">
       {approvals.map((a) => (
@@ -12,8 +12,8 @@ export function ApprovalTrail({ approvals }: { approvals: ApprovalLine[] }) {
             <span className="font-medium">{a.approver_name ?? "Approver"}</span>
             <ApprovalBadge status={a.status} />
           </div>
-          {a.decided_at && <span className="text-xs text-slate-500">{formatDateTime(a.decided_at)}</span>}
-          {a.decision_notes && <p className="text-slate-600 dark:text-slate-400">{a.decision_notes}</p>}
+          {a.decided_at && <span className="text-xs text-muted-foreground">{formatDateTime(a.decided_at)}</span>}
+          {a.decision_notes && <p className="text-muted-foreground">{a.decision_notes}</p>}
         </li>
       ))}
     </ul>

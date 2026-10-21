@@ -70,7 +70,7 @@ export function NewChangePage() {
 
   return (
     <>
-      <Link to="/changes" className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400">
+      <Link to="/changes" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" /> Changes
       </Link>
       <PageHeader title="Plan a change" description="Normal and emergency changes go to the CAB for approval. Standard changes are pre-approved." />
@@ -112,10 +112,10 @@ export function NewChangePage() {
             </Field>
           ))}
           <div className="grid gap-2 md:col-span-2">
-            {windowError && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{windowError}</p>}
+            {windowError && <p role="alert" className="text-sm text-destructive">{windowError}</p>}
             <FormError error={create.error} />
             <div className="flex justify-end gap-2">
-              <Link to="/changes" className="rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700">Cancel</Link>
+              <Link to="/changes" className="inline-flex h-9 items-center rounded-md border border-input bg-card px-3 text-sm hover:bg-accent ">Cancel</Link>
               <Button type="submit" busy={create.isPending}>Submit change</Button>
             </div>
           </div>

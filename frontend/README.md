@@ -32,6 +32,13 @@ with Keycloak.
   window, start, deliver and close the fix, link a change or incident, and request or decide risk exceptions.
   Requesters never load the board, and the nav item is hidden from them.
 
+## Look and feel
+
+The app uses the existing Argus theme. `src/index.css` copies the design tokens from the old app's
+`src/styles.css`, including the `.dark` palette. The shell and badges reproduce its sidebar, outlined state
+and priority badges, KPI cards and table headers. Dark mode follows the operating system. Keep the tokens in
+sync with `../src/styles.css` until the old app is retired.
+
 Sidebar labels are also the page titles and breadcrumb text, and the icons come from one lucide import. This
 fixes the label-mismatch and duplicate-import findings from the code review of `src/components/app-shell.tsx`.
 

@@ -24,16 +24,16 @@ export function Comments({ orgId, recordType, recordId, canWriteInternal }: {
       ) : comments.isError ? (
         <StateMessage kind="error">{comments.error.message}</StateMessage>
       ) : comments.data.length === 0 ? (
-        <p className="text-sm text-slate-600 dark:text-slate-400">No comments yet.</p>
+        <p className="text-sm text-muted-foreground">No comments yet.</p>
       ) : (
         <ol className="grid gap-3">
           {comments.data.map((c) => (
             <li
               key={c.id}
-              className={`grid gap-1 rounded-md p-3 text-sm ${c.internal ? "bg-amber-50 dark:bg-amber-950/40" : "bg-slate-50 dark:bg-slate-800/50"}`}
+              className={`grid gap-1 rounded-md p-3 text-sm ${c.internal ? "bg-warning/10 border border-warning/30" : "bg-muted"}`}
             >
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                <span className="font-medium text-slate-700 dark:text-slate-200">{c.author_name ?? "Someone"}</span>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">{c.author_name ?? "Someone"}</span>
                 <span>{formatDateTime(c.created_at)}</span>
                 {c.internal && (
                   <Badge tone="warn">
