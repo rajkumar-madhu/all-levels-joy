@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from apps.core.db import call_function, fetch_all, fetch_one, like_pattern
 from apps.core.views import CallerAPIView
 
+from .queue import QueueFilterSerializer, load_queue
 from .serializers import IncidentUpdateSerializer, SelfServiceIncidentSerializer
 from .workflow import CONFLICT_MESSAGE, Conflict, WorkflowError, build_patch
 
@@ -23,6 +24,10 @@ class IncidentListView(CallerAPIView):
     policy_actions = {"GET": "incident.list", "POST": "incident.create_self_service"}
 
     def get(self, request, org_id):
+        if "queue" in request.query_params:
+            filters = QueueFilterSerializer(data=request.query_params)
+            filters.is_valid(raise_exception=True)
+            return Response(load_queue(self.org_id, request.user.user_id, filters.validated_data, LIST_COLUMNS))
         clauses = ["i.organization_id = %s"]
         params: list = [self.org_id]
         state = request.query_params.get("state")

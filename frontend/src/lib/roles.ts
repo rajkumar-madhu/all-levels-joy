@@ -12,3 +12,6 @@ export const MAJOR_INCIDENT_ROLES = ["service_desk", "fulfiller", "manager", "ad
 export const PROBLEM_ROLES = ["service_desk", "fulfiller", "manager", "admin", "change_manager"];
 // public.can_author_knowledge(): who may write knowledge articles and categories.
 export const KNOWLEDGE_AUTHOR_ROLES = ["service_desk", "fulfiller", "manager", "admin"];
+// policies/itsm/cmdb.rego: configuration items and catalogue routing.
+export const CMDB_MANAGE_ROLES = ["cmdb_manager", "admin"];
+export const CATALOG_MANAGE_ROLES = ["manager", "admin"];

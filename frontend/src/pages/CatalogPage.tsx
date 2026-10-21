@@ -1,16 +1,20 @@
-import { ShieldCheck } from "lucide-react";
+import { Settings2, ShieldCheck } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { useCatalog, useCreateRequest } from "@/api/hooks";
 import type { CatalogItem } from "@/api/types";
 import { Badge, Button, Field, FormError, Input, PageHeader, Panel, StateMessage, Textarea } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
+import { CatalogAdmin } from "@/components/CatalogAdmin";
 import { formatDateTime } from "@/lib/format";
+import { CATALOG_MANAGE_ROLES, hasAnyRole } from "@/lib/roles";
 
 export function CatalogPage() {
   const workspace = useWorkspace();
   const catalog = useCatalog(workspace.id);
   const [selected, setSelected] = useState<CatalogItem | null>(null);
+  const [managing, setManaging] = useState(false);
+  const canManage = hasAnyRole(workspace.roles, CATALOG_MANAGE_ROLES);
 
   const groups = new Map<string, CatalogItem[]>();
   for (const item of catalog.data ?? []) {
@@ -20,7 +24,22 @@ export function CatalogPage() {
 
   return (
     <>
-      <PageHeader eyebrow="ITSM" title="Service catalogue" description="Ask for hardware, software and access. Some items need a manager's approval first." />
+      <PageHeader
+        eyebrow="ITSM"
+        title="Service catalogue"
+        description="Ask for hardware, software and access. Some items need a manager's approval first."
+        actions={
+          canManage && (
+            <Button variant="secondary" onClick={() => setManaging((v) => !v)}>
+              <Settings2 className="size-4" /> {managing ? "Back to catalogue" : "Manage catalogue"}
+            </Button>
+          )
+        }
+      />
+      {managing && canManage ? (
+        <CatalogAdmin orgId={workspace.id} />
+      ) : (
+      <>
       {catalog.isPending ? (
         <StateMessage kind="loading">Loading the catalogue…</StateMessage>
       ) : catalog.isError ? (
@@ -60,6 +79,8 @@ export function CatalogPage() {
           </div>
           {selected && <RequestForm key={selected.id} item={selected} orgId={workspace.id} onClose={() => setSelected(null)} />}
         </div>
+      )}
+      </>
       )}
     </>
   );

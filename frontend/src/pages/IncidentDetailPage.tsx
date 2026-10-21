@@ -6,6 +6,7 @@ import type { Incident, IncidentState, IncidentUpdate } from "@/api/types";
 import { Attachments } from "@/components/Attachments";
 import { Comments } from "@/components/Comments";
 import { RecordActivity } from "@/components/RecordActivity";
+import { IncidentLinksPanel } from "@/components/RecordLinks";
 import { IncidentStateBadge, PriorityBadge } from "@/components/badges";
 import { Button, Field, FormError, PageHeader, Panel, Select, StateMessage, Textarea } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
@@ -58,6 +59,7 @@ export function IncidentDetailPage() {
               </>
             )}
           </Panel>
+          {workspace.is_staff && <IncidentLinksPanel orgId={workspace.id} incidentId={i.id} />}
           <Comments orgId={workspace.id} recordType="incident" recordId={i.id} canWriteInternal={workspace.is_staff} />
           <Attachments orgId={workspace.id} recordType="incident" recordId={i.id} />
           <RecordActivity orgId={workspace.id} recordType="incident" recordId={i.id} />

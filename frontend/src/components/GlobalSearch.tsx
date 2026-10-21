@@ -15,7 +15,7 @@ function hits(results: SearchResults): { section: string; items: Hit[] }[] {
     { section: "Knowledge", items: results.knowledge.map((r) => ({ key: r.id, to: `/knowledge/${r.id}`, label: r.number, detail: r.title })) },
     { section: "Service catalogue", items: results.catalog.map((r) => ({ key: r.id, to: "/catalog", label: r.name, detail: r.category ?? "" })) },
     { section: "Security findings", items: results.security.map((r) => ({ key: r.id, to: `/security?finding=${r.id}`, label: r.number, detail: r.title })) },
-    { section: "Assets", items: results.assets.map((r) => ({ key: r.id, to: "", label: r.name, detail: "" })) },
+    { section: "Assets", items: results.assets.map((r) => ({ key: r.id, to: `/assets?asset=${r.id}`, label: r.name, detail: "" })) },
   ].filter((group) => group.items.length > 0);
 }
 

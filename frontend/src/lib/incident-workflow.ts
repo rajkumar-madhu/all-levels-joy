@@ -26,4 +26,13 @@ export const CLOSE_CODES: Record<string, string> = {
   duplicate: "Duplicate",
 };
 
+// Same categories as the existing app (src/lib/itsm-shared.ts INCIDENT_CATEGORIES).
+export const INCIDENT_CATEGORIES: { value: string; label: string; subcategories: string[] }[] = [
+  { value: "network", label: "Network", subcategories: ["VPN", "Wi-Fi", "DNS", "Firewall"] },
+  { value: "hardware", label: "Hardware", subcategories: ["Laptop", "Printer", "Server", "Peripheral"] },
+  { value: "software", label: "Software", subcategories: ["Email", "Desktop app", "SaaS", "Operating system"] },
+  { value: "database", label: "Database", subcategories: ["Performance", "Availability", "Backup"] },
+  { value: "inquiry", label: "Inquiry / help", subcategories: ["How to", "Access", "Licensing"] },
+];
+
 export const INCIDENT_UPDATE_ROLES = ["service_desk", "fulfiller", "manager", "admin"];

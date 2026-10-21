@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "apps.attachments",
     "apps.administration",
     "apps.account",
+    "apps.cmdb",
     "apps.integrations",
 ]
 

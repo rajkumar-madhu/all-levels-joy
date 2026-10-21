@@ -9,6 +9,7 @@ import { ProfilePage } from "@/pages/ProfilePage";
 import { ApprovalsPage } from "@/pages/ApprovalsPage";
 import { ArticleEditorPage } from "@/pages/ArticleEditorPage";
 import { ArticlePage } from "@/pages/ArticlePage";
+import { AssetsPage } from "@/pages/AssetsPage";
 import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
 import { CatalogPage } from "@/pages/CatalogPage";
 import { ChangeDetailPage } from "@/pages/ChangeDetailPage";
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
           { path: "sla", element: <SlaPage />, handle: { title: "SLA performance" } },
           { path: "incident-insights", element: <IncidentInsightsPage />, handle: { title: "Incident insights" } },
           { path: "approvals", element: <ApprovalsPage />, handle: { title: "Approvals" } },
+          { path: "assets", element: <AssetsPage />, handle: { title: "Assets & CMDB" } },
           { path: "catalog", element: <CatalogPage />, handle: { title: "Service catalogue" } },
           { path: "knowledge", element: <KnowledgePage />, handle: { title: "Knowledge" } },
           { path: "knowledge/:articleId", element: <ArticlePage />, handle: { title: "Knowledge" } },

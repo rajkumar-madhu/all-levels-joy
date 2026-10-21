@@ -7,6 +7,7 @@ import { ApprovalTrail } from "@/components/ApprovalTrail";
 import { Attachments } from "@/components/Attachments";
 import { Comments } from "@/components/Comments";
 import { RecordActivity } from "@/components/RecordActivity";
+import { RequestTasks } from "@/components/RequestTasks";
 import { ApprovalBadge, PriorityBadge, RecordStateBadge } from "@/components/badges";
 import { Button, Field, FormError, PageHeader, Panel, Select, StateMessage } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
@@ -41,6 +42,9 @@ export function RequestDetailPage() {
             <h2 className="mb-3 text-sm font-semibold">Approval</h2>
             <ApprovalTrail approvals={r.approvals} />
           </Panel>
+          {workspace.is_staff && (
+            <RequestTasks orgId={workspace.id} requestId={r.id} approved={["approved", "not_required"].includes(r.approval_status)} />
+          )}
           <Comments orgId={workspace.id} recordType="request" recordId={r.id} canWriteInternal={workspace.is_staff} />
           <Attachments orgId={workspace.id} recordType="request" recordId={r.id} />
           <RecordActivity orgId={workspace.id} recordType="request" recordId={r.id} />
