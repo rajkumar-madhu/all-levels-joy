@@ -25,6 +25,7 @@ import {
   Settings,
   UserCircle,
 } from "lucide-react";
+import { Gauge } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -58,19 +59,20 @@ const navigationGroups = [
     ],
   },
   {
-    label: "Service operations",
+    label: "ITSM",
     items: [
       { to: "/incidents", label: "Incidents", icon: AlertTriangle, requiresManage: false },
-      { to: "/catalog", label: "Service catalogue", icon: Boxes, requiresManage: false },
       { to: "/requests", label: "Service requests", icon: ClipboardList, requiresManage: false },
+      { to: "/catalog", label: "Service catalogue", icon: Boxes, requiresManage: false },
       { to: "/problems", label: "Problems", icon: Bug, requiresManage: true },
+      { to: "/changes", label: "Changes", icon: GitBranch, requiresManage: false },
       { to: "/command-center", label: "Major incident command", icon: Siren, requiresManage: true },
+      { to: "/sla", label: "SLA performance", icon: Gauge, requiresManage: false },
     ],
   },
   {
     label: "Governance and knowledge",
     items: [
-      { to: "/changes", label: "Changes", icon: GitBranch, requiresManage: false },
       { to: "/approvals", label: "Approvals", icon: BadgeCheck, requiresManage: false },
       { to: "/security", label: "Security findings", icon: ShieldAlert, requiresManage: true },
       { to: "/knowledge", label: "Knowledge", icon: BookOpen, requiresManage: false },
