@@ -82,10 +82,32 @@ Request bodies use the same camelCase fields as the legacy server functions; res
 | `POST /api/public/alerts` | bearer token | port of `monitoring-alerts.ts` |
 | `GET, POST /api/public/pagerduty` | HMAC | `itsm_upsert_pagerduty_incident` |
 | `POST /api/public/security-findings` | HMAC | `itsm_upsert_scanner_finding` |
+| `GET /api/v1/orgs/{org}/sla` | `sla.read` | open requests and incidents per team (RLS-scoped), due within 24h and breached |
+| `GET /api/v1/orgs/{org}/insights/incidents` | `insights.read` | port of `getIncidentMetrics` (30-day volumes, MTTR, response, SLA attainment, backlog) |
+| `GET /api/v1/orgs/{org}/{incidents\|requests}/{id}/activity` | `activity.read` | timeline from paginated `source = 'database'` audit snapshots plus SLA targets (`apps/insights/timeline.py`, port of `ticket-timeline.ts`) |
+| `GET /api/v1/orgs/{org}/search?q=` | `search.read` | port of `searchRecords`; each section RLS-scoped |
+| `GET, POST /api/v1/orgs/{org}/{incidents\|requests\|changes}/{id}/attachments` | `attachment.read` / `attachment.create` | multipart upload; `storage.objects` and `attachments` rows written as the caller under RLS, then the file is stored |
+| `GET /api/v1/orgs/{org}/attachments/{id}/download` | `attachment.read` | re-checks `can_access_evidence_path`; always served as a download with `nosniff` and a sandbox CSP |
 | `GET /health` | none | database ping |
 
 Database business-rule errors (`RAISE EXCEPTION`) come back as `400 {"detail": "..."}`, and permission
 errors (`42501`) as `403`.
+
+### Evidence attachments
+
+Files replace the legacy Supabase Storage bucket `itsm-evidence` and keep its object names
+(`{org}/{record_type}/{record_id}/{file}`), so `can_access_evidence_path` still governs them. There are no public
+or pre-signed links: the API checks access and streams the file.
+
+- Development: local disk under `EVIDENCE_ROOT` (default `backend/var/evidence`, git-ignored).
+- Production: `EVIDENCE_STORAGE=s3` with `EVIDENCE_S3_BUCKET`, `EVIDENCE_S3_ENDPOINT_URL` (for MinIO or another
+  S3-compatible store), `EVIDENCE_S3_REGION`, `EVIDENCE_S3_ACCESS_KEY_ID` and `EVIDENCE_S3_SECRET_ACCESS_KEY`. Keep
+  the bucket private.
+- Uploads are limited to 25 MB (`ATTACHMENT_MAX_BYTES`), as in the legacy app. File names are reduced to a safe
+  basename and prefixed with a random id, so names can never escape the record's folder.
+- Migrating existing files: copy the `itsm-evidence` objects with their names unchanged; the `attachments` rows already
+  point at them. If a database commit fails after a file was written, that file is left unreferenced; a periodic
+  sweep of objects without an `attachments` row can remove them.
 
 ## Run locally
 
