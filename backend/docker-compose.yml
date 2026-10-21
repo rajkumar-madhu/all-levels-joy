@@ -1,0 +1,99 @@
+# Local stack for the new backend: PostgreSQL 16, Redis 7, Keycloak, OPA, Django API, Celery.
+# Run from backend/:  docker compose up --build
+# Then grant the dev Keycloak user access:
+#   docker compose exec api python manage.py grant_workspace_access admin@wecrew.in --roles admin,manager
+name: itsm
+
+x-api-env: &api-env
+  DJANGO_DEBUG: "1"
+  DJANGO_SECRET_KEY: dev-only-secret
+  DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,api
+  CORS_ALLOWED_ORIGINS: http://localhost:5173
+  POSTGRES_HOST: postgres
+  POSTGRES_DB: itsm
+  POSTGRES_USER: itsm_api
+  POSTGRES_PASSWORD: itsm_api_dev_password
+  # The browser gets tokens from localhost:8080, so that is the issuer the API must expect,
+  # while it fetches signing keys over the compose network.
+  KEYCLOAK_ISSUER: http://localhost:8080/realms/itsm
+  KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/itsm/protocol/openid-connect/certs
+  KEYCLOAK_AUDIENCE: itsm-api
+  OPA_URL: http://opa:8181
+  REDIS_URL: redis://redis:6379/0
+  LEGACY_SQL_ROOT: /legacy
+  MONITORING_WEBHOOK_TOKEN: ${MONITORING_WEBHOOK_TOKEN:-}
+  PAGERDUTY_WEBHOOK_SECRET: ${PAGERDUTY_WEBHOOK_SECRET:-}
+  SECURITY_SCANNER_SECRET: ${SECURITY_SCANNER_SECRET:-}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.7
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+    volumes:
+      - ./keycloak/realm-itsm.json:/opt/keycloak/data/import/realm-itsm.json:ro
+    ports: ["8080:8080"]
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  opa:
+    image: openpolicyagent/opa:1.4.2
+    command: ["run", "--server", "--addr=0.0.0.0:8181", "--watch", "/policies"]
+    volumes:
+      - ./policies:/policies:ro
+    ports: ["8181:8181"]
+
+  api:
+    build: .
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py apply_legacy_schema &&
+             gunicorn config.asgi:application -k uvicorn_worker.UvicornWorker -b 0.0.0.0:8000 -w 2 --reload"
+    environment: *api-env
+    volumes:
+      - .:/app
+      - ../supabase:/legacy/supabase:ro
+      - ../drizzle:/legacy/drizzle:ro
+    ports: ["8000:8000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      opa: { condition: service_started }
+      redis: { condition: service_started }
+
+  worker:
+    build: .
+    command: ["celery", "-A", "config", "worker", "-l", "info"]
+    environment: *api-env
+    depends_on: [api, redis]
+
+  beat:
+    build: .
+    command: ["celery", "-A", "config", "beat", "-l", "info", "--schedule", "/tmp/celerybeat-schedule"]
+    environment: *api-env
+    depends_on: [api, redis]
+
+volumes:
+  pgdata:
