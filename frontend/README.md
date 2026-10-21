@@ -27,6 +27,9 @@ with Keycloak.
 - **Changes**: plan standard, normal or emergency changes in your own timezone. Change managers start,
   deliver and close them after CAB approval.
 - **Approvals**: the requests and changes waiting for your decision.
+- **Major incident command** (`/command-center?record=<id>`, staff only): declare a bridge from an active
+  incident, take command or comms, change bridge state, escalate, link a problem, and post internal, customer
+  or executive updates on a cadence. Refreshes every 30 seconds and flags overdue updates.
 - **Knowledge base**: search and read articles.
 - **Security findings**: staff only. Record a finding, submit the fix plan, approve or reject it, schedule the
   window, start, deliver and close the fix, link a change or incident, and request or decide risk exceptions.

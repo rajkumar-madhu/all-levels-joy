@@ -7,6 +7,7 @@ import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
 import { CatalogPage } from "@/pages/CatalogPage";
 import { ChangeDetailPage } from "@/pages/ChangeDetailPage";
 import { ChangesPage } from "@/pages/ChangesPage";
+import { CommandCenterPage } from "@/pages/CommandCenterPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { IncidentDetailPage } from "@/pages/IncidentDetailPage";
 import { IncidentsPage } from "@/pages/IncidentsPage";
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
           { path: "changes", element: <ChangesPage />, handle: { title: "Changes" } },
           { path: "changes/new", element: <NewChangePage />, handle: { title: "Changes" } },
           { path: "changes/:changeId", element: <ChangeDetailPage />, handle: { title: "Changes" } },
+          { path: "command-center", element: <CommandCenterPage />, handle: { title: "Major incident command" } },
           { path: "approvals", element: <ApprovalsPage />, handle: { title: "Approvals" } },
           { path: "catalog", element: <CatalogPage />, handle: { title: "Service catalogue" } },
           { path: "knowledge", element: <KnowledgePage />, handle: { title: "Knowledge" } },

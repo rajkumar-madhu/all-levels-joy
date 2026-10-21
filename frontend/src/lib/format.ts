@@ -43,3 +43,24 @@ export function dueIn(value: string | null | undefined, now: number = Date.now()
   const span = minutes < 60 ? `${minutes}m` : minutes < 48 * 60 ? `${Math.round(minutes / 60)}h` : `${Math.round(minutes / 1440)}d`;
   return diff >= 0 ? { label: `${span} left`, overdue: false } : { label: `${span} overdue`, overdue: true };
 }
+
+/** "in 12m" / "5m ago", for timelines and update deadlines. */
+export function relativeTime(value: string | null | undefined, now: number = Date.now()): string {
+  if (!value) return "—";
+  const diff = new Date(value).getTime() - now;
+  const minutes = Math.round(Math.abs(diff) / 60_000);
+  const span = minutes < 1 ? "now" : minutes < 60 ? `${minutes}m` : minutes < 48 * 60 ? `${Math.round(minutes / 60)}h` : `${Math.round(minutes / 1440)}d`;
+  if (span === "now") return "just now";
+  return diff >= 0 ? `in ${span}` : `${span} ago`;
+}
+
+/** Only http(s) links are rendered as links; anything else is shown as text. */
+export function safeHttpUrl(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}

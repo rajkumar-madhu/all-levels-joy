@@ -75,6 +75,10 @@ Request bodies use the same camelCase fields as the legacy server functions; res
 | `POST /api/v1/orgs/{org}/changes/{id}/actions` | `change.update` (change manager, admin) | start / deliver / close / cancel, with the same gates as the legacy `updateChange` |
 | `GET /api/v1/orgs/{org}/approvals?status=` | `approval.list` | approvals assigned to the caller |
 | `POST /api/v1/orgs/{org}/approvals/{id}/decision` | `approval.decide` | `itsm_decide_approval` |
+| `GET /api/v1/orgs/{org}/command-center` | `major_incident.read` (staff) | bridges, timeline, active incidents to declare from, problems |
+| `POST /api/v1/orgs/{org}/major-incidents` | `major_incident.run` (service desk, fulfiller, manager, admin, change manager) | declare: bridge, declaration update, incident flag and audit in one transaction; 409 and full rollback if the incident changed meanwhile |
+| `PATCH /api/v1/orgs/{org}/major-incidents/{id}` | `major_incident.run` | bridge state, take command/comms, escalate, link a problem (also links the incident) |
+| `POST /api/v1/orgs/{org}/major-incidents/{id}/updates` | `major_incident.run` | stakeholder update with audience and next-update cadence |
 | `POST /api/public/alerts` | bearer token | port of `monitoring-alerts.ts` |
 | `GET, POST /api/public/pagerduty` | HMAC | `itsm_upsert_pagerduty_incident` |
 | `POST /api/public/security-findings` | HMAC | `itsm_upsert_scanner_finding` |
@@ -126,6 +130,14 @@ change lifecycle through CAB approval, incident handling (hold, resolve, reopen,
 notes hidden from requesters, and all three webhooks. `tests/test_incident_workflow.py` mirrors the legacy
 `tests/incident-workflow.test.ts` rules.
 
+### Differences from the legacy command center
+
+- Bridge links must be http(s). The legacy app accepted any text and rendered it as a link.
+- Declaring is atomic. The legacy server function could create the bridge and then fail to flag the incident.
+- Declaration notifications are not sent. The legacy code inserted them as the signed-in user, but
+  `notifications` has no insert policy, so those inserts were always refused (and the error ignored).
+  Sending them needs a security-definer function or a Celery task with the service role.
+
 ### Known limitation in the existing schema
 
 Record numbers (`INC0001001`, `REQ…`, `CHG…`) are unique across the whole database, but the counters that
@@ -136,7 +148,7 @@ needing OPA are skipped when no `opa` binary is found.
 
 ## Not migrated yet
 
-Staff-raised incidents (with group and service), request tasks, problems, major incidents, CMDB, catalogue
+Staff-raised incidents (with group and service), request tasks, problems (beyond linking from a bridge), CMDB, catalogue
 administration, workspace administration, comments, attachments (Supabase Storage → object storage) and the
 AI assistant still run only in the current app. Each one should
 follow the same pattern: an OPA action, a `CallerAPIView`, and calls to the existing SQL functions.

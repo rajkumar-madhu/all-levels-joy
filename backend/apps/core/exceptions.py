@@ -1,11 +1,20 @@
 import logging
 
 from django.db import DatabaseError
-from rest_framework import status
+from rest_framework import exceptions, status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler, set_rollback
 
 log = logging.getLogger(__name__)
+
+
+class Conflict(exceptions.APIException):
+    """409 that also rolls back everything the request wrote so far."""
+
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = "This record changed. Refresh and try again."
+    default_code = "conflict"
+
 
 # SQLSTATEs the legacy functions raise for expected business-rule failures.
 USER_ERROR_STATES = {"P0001", "22023", "23514", "23505", "22P02", "22007", "22008"}

@@ -65,3 +65,13 @@ test_incident_updates_need_operator_roles if {
 	not authz.allow with input as req({org: ["cab_member"]}, "incident.update", org)
 	not authz.allow with input as req({org: ["requester"]}, "incident.update", org)
 }
+
+test_command_center_is_staff_only if {
+	authz.allow with input as req({org: ["cab_member"]}, "major_incident.read", org)
+	not authz.allow with input as req({org: ["requester"]}, "major_incident.read", org)
+}
+
+test_running_a_bridge_needs_problem_roles if {
+	authz.allow with input as req({org: ["service_desk"]}, "major_incident.run", org)
+	not authz.allow with input as req({org: ["cab_member"]}, "major_incident.run", org)
+}

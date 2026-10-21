@@ -292,3 +292,56 @@ export type IncidentUpdate = {
   onHoldReason?: string | null;
   closeCode?: string | null;
 };
+
+export type BridgeState = "declared" | "investigating" | "mitigating" | "monitoring" | "resolved";
+
+export type MajorIncident = {
+  id: string;
+  number: string;
+  incident_id: string;
+  incident_number: string;
+  incident_title: string;
+  incident_state: IncidentState;
+  problem_id: string | null;
+  problem_number: string | null;
+  severity: number;
+  bridge_state: BridgeState;
+  commander_id: string | null;
+  commander_name: string | null;
+  comms_lead_id: string | null;
+  comms_lead_name: string | null;
+  bridge_url: string | null;
+  situation_summary: string | null;
+  customer_impact: string | null;
+  escalation_level: number;
+  declared_at: string;
+  mitigated_at: string | null;
+  resolved_at: string | null;
+  next_update_at: string | null;
+};
+
+export type BridgeUpdate = {
+  id: string;
+  major_incident_id: string;
+  author_name: string | null;
+  update_type: string;
+  body: string;
+  audience: "internal" | "customer" | "executive";
+  created_at: string;
+};
+
+export type CommandCenter = {
+  majors: MajorIncident[];
+  updates: BridgeUpdate[];
+  candidates: { id: string; number: string; title: string; priority: number | null }[];
+  problems: { id: string; number: string; title: string; state: string }[];
+};
+
+export type MajorIncidentPatch = {
+  bridgeState?: BridgeState;
+  escalationLevel?: number;
+  takeCommand?: boolean;
+  takeComms?: boolean;
+  problemId?: string | null;
+  nextUpdateMinutes?: number;
+};

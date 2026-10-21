@@ -37,6 +37,7 @@ member_actions := {
 }
 
 staff_actions := {
+	"major_incident.read",
 	"security.board.read",
 	"security.finding.create",
 	"security.finding.transition",
@@ -66,7 +67,11 @@ change_create_roles := {"fulfiller", "change_manager", "manager", "admin"}
 # Legacy canManageIncidents and the validate_incident_workflow trigger.
 incident_update_roles := {"service_desk", "fulfiller", "manager", "admin"}
 
+# Legacy requireProblemRole (problem.functions.ts).
+major_incident_roles := {"service_desk", "fulfiller", "manager", "admin", "change_manager"}
+
 role_actions := {
+	"major_incident.run": major_incident_roles,
 	"incident.update": incident_update_roles,
 	"request.update": request_update_roles,
 	"change.create": change_create_roles,

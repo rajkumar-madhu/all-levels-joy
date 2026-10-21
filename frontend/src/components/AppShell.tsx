@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   ShieldAlert,
+  Siren,
   X,
 } from "lucide-react";
 import { useEffect, type ComponentType } from "react";
@@ -35,6 +36,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { to: "/requests", label: "Service requests", icon: ClipboardList },
       { to: "/catalog", label: "Service catalogue", icon: Boxes },
       { to: "/changes", label: "Changes", icon: GitBranch },
+      { to: "/command-center", label: "Major incident command", icon: Siren, staffOnly: true },
     ],
   },
   {

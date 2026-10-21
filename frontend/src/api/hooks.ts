@@ -4,6 +4,8 @@ import { api } from "./client";
 import type {
   Article,
   CatalogItem,
+  CommandCenter,
+  MajorIncidentPatch,
   Comment,
   Group,
   IncidentUpdate,
@@ -261,4 +263,50 @@ export function useDecideApproval(org: string) {
         client.invalidateQueries({ queryKey: keys.changes(org) }),
       ]),
   });
+}
+
+const commandCenterKey = (org: string) => ["orgs", org, "command-center"] as const;
+
+export function useCommandCenter(org: string, enabled: boolean) {
+  return useQuery({
+    queryKey: commandCenterKey(org),
+    queryFn: () => api<CommandCenter>(`orgs/${org}/command-center`),
+    enabled,
+    // A live bridge: keep the timeline and "update due" flags current.
+    refetchInterval: 30_000,
+  });
+}
+
+function useBridgeMutation<TVars, TResult>(org: string, request: (vars: TVars) => Promise<TResult>) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: request,
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: commandCenterKey(org) }),
+        client.invalidateQueries({ queryKey: ["orgs", org, "incidents"] }),
+      ]),
+  });
+}
+
+export function useDeclareMajorIncident(org: string) {
+  return useBridgeMutation(
+    org,
+    (body: { incidentId: string; severity: number; situationSummary: string; customerImpact?: string; bridgeUrl?: string; nextUpdateMinutes: number }) =>
+      api<{ id: string; number: string }>(`orgs/${org}/major-incidents`, { method: "POST", body: { ...body, takeCommand: true } }),
+  );
+}
+
+export function useUpdateMajorIncident(org: string) {
+  return useBridgeMutation(org, ({ id, ...body }: MajorIncidentPatch & { id: string }) =>
+    api(`orgs/${org}/major-incidents/${id}`, { method: "PATCH", body }),
+  );
+}
+
+export function usePostBridgeUpdate(org: string) {
+  return useBridgeMutation(
+    org,
+    ({ id, ...body }: { id: string; body: string; updateType: string; audience: string; nextUpdateMinutes?: number }) =>
+      api(`orgs/${org}/major-incidents/${id}/updates`, { method: "POST", body }),
+  );
 }
