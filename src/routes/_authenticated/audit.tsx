@@ -7,13 +7,13 @@ import { formatDateTime } from "@/lib/itsm-shared";
 export const Route = createFileRoute("/_authenticated/audit")({
   head: () => ({
     meta: [
-      { title: "Audit trail — WeCrew ITSM" },
+      { title: "Audit trail — Argus Service Desk" },
       {
         name: "description",
         content:
           "Immutable record of every create, update, approval, and comment across the workspace.",
       },
-      { property: "og:title", content: "Audit trail — WeCrew ITSM" },
+      { property: "og:title", content: "Audit trail — Argus Service Desk" },
       {
         property: "og:description",
         content: "Immutable workspace activity history for compliance review.",

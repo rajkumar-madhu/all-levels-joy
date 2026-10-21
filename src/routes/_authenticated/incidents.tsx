@@ -63,13 +63,13 @@ export const Route = createFileRoute("/_authenticated/incidents")({
   validateSearch: incidentSearchSchema,
   head: () => ({
     meta: [
-      { title: "Incidents — WeCrew ITSM" },
+      { title: "Incidents — Argus Service Desk" },
       {
         name: "description",
         content:
           "Log, triage, assign, and resolve incidents with impact and urgency driven priority.",
       },
-      { property: "og:title", content: "Incidents — WeCrew ITSM" },
+      { property: "og:title", content: "Incidents — Argus Service Desk" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       {

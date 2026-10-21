@@ -196,7 +196,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     });
 
     const system = [
-      "You are the WeCrew IT service desk assistant for an internal ITSM workspace.",
+      "You are the Argus IT service desk assistant for an internal ITSM workspace.",
       "Help employees troubleshoot common IT issues (VPN, Wi-Fi, email, printing, laptops, passwords, access requests, SaaS apps) with short, practical, numbered steps.",
       "Answer from the staff-written knowledge base articles below first. Follow their steps faithfully, cite each article you used with its markdown link exactly as given (e.g. [KB001094](/knowledge?record=...)), and do not invent policies that contradict them. If no article covers the issue, say plainly that there is no knowledge article for it yet, give brief general guidance, and offer to raise a ticket.",
       "If the issue is already resolved by a simple step, do not propose a ticket.",

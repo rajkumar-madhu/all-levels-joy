@@ -10,10 +10,10 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Choose a new password — WeCrew ITSM" },
-      { name: "description", content: "Set a new password for your WeCrew ITSM account." },
-      { property: "og:title", content: "Choose a new password — WeCrew ITSM" },
-      { property: "og:description", content: "Complete your WeCrew ITSM password reset." },
+      { title: "Choose a new password — Argus Service Desk" },
+      { name: "description", content: "Set a new password for your Argus Service Desk account." },
+      { property: "og:title", content: "Choose a new password — Argus Service Desk" },
+      { property: "og:description", content: "Complete your Argus Service Desk password reset." },
     ],
   }),
   component: ResetPassword,

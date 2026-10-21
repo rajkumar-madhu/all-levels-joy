@@ -15,13 +15,13 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/_authenticated/assets")({
   head: () => ({
     meta: [
-      { title: "Assets & CMDB — WeCrew ITSM" },
+      { title: "Assets & CMDB — Argus Service Desk" },
       {
         name: "description",
         content:
           "Configuration items with class, environment, criticality, service mapping, and relationships.",
       },
-      { property: "og:title", content: "Assets & CMDB — WeCrew ITSM" },
+      { property: "og:title", content: "Assets & CMDB — Argus Service Desk" },
       {
         property: "og:description",
         content: "Configuration items, ownership, and service relationships.",

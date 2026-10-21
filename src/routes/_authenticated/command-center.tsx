@@ -40,13 +40,13 @@ export const Route = createFileRoute("/_authenticated/command-center")({
   validateSearch: zodValidator(commandCenterSearchSchema),
   head: () => ({
     meta: [
-      { title: "Major incident command — WeCrew ITSM" },
+      { title: "Major incident command — Argus Service Desk" },
       {
         name: "description",
         content:
           "Declare major incidents, run the command bridge, post stakeholder updates, escalate, and hand off to a problem investigation.",
       },
-      { property: "og:title", content: "Major incident command — WeCrew ITSM" },
+      { property: "og:title", content: "Major incident command — Argus Service Desk" },
       {
         property: "og:description",
         content: "Command bridge for severity 1 events with a timeline, escalation, and comms log.",

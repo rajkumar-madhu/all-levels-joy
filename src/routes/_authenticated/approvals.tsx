@@ -13,13 +13,13 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/_authenticated/approvals")({
   head: () => ({
     meta: [
-      { title: "Approvals — WeCrew ITSM" },
+      { title: "Approvals — Argus Service Desk" },
       {
         name: "description",
         content:
           "Decide the request and change approvals assigned to you, with decision notes kept on record.",
       },
-      { property: "og:title", content: "Approvals — WeCrew ITSM" },
+      { property: "og:title", content: "Approvals — Argus Service Desk" },
       { property: "og:description", content: "Request and CAB approvals assigned to you." },
     ],
   }),

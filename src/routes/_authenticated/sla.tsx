@@ -10,13 +10,13 @@ import { referenceQuery } from "@/lib/workspace-queries";
 export const Route = createFileRoute("/_authenticated/sla")({
   head: () => ({
     meta: [
-      { title: "SLA dashboard — WeCrew ITSM" },
+      { title: "SLA dashboard — Argus Service Desk" },
       {
         name: "description",
         content:
           "Per-team view of open requests and incidents, deadlines approaching, and breached targets.",
       },
-      { property: "og:title", content: "SLA dashboard — WeCrew ITSM" },
+      { property: "og:title", content: "SLA dashboard — Argus Service Desk" },
       {
         property: "og:description",
         content: "Team-by-team deadline health across requests and incidents.",

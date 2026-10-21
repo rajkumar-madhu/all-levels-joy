@@ -31,13 +31,13 @@ export const Route = createFileRoute("/_authenticated/requests")({
   }),
   head: () => ({
     meta: [
-      { title: "Service requests — WeCrew ITSM" },
+      { title: "Service requests — Argus Service Desk" },
       {
         name: "description",
         content:
           "Order from the service catalog and track approvals, fulfillment tasks, and delivery dates.",
       },
-      { property: "og:title", content: "Service requests — WeCrew ITSM" },
+      { property: "og:title", content: "Service requests — Argus Service Desk" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       {

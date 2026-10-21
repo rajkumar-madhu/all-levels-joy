@@ -15,13 +15,13 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
-      { title: "My profile — WeCrew ITSM" },
+      { title: "My profile — Argus Service Desk" },
       {
         name: "description",
         content:
           "Update your name, contact details, department, locale, timezone, and notification preferences.",
       },
-      { property: "og:title", content: "My profile — WeCrew ITSM" },
+      { property: "og:title", content: "My profile — Argus Service Desk" },
       {
         property: "og:description",
         content: "Personal details, preferences, and password management.",
