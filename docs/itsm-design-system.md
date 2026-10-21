@@ -1,4 +1,4 @@
-# WeCrew ITSM workspace design system
+# Argus Service Desk workspace design system
 
 This implementation extends the existing React, Tailwind, and Radix components. It establishes shared application chrome and operational information hierarchy. Visual polish does not certify tenant isolation, workflow controls, or production readiness.
 
@@ -9,7 +9,7 @@ Tokens live in `src/styles.css` and are exposed through the existing Tailwind th
 | Token              | Light theme | Purpose                                                  |
 | ------------------ | ----------- | -------------------------------------------------------- |
 | `background`       | `#f5f6f8`   | Pale neutral workspace around white content surfaces     |
-| `foreground`       | `#0e1116`   | Primary text and WeCrew ink                              |
+| `foreground`       | `#0e1116`   | Primary text and Argus Service Desk ink                              |
 | `card`, `popover`  | `#ffffff`   | Tables, detail panels, forms, menus                      |
 | `primary`, `ring`  | `#2b4cff`   | Main actions, selected controls, keyboard focus          |
 | `brand`            | `#ff5b2e`   | Restrained coral brand mark, never an operational status |

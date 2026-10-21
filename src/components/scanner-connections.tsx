@@ -33,7 +33,7 @@ export function ScannerConnections({ findings, onRefresh }: { findings: ScannerF
       <Button size="sm" variant="outline" onClick={download}><Download className="mr-2 size-4" />Payload example</Button>
     </div>
     <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
-      <div><dt className="font-medium">Signature header</dt><dd className="mt-1 break-all text-muted-foreground">x-wecrew-signature: sha256=&lt;hex HMAC-SHA256 of the exact JSON body&gt;</dd></div>
+      <div><dt className="font-medium">Signature header</dt><dd className="mt-1 break-all text-muted-foreground">x-argus-signature: sha256=&lt;hex HMAC-SHA256 of the exact JSON body&gt;</dd></div>
       <div><dt className="font-medium">Optional workspace references</dt><dd className="mt-1 text-muted-foreground">serviceId, ownerId, affectedCiIds (UUIDs)</dd></div>
     </dl>
     {scanners.size ? <div className="mt-4 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b border-border text-muted-foreground"><th className="pb-2">Scanner</th><th className="pb-2">Findings</th><th className="pb-2">Last received</th></tr></thead><tbody>{Array.from(scanners, ([name, s]) => <tr key={name} className="border-b border-border"><td className="py-2">{name}</td><td>{s.count}</td><td className="whitespace-nowrap">{formatDateTime(s.lastSeen)}</td></tr>)}</tbody></table></div> : <p className="mt-4 text-sm text-muted-foreground">No scanner findings received.</p>}

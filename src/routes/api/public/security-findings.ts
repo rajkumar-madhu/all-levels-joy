@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { scannerPayloadSchema } from "@/lib/security-workflow";
 import { DEMO_ORG_ID } from "@/lib/itsm-shared";
 
-// Scanners POST signed JSON: header x-wecrew-signature = hex HMAC-SHA256(body, SECURITY_SCANNER_SECRET).
+// Scanners POST signed JSON: header x-argus-signature = hex HMAC-SHA256(body, SECURITY_SCANNER_SECRET).
 export const Route = createFileRoute("/api/public/security-findings")({
   server: {
     handlers: {
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/api/public/security-findings")({
         if (!secret) return new Response("Scanner intake is not configured", { status: 503 });
         const body = await request.text();
         if (body.length > 512_000) return new Response("Payload too large", { status: 413 });
-        const signature = (request.headers.get("x-wecrew-signature") ?? "").replace(/^sha256=/, "");
+        const signature = (request.headers.get("x-argus-signature") ?? "").replace(/^sha256=/, "");
         const { createHmac, timingSafeEqual } = await import("node:crypto");
         const expected = createHmac("sha256", secret).update(body).digest("hex");
         const a = Buffer.from(signature, "utf8");
