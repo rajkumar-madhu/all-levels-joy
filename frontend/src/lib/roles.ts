@@ -8,3 +8,6 @@ export function hasAnyRole(roles: readonly string[], allowed: readonly string[])
 }
 // problem.functions.ts requireProblemRole: who may declare and run a major incident bridge.
 export const MAJOR_INCIDENT_ROLES = ["service_desk", "fulfiller", "manager", "admin", "change_manager"];
+// policies/itsm/cmdb.rego: configuration items and catalogue routing.
+export const CMDB_MANAGE_ROLES = ["cmdb_manager", "admin"];
+export const CATALOG_MANAGE_ROLES = ["manager", "admin"];

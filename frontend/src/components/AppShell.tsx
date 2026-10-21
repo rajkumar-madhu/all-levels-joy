@@ -45,6 +45,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { to: "/approvals", label: "Approvals", icon: BadgeCheck },
       { to: "/security", label: "Security findings", icon: ShieldAlert, staffOnly: true },
       { to: "/knowledge", label: "Knowledge", icon: BookOpen },
+      { to: "/assets", label: "Assets & CMDB", icon: Boxes, staffOnly: true },
     ],
   },
 ];

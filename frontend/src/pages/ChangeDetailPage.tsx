@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 import { useChange, useChangeAction } from "@/api/hooks";
 import type { Change, ChangeAction } from "@/api/types";
 import { ApprovalTrail } from "@/components/ApprovalTrail";
+import { ChangeLinksPanel } from "@/components/RecordLinks";
 import { ApprovalBadge, RecordStateBadge, RiskBadge } from "@/components/badges";
 import { Badge, Button, Field, FormError, PageHeader, Panel, Select, StateMessage, Textarea } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
@@ -76,6 +77,7 @@ export function ChangeDetailPage() {
             <ApprovalTrail approvals={c.approvals} />
           </Panel>
           {hasAnyRole(workspace.roles, CHANGE_UPDATE_ROLES) && <Lifecycle change={c} orgId={workspace.id} />}
+          <ChangeLinksPanel orgId={workspace.id} changeId={c.id} canManage={workspace.is_staff} />
         </div>
       </div>
     </>

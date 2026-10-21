@@ -27,6 +27,14 @@ with Keycloak.
 - **Changes**: plan standard, normal or emergency changes in your own timezone. Change managers start,
   deliver and close them after CAB approval.
 - **Approvals**: the requests and changes waiting for your decision.
+- **Incident work queues**: Active, Assigned to me, Unassigned, Due within 1h, Breached, Resolved and All
+  records with live counts, filters for priority, group and service, sorting and paging (all kept in the URL).
+  Staff can **log an incident** taken by phone, email or at the desk, already routed to a group and service.
+- **Assets & CMDB** (staff): configuration items with status, criticality, service and relationships; CMDB
+  owners and admins add and edit them.
+- **Catalogue administration** (managers, admins): routing group, priority, approval and retiring items, from
+  the Service catalogue page.
+- **Fulfilment tasks** on service requests and **linked records** on changes and incidents (staff).
 - **Major incident command** (`/command-center?record=<id>`, staff only): declare a bridge from an active
   incident, take command or comms, change bridge state, escalate, link a problem, and post internal, customer
   or executive updates on a cadence. Refreshes every 30 seconds and flags overdue updates.

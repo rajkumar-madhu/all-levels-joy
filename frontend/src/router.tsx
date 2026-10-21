@@ -3,6 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { RequireWorkspace } from "@/components/RequireWorkspace";
 import { ApprovalsPage } from "@/pages/ApprovalsPage";
 import { ArticlePage } from "@/pages/ArticlePage";
+import { AssetsPage } from "@/pages/AssetsPage";
 import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
 import { CatalogPage } from "@/pages/CatalogPage";
 import { ChangeDetailPage } from "@/pages/ChangeDetailPage";
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
           { path: "changes/:changeId", element: <ChangeDetailPage />, handle: { title: "Changes" } },
           { path: "command-center", element: <CommandCenterPage />, handle: { title: "Major incident command" } },
           { path: "approvals", element: <ApprovalsPage />, handle: { title: "Approvals" } },
+          { path: "assets", element: <AssetsPage />, handle: { title: "Assets & CMDB" } },
           { path: "catalog", element: <CatalogPage />, handle: { title: "Service catalogue" } },
           { path: "knowledge", element: <KnowledgePage />, handle: { title: "Knowledge" } },
           { path: "knowledge/:articleId", element: <ArticlePage />, handle: { title: "Knowledge" } },

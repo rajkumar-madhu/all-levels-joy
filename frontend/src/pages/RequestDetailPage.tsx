@@ -5,6 +5,7 @@ import { useServiceRequest, useUpdateRequest } from "@/api/hooks";
 import type { RecordState, ServiceRequest } from "@/api/types";
 import { ApprovalTrail } from "@/components/ApprovalTrail";
 import { Comments } from "@/components/Comments";
+import { RequestTasks } from "@/components/RequestTasks";
 import { ApprovalBadge, PriorityBadge, RecordStateBadge } from "@/components/badges";
 import { Button, Field, FormError, PageHeader, Panel, Select, StateMessage } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
@@ -39,6 +40,9 @@ export function RequestDetailPage() {
             <h2 className="mb-3 text-sm font-semibold">Approval</h2>
             <ApprovalTrail approvals={r.approvals} />
           </Panel>
+          {workspace.is_staff && (
+            <RequestTasks orgId={workspace.id} requestId={r.id} approved={["approved", "not_required"].includes(r.approval_status)} />
+          )}
           <Comments orgId={workspace.id} recordType="request" recordId={r.id} canWriteInternal={workspace.is_staff} />
         </div>
         <div className="grid gap-6">

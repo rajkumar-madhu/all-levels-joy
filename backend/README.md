@@ -79,6 +79,18 @@ Request bodies use the same camelCase fields as the legacy server functions; res
 | `POST /api/v1/orgs/{org}/major-incidents` | `major_incident.run` (service desk, fulfiller, manager, admin, change manager) | declare: bridge, declaration update, incident flag and audit in one transaction; 409 and full rollback if the incident changed meanwhile |
 | `PATCH /api/v1/orgs/{org}/major-incidents/{id}` | `major_incident.run` | bridge state, take command/comms, escalate, link a problem (also links the incident) |
 | `POST /api/v1/orgs/{org}/major-incidents/{id}/updates` | `major_incident.run` | stakeholder update with audience and next-update cadence |
+| `GET /api/v1/orgs/{org}/incidents?queue=&q=&priority=&group=&service=&sort=&page=` | `incident.list` | work queues from `incident-queue.ts` (active, mine, unassigned, at_risk, breached, completed, all); 25 per page with `total` |
+| `GET /api/v1/orgs/{org}/incidents/queue-counts` | `incident.list` | totals per queue; filters never change them |
+| `POST /api/v1/orgs/{org}/incidents/operator` | `incident.create` (staff) | legacy `createIncident`: routed to a group and service, phone/email/walk-up contact |
+| `GET /api/v1/orgs/{org}/incidents/{id}/links` | `change.link.read` | changes linked to the incident and its problem |
+| `GET /api/v1/orgs/{org}/services` | `service.read` | business services |
+| `GET, POST /api/v1/orgs/{org}/assets?q=&status=` | `asset.read` (staff) / `asset.manage` (CMDB owner, admin) | configuration items; create writes an `asset` audit event |
+| `GET, PATCH /api/v1/orgs/{org}/assets/{id}` | same | item with relationships; PATCH guarded by `expectedUpdatedAt` (409) |
+| `POST /api/v1/orgs/{org}/assets/{id}/relationships`, `DELETE …/relationships/{rid}` | `asset.manage` | `ci_relationships` |
+| `GET /api/v1/orgs/{org}/catalog/admin`, `PATCH /api/v1/orgs/{org}/catalog/{id}` | `catalog.manage` (manager, admin) | routing group, priority, approval, retire/restore; versioned |
+| `GET, POST /api/v1/orgs/{org}/requests/{id}/tasks`, `PATCH …/tasks/{tid}` | `request.task.read` / `request.task.manage` (staff) | fulfilment tasks, only after approval; versioned state changes |
+| `GET, POST /api/v1/orgs/{org}/changes/{id}/links`, `DELETE …/links/{lid}` | `change.link.read` (members) / `change.link.manage` (staff) | incidents and problems a change resolves, plus its affected CIs |
+| `GET /api/v1/orgs/{org}/change-link-candidates` | `change.link.manage` | recent incidents and problems to link |
 | `POST /api/public/alerts` | bearer token | port of `monitoring-alerts.ts` |
 | `GET, POST /api/public/pagerduty` | HMAC | `itsm_upsert_pagerduty_incident` |
 | `POST /api/public/security-findings` | HMAC | `itsm_upsert_scanner_finding` |
@@ -148,7 +160,6 @@ needing OPA are skipped when no `opa` binary is found.
 
 ## Not migrated yet
 
-Staff-raised incidents (with group and service), request tasks, problems (beyond linking from a bridge), CMDB, catalogue
-administration, workspace administration, comments, attachments (Supabase Storage → object storage) and the
-AI assistant still run only in the current app. Each one should
+Problems (beyond linking from a bridge), workspace administration, attachments (Supabase Storage → object
+storage) and the AI assistant still run only in the current app. Each one should
 follow the same pattern: an OPA action, a `CallerAPIView`, and calls to the existing SQL functions.

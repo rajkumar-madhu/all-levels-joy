@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router";
 import { useGroups, useIncident, useUpdateIncident } from "@/api/hooks";
 import type { Incident, IncidentState, IncidentUpdate } from "@/api/types";
 import { Comments } from "@/components/Comments";
+import { IncidentLinksPanel } from "@/components/RecordLinks";
 import { IncidentStateBadge, PriorityBadge } from "@/components/badges";
 import { Button, Field, FormError, PageHeader, Panel, Select, StateMessage, Textarea } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
@@ -56,6 +57,7 @@ export function IncidentDetailPage() {
               </>
             )}
           </Panel>
+          {workspace.is_staff && <IncidentLinksPanel orgId={workspace.id} incidentId={i.id} />}
           <Comments orgId={workspace.id} recordType="incident" recordId={i.id} canWriteInternal={workspace.is_staff} />
         </div>
         <div className="grid gap-6">
