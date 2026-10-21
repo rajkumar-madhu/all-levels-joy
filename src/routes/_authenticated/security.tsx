@@ -32,13 +32,13 @@ export const Route = createFileRoute("/_authenticated/security")({
   }),
   head: () => ({
     meta: [
-      { title: "Security findings — WeCrew ITSM" },
+      { title: "Security findings — Argus Service Desk" },
       {
         name: "description",
         content:
           "Track vulnerabilities and audit findings from request to approved, scheduled and delivered fixes, with risk exceptions.",
       },
-      { property: "og:title", content: "Security findings — WeCrew ITSM" },
+      { property: "og:title", content: "Security findings — Argus Service Desk" },
       {
         property: "og:description",
         content: "Vulnerability remediation and risk exceptions with approvals and rollback plans.",

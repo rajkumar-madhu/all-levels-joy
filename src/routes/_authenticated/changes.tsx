@@ -21,13 +21,13 @@ export const Route = createFileRoute("/_authenticated/changes")({
   validateSearch: z.object({ record: z.string().optional() }),
   head: () => ({
     meta: [
-      { title: "Change enablement — WeCrew ITSM" },
+      { title: "Change enablement — Argus Service Desk" },
       {
         name: "description",
         content:
           "Raise standard, normal, and emergency changes with risk, CAB approval, windows, and rollback plans.",
       },
-      { property: "og:title", content: "Change enablement — WeCrew ITSM" },
+      { property: "og:title", content: "Change enablement — Argus Service Desk" },
       {
         property: "og:description",
         content: "Change records with CAB approval and post-implementation review.",

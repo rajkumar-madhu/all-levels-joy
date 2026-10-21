@@ -110,13 +110,13 @@ function RequestQueues({
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Platform dashboard — WeCrew ITSM" },
+      { title: "Platform dashboard — Argus Service Desk" },
       {
         name: "description",
         content:
           "Live view of incident load, SLA exposure, pending approvals, and change schedule.",
       },
-      { property: "og:title", content: "Operations dashboard — WeCrew ITSM" },
+      { property: "og:title", content: "Operations dashboard — Argus Service Desk" },
       {
         property: "og:description",
         content: "Incident load, SLA risk, approvals, and change calendar.",

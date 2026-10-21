@@ -80,13 +80,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "WeCrew ITSM — Enterprise Service Management" },
+      { title: "Argus Service Desk — Enterprise Service Management" },
       {
         name: "description",
         content:
-          "WeCrew ITSM: incidents, service requests, change enablement, knowledge, and CMDB in one governed service management workspace.",
+          "Argus Service Desk: incidents, service requests, change enablement, knowledge, and CMDB in one governed service management workspace.",
       },
-      { property: "og:title", content: "WeCrew ITSM — Enterprise Service Management" },
+      { property: "og:title", content: "Argus Service Desk — Enterprise Service Management" },
       {
         property: "og:description",
         content:

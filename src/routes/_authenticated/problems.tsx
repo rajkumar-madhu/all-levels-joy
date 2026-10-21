@@ -33,13 +33,13 @@ export const Route = createFileRoute("/_authenticated/problems")({
   validateSearch: zodValidator(problemSearchSchema),
   head: () => ({
     meta: [
-      { title: "Problem management — WeCrew ITSM" },
+      { title: "Problem management — Argus Service Desk" },
       {
         name: "description",
         content:
           "Investigate recurring incidents as problems, record root cause and workarounds, and publish known errors.",
       },
-      { property: "og:title", content: "Problem management — WeCrew ITSM" },
+      { property: "og:title", content: "Problem management — Argus Service Desk" },
       {
         property: "og:description",
         content:

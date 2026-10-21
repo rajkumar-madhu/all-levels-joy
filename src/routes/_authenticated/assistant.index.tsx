@@ -12,13 +12,13 @@ import assistantMark from "@/assets/assistant-mark.png";
 export const Route = createFileRoute("/_authenticated/assistant/")({
   head: () => ({
     meta: [
-      { title: "IT support assistant — WeCrew ITSM" },
+      { title: "IT support assistant — Argus Service Desk" },
       {
         name: "description",
         content:
-          "Chat with the WeCrew IT support assistant to troubleshoot common IT issues and log an incident when you need one.",
+          "Chat with the Argus IT support assistant to troubleshoot common IT issues and log an incident when you need one.",
       },
-      { property: "og:title", content: "IT support assistant — WeCrew ITSM" },
+      { property: "og:title", content: "IT support assistant — Argus Service Desk" },
       {
         property: "og:description",
         content: "Guided troubleshooting for everyday IT issues, with one-click ticket creation.",
@@ -60,7 +60,7 @@ function AssistantIndex() {
           <section className="flex flex-col items-center justify-center gap-4 rounded-lg border border-border bg-card px-6 py-16 text-center">
             <img
               src={assistantMark}
-              alt="WeCrew support assistant"
+              alt="Argus support assistant"
               loading="lazy"
               width={96}
               height={96}

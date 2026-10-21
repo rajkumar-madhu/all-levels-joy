@@ -15,13 +15,13 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "WeCrew ITSM — Governed Service Management Platform" },
+      { title: "Argus Service Desk — Governed Service Management Platform" },
       {
         name: "description",
         content:
           "Incident, request, change, knowledge, and CMDB management with role-based access, SLA tracking, and audit evidence for core workflows.",
       },
-      { property: "og:title", content: "WeCrew ITSM — Governed Service Management Platform" },
+      { property: "og:title", content: "Argus Service Desk — Governed Service Management Platform" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       {
@@ -92,7 +92,7 @@ function Landing() {
             <span className="flex h-8 w-8 items-center justify-center rounded bg-primary font-mono text-sm font-semibold text-primary-foreground">
               W
             </span>
-            <span className="text-sm font-semibold tracking-tight">WeCrew ITSM</span>
+            <span className="text-sm font-semibold tracking-tight">Argus Service Desk</span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
           <Button asChild variant="outline" size="sm">
@@ -131,7 +131,7 @@ function Landing() {
               One system of record for every service commitment.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
-              WeCrew ITSM brings the service desk, engineering, change advisory, asset owners, and
+              Argus Service Desk brings the service desk, engineering, change advisory, asset owners, and
               leadership into a single governed workspace, with permissions enforced on the server
               and audit evidence for incident, request, change, and approval workflows.
             </p>
@@ -218,7 +218,7 @@ function Landing() {
 
       <footer className="border-t border-border">
         <div className="mx-auto max-w-6xl px-6 py-8 text-sm text-muted-foreground">
-          WeCrew ITSM — service management workspace for regulated operations teams.
+          Argus Service Desk — service management workspace for regulated operations teams.
         </div>
       </footer>
     </div>

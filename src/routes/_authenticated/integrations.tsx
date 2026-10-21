@@ -9,7 +9,7 @@ import { getIntegrationStatus } from "@/lib/integration-status.functions";
 export const Route = createFileRoute("/_authenticated/integrations")({
   head: () => ({
     meta: [
-      { title: "Integrations — WeCrew ITSM" },
+      { title: "Integrations — Argus Service Desk" },
       {
         name: "description",
         content: "How each workspace tool and external system connects.",

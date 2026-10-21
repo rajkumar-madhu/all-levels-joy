@@ -66,7 +66,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/administration")({
   head: () => ({
     meta: [
-      { title: "Administration — WeCrew ITSM" },
+      { title: "Administration — Argus Service Desk" },
       {
         name: "description",
         content: "Manage workspace members, invitations, assignment groups, and settings.",

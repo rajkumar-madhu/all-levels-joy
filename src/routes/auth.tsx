@@ -19,16 +19,16 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Sign in — WeCrew ITSM" },
+      { title: "Sign in — Argus Service Desk" },
       {
         name: "description",
         content:
-          "Sign in or create your WeCrew ITSM account to reach your service management workspace.",
+          "Sign in or create your Argus Service Desk account to reach your service management workspace.",
       },
-      { property: "og:title", content: "Sign in — WeCrew ITSM" },
+      { property: "og:title", content: "Sign in — Argus Service Desk" },
       {
         property: "og:description",
-        content: "Access the WeCrew ITSM service management workspace.",
+        content: "Access the Argus Service Desk service management workspace.",
       },
     ],
   }),
@@ -119,7 +119,7 @@ function AuthPage() {
           <span className="flex h-7 w-7 items-center justify-center rounded bg-primary font-mono text-xs font-semibold text-primary-foreground">
             W
           </span>
-          WeCrew ITSM
+          Argus Service Desk
         </Link>
 
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">

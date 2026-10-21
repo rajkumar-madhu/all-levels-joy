@@ -34,13 +34,13 @@ import assistantMark from "@/assets/assistant-mark.png";
 export const Route = createFileRoute("/_authenticated/assistant/$threadId")({
   head: () => ({
     meta: [
-      { title: "Support chat — WeCrew ITSM" },
+      { title: "Support chat — Argus Service Desk" },
       {
         name: "description",
         content:
-          "Troubleshoot an IT issue with the WeCrew support assistant and log an incident when you confirm the draft.",
+          "Troubleshoot an IT issue with the Argus support assistant and log an incident when you confirm the draft.",
       },
-      { property: "og:title", content: "Support chat — WeCrew ITSM" },
+      { property: "og:title", content: "Support chat — Argus Service Desk" },
       {
         property: "og:description",
         content: "Guided IT troubleshooting with confirmed ticket creation.",
@@ -132,7 +132,7 @@ function AssistantThread() {
                 <div className="flex flex-col items-center gap-3 py-10 text-center">
                   <img
                     src={assistantMark}
-                    alt="WeCrew support assistant"
+                    alt="Argus support assistant"
                     loading="lazy"
                     width={72}
                     height={72}

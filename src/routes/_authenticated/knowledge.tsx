@@ -29,13 +29,13 @@ export const Route = createFileRoute("/_authenticated/knowledge")({
   validateSearch: zodValidator(knowledgeSearchSchema),
   head: () => ({
     meta: [
-      { title: "Knowledge base — WeCrew ITSM" },
+      { title: "Knowledge base — Argus Service Desk" },
       {
         name: "description",
         content:
           "Draft, review, and publish knowledge articles that resolve repeat demand and support self-service.",
       },
-      { property: "og:title", content: "Knowledge base — WeCrew ITSM" },
+      { property: "og:title", content: "Knowledge base — Argus Service Desk" },
       {
         property: "og:description",
         content: "Knowledge articles with draft, review, and published states.",

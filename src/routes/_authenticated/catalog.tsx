@@ -86,12 +86,12 @@ export const Route = createFileRoute("/_authenticated/catalog")({
   validateSearch: z.object({ item: z.string().optional(), issue: z.string().optional() }),
   head: () => ({
     meta: [
-      { title: "Service catalogue — WeCrew ITSM" },
+      { title: "Service catalogue — Argus Service Desk" },
       {
         name: "description",
         content: "Browse available IT services and submit a request that opens a tracked ticket.",
       },
-      { property: "og:title", content: "Service catalogue — WeCrew ITSM" },
+      { property: "og:title", content: "Service catalogue — Argus Service Desk" },
       {
         property: "og:description",
         content: "Pick a service, describe your need, and get a tracked request ticket instantly.",

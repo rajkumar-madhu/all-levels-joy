@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/accept-invitation")({
   validateSearch: z.object({ invitation: z.string().optional() }),
-  head: () => ({ meta: [{ title: "Accept invitation — WeCrew ITSM" }] }),
+  head: () => ({ meta: [{ title: "Accept invitation — Argus Service Desk" }] }),
   component: AcceptInvitation,
 });
 
@@ -66,7 +66,7 @@ function AcceptInvitation() {
           >
             W
           </span>
-          WeCrew ITSM
+          Argus Service Desk
         </Link>
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
           <span className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-secondary">

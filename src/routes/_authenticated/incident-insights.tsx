@@ -18,13 +18,13 @@ import {
 export const Route = createFileRoute("/_authenticated/incident-insights")({
   head: () => ({
     meta: [
-      { title: "Incident dashboard — WeCrew ITSM" },
+      { title: "Incident dashboard — Argus Service Desk" },
       {
         name: "description",
         content:
           "Incident volume, open backlog by priority, SLA attainment, response and resolution times, categories, and ageing tickets.",
       },
-      { property: "og:title", content: "Incident dashboard — WeCrew ITSM" },
+      { property: "og:title", content: "Incident dashboard — Argus Service Desk" },
       {
         property: "og:description",
         content:

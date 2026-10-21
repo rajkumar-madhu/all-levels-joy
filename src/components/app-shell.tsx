@@ -150,7 +150,7 @@ function WorkspaceNavigation({
           to="/dashboard"
           onClick={onNavigate}
           className="inline-flex items-center gap-3 rounded-md focus-visible:outline-sidebar-ring"
-          aria-label="WeCrew ITSM dashboard"
+          aria-label="Argus Service Desk dashboard"
         >
           <span
             className="flex h-9 w-9 items-center justify-center rounded-md bg-brand font-serif text-lg font-semibold text-white"
@@ -159,7 +159,7 @@ function WorkspaceNavigation({
             W
           </span>
           <span>
-            <span className="block text-base font-semibold tracking-tight text-white">WeCrew</span>
+            <span className="block text-base font-semibold tracking-tight text-white">Argus</span>
             <span className="block text-[10px] font-medium uppercase tracking-[0.16em] text-sidebar-foreground/70">
               Service management
             </span>
@@ -344,7 +344,7 @@ export function AppShell({
         >
           <SheetTitle className="sr-only">Workspace navigation</SheetTitle>
           <SheetDescription className="sr-only">
-            Navigate WeCrew service management and access your profile.
+            Navigate Argus service management and access your profile.
           </SheetDescription>
           {navigation}
         </SheetContent>

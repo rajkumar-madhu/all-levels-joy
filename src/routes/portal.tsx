@@ -18,10 +18,10 @@ export const Route = createFileRoute("/portal")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Customer portal — WeCrew Support" },
+      { title: "Customer portal — Argus Service Desk" },
       { name: "description", content: "Search help articles, track your support tickets, known problems and outage updates." },
-      { property: "og:title", content: "Customer portal — WeCrew Support" },
-      { property: "og:description", content: "Check status and reply to your WeCrew support tickets." },
+      { property: "og:title", content: "Customer portal — Argus Service Desk" },
+      { property: "og:description", content: "Check status and reply to your Argus support tickets." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -41,7 +41,7 @@ function Portal() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-5 py-4">
-          <p className="font-semibold text-foreground">WeCrew Support</p>
+          <p className="font-semibold text-foreground">Argus Service Desk</p>
           <div className="flex flex-wrap items-center gap-2">
           <Button asChild size="sm" variant="outline"><Link to="/security">Security workspace</Link></Button>
           {signedIn ? (
