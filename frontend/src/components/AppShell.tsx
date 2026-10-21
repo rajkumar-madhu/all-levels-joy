@@ -16,6 +16,8 @@ import {
   Menu,
   ScrollText,
   Settings,
+  MessageSquare,
+  Plug,
   ShieldAlert,
   Siren,
   X,
@@ -46,6 +48,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     items: [
       { to: "/", label: "Dashboard", icon: LayoutDashboard },
       { to: "/incident-insights", label: "Incident insights", icon: BarChart3, staffOnly: true },
+      { to: "/assistant", label: "Support assistant", icon: MessageSquare },
     ],
   },
   {
@@ -68,6 +71,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { to: "/knowledge", label: "Knowledge", icon: BookOpen },
       { to: "/assets", label: "Assets & CMDB", icon: Boxes, staffOnly: true },
       { to: "/audit", label: "Audit trail", icon: ScrollText, staffOnly: true },
+      { to: "/integrations", label: "Integrations", icon: Plug, adminOnly: true },
       { to: "/administration", label: "Administration", icon: Settings, adminOnly: true },
     ],
   },

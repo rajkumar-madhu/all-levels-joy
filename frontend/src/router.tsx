@@ -8,6 +8,7 @@ import { AuditPage } from "@/pages/AuditPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { ApprovalsPage } from "@/pages/ApprovalsPage";
 import { ArticleEditorPage } from "@/pages/ArticleEditorPage";
+import { AssistantPage } from "@/pages/AssistantPage";
 import { ArticlePage } from "@/pages/ArticlePage";
 import { AssetsPage } from "@/pages/AssetsPage";
 import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
@@ -25,6 +26,11 @@ import { NewChangePage } from "@/pages/NewChangePage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { ProblemDetailPage } from "@/pages/ProblemDetailPage";
 import { ProblemsPage } from "@/pages/ProblemsPage";
+import { IntegrationsPage } from "@/pages/IntegrationsPage";
+import { PortalArticlePage } from "@/pages/portal/PortalArticlePage";
+import { PortalHomePage } from "@/pages/portal/PortalHomePage";
+import { PortalLayout } from "@/pages/portal/PortalLayout";
+import { PortalTicketPage } from "@/pages/portal/PortalTicketPage";
 import { RequestDetailPage } from "@/pages/RequestDetailPage";
 import { RequestsPage } from "@/pages/RequestsPage";
 import { SecurityPage } from "@/pages/SecurityPage";
@@ -35,6 +41,16 @@ export const router = createBrowserRouter([
   { path: "/auth/callback", element: <AuthCallbackPage /> },
   // Opened before the person is a member, so it needs sign-in but not a workspace.
   { path: "/accept-invitation", element: <RequireSignIn><AcceptInvitationPage /></RequireSignIn> },
+  // Customer portal: its own layout; knowledge is public, tickets need sign-in but not workspace membership.
+  {
+    path: "/portal",
+    element: <PortalLayout />,
+    children: [
+      { index: true, element: <PortalHomePage /> },
+      { path: "knowledge/:articleId", element: <PortalArticlePage /> },
+      { path: ":recordType/:recordId", element: <PortalTicketPage /> },
+    ],
+  },
   {
     element: <RequireWorkspace />,
     children: [
@@ -42,6 +58,8 @@ export const router = createBrowserRouter([
         element: <AppShell />,
         children: [
           { index: true, element: <DashboardPage />, handle: { title: "Dashboard" } },
+          { path: "assistant", element: <AssistantPage />, handle: { title: "Support assistant" } },
+          { path: "assistant/:threadId", element: <AssistantPage />, handle: { title: "Support assistant" } },
           { path: "incidents", element: <IncidentsPage />, handle: { title: "Incidents" } },
           { path: "incidents/:incidentId", element: <IncidentDetailPage />, handle: { title: "Incidents" } },
           { path: "requests", element: <RequestsPage />, handle: { title: "Service requests" } },
@@ -66,6 +84,7 @@ export const router = createBrowserRouter([
           { path: "audit", element: <AuditPage />, handle: { title: "Audit trail" } },
           { path: "administration", element: <AdministrationPage />, handle: { title: "Administration" } },
           { path: "profile", element: <ProfilePage />, handle: { title: "Profile" } },
+          { path: "integrations", element: <IntegrationsPage />, handle: { title: "Integrations" } },
           { path: "*", element: <NotFoundPage />, handle: { title: "Not found" } },
         ],
       },

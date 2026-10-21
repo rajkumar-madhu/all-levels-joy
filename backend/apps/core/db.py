@@ -45,6 +45,16 @@ def act_as_service() -> None:
         cursor.execute("SET LOCAL ROLE service_role")
 
 
+def act_as_anon() -> None:
+    """Anonymous visitor: RLS exposes only what the legacy schema grants to `anon` (published knowledge)."""
+    _require_transaction()
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT set_config('request.jwt.claim.sub', '', true), set_config('request.jwt.claims', '', true)"
+        )
+        cursor.execute("SET LOCAL ROLE anon")
+
+
 def jsonb(value: Any) -> Jsonb:
     return Jsonb(value)
 
