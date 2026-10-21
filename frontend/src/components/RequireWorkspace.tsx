@@ -31,7 +31,8 @@ export function RequireWorkspace() {
   if (!workspace)
     return (
       <StateMessage kind="error">
-        Your account does not have active access to a workspace. Ask your workspace administrator for an invitation.
+        Your account does not have active access to a workspace. If you received an invitation link, open it to join;
+        otherwise ask your workspace administrator for an invitation.
       </StateMessage>
     );
   return <Outlet />;

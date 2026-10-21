@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     "apps.problems",
     "apps.insights",
     "apps.attachments",
+    "apps.administration",
+    "apps.account",
     "apps.integrations",
 ]
 

@@ -1,6 +1,11 @@
 import { createBrowserRouter } from "react-router";
 import { AppShell } from "@/components/AppShell";
+import { RequireSignIn } from "@/components/RequireSignIn";
 import { RequireWorkspace } from "@/components/RequireWorkspace";
+import { AcceptInvitationPage } from "@/pages/AcceptInvitationPage";
+import { AdministrationPage } from "@/pages/AdministrationPage";
+import { AuditPage } from "@/pages/AuditPage";
+import { ProfilePage } from "@/pages/ProfilePage";
 import { ApprovalsPage } from "@/pages/ApprovalsPage";
 import { ArticleEditorPage } from "@/pages/ArticleEditorPage";
 import { ArticlePage } from "@/pages/ArticlePage";
@@ -27,6 +32,8 @@ import { SlaPage } from "@/pages/SlaPage";
 // `handle.title` feeds the header breadcrumb; it matches the sidebar label for each page.
 export const router = createBrowserRouter([
   { path: "/auth/callback", element: <AuthCallbackPage /> },
+  // Opened before the person is a member, so it needs sign-in but not a workspace.
+  { path: "/accept-invitation", element: <RequireSignIn><AcceptInvitationPage /></RequireSignIn> },
   {
     element: <RequireWorkspace />,
     children: [
@@ -54,6 +61,9 @@ export const router = createBrowserRouter([
           { path: "problems", element: <ProblemsPage />, handle: { title: "Problems" } },
           { path: "problems/:problemId", element: <ProblemDetailPage />, handle: { title: "Problems" } },
           { path: "security", element: <SecurityPage />, handle: { title: "Security findings" } },
+          { path: "audit", element: <AuditPage />, handle: { title: "Audit trail" } },
+          { path: "administration", element: <AdministrationPage />, handle: { title: "Administration" } },
+          { path: "profile", element: <ProfilePage />, handle: { title: "Profile" } },
           { path: "*", element: <NotFoundPage />, handle: { title: "Not found" } },
         ],
       },

@@ -49,6 +49,16 @@ with Keycloak.
   access each time. There are no public file links.
 - **Global search** in the header: incidents, requests, changes, knowledge, catalogue, security findings and
   assets you are allowed to see.
+- **Administration** (admins only): members (search, access filter, 25 per page, roles and access with
+  stale-edit protection and approver warnings), invitations (create, copy the acceptance link, revoke),
+  assignment groups (create, edit, archive), and workspace name and timezone.
+- **Accept invitation** (`/accept-invitation?invitation=<id>`, `?token=` also accepted): needs sign-in but no
+  workspace, and shows the workspace, roles and expiry before you accept.
+- **Profile** (from the sidebar profile block): name, contact details, department, locale, timezone and the
+  email digest preference.
+- **Notifications**: a header bell with your 20 most recent notifications. Opening it does not mark them
+  read; **Mark all read** is a separate action.
+- **Audit trail** (staff): read-only, filter by record type and action, load older entries page by page.
 
 ## Look and feel
 

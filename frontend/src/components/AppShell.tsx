@@ -14,6 +14,8 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  ScrollText,
+  Settings,
   ShieldAlert,
   Siren,
   X,
@@ -24,10 +26,17 @@ import { useActiveWorkspace, useMe } from "@/api/hooks";
 import { signOut } from "@/auth/oidc";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ROLE_LABELS } from "@/lib/format";
+import { NotificationBell } from "./NotificationBell";
 import { useSession } from "@/stores/session";
 import { useUi } from "@/stores/ui";
 
-type NavItem = { to: string; label: string; icon: ComponentType<{ className?: string }>; staffOnly?: boolean };
+type NavItem = {
+  to: string;
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+  staffOnly?: boolean;
+  adminOnly?: boolean;
+};
 
 // Same sections, labels and icons as the existing app's sidebar (src/components/app-shell.tsx), limited to
 // the screens this app implements. Labels double as page titles so sidebar, breadcrumb and heading agree.
@@ -57,6 +66,8 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { to: "/approvals", label: "Approvals", icon: BadgeCheck },
       { to: "/security", label: "Security findings", icon: ShieldAlert, staffOnly: true },
       { to: "/knowledge", label: "Knowledge", icon: BookOpen },
+      { to: "/audit", label: "Audit trail", icon: ScrollText, staffOnly: true },
+      { to: "/administration", label: "Administration", icon: Settings, adminOnly: true },
     ],
   },
 ];
@@ -111,7 +122,9 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <nav aria-label="Main" className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 pb-5">
         {NAV_GROUPS.map((group) => {
-          const items = group.items.filter((item) => !item.staffOnly || workspace?.is_staff);
+          const items = group.items.filter(
+            (item) => (!item.staffOnly || workspace?.is_staff) && (!item.adminOnly || workspace?.roles.includes("admin")),
+          );
           if (!items.length) return null;
           return (
             <div key={group.label}>
@@ -148,7 +161,12 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="shrink-0 border-t border-sidebar-border p-3">
-        <div className="flex items-center gap-3 rounded-lg p-2">
+        <Link
+          to="/profile"
+          onClick={onNavigate}
+          aria-label={`Your profile: ${name}`}
+          className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5"
+        >
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-sidebar-border bg-sidebar-accent text-xs font-semibold text-sidebar-foreground">
             {initials}
           </span>
@@ -158,7 +176,8 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               {roles.map((r) => ROLE_LABELS[r] ?? r).join(", ")}
             </span>
           </span>
-        </div>
+          <ChevronRight className="size-3.5 text-sidebar-foreground/65" aria-hidden />
+        </Link>
         <button
           onClick={() => void signOut()}
           className="mt-1 flex min-h-9 w-full items-center gap-2 rounded-md px-3 text-xs text-sidebar-foreground/70 transition-colors hover:bg-white/5 hover:text-white"
@@ -175,6 +194,7 @@ export function AppShell() {
   const matches = useMatches();
   const location = useLocation();
   const title = [...matches].reverse().map((m) => (m.handle as { title?: string } | undefined)?.title).find(Boolean);
+  const workspace = useActiveWorkspace();
 
   // Close the drawer when the route changes or the viewport grows to the desktop layout.
   useEffect(closeSidebar, [location.pathname, closeSidebar]);
@@ -232,8 +252,9 @@ export function AppShell() {
               </>
             )}
           </p>
-          <div className="ml-auto flex min-w-0 flex-1 justify-end">
+          <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-2">
             <GlobalSearch />
+            {workspace && <NotificationBell orgId={workspace.id} />}
           </div>
         </header>
         <main id="main" tabIndex={-1} className="mx-auto grid w-full max-w-[1400px] min-w-0 flex-1 content-start gap-6 px-4 py-6 focus:outline-none sm:px-6 lg:px-8">
