@@ -39,6 +39,16 @@ with Keycloak.
 - **Security findings**: staff only. Record a finding, submit the fix plan, approve or reject it, schedule the
   window, start, deliver and close the fix, link a change or incident, and request or decide risk exceptions.
   Requesters never load the board, and the nav item is hidden from them.
+- **SLA performance**: open requests and incidents per team, what is due within 24 hours, and what is breached
+  now (requesters see their own tickets only).
+- **Incident insights** (staff nav): 30-day volumes, mean time to resolve and to first response, SLA
+  attainment, a 14-day opened/resolved chart drawn to scale in SVG, breakdowns and the oldest open incidents.
+- **Service targets and history** on incidents and requests: SLA targets (met, running, paused, breached) and a
+  timeline built only from recorded audit snapshots.
+- **Attachments** on incidents and requests: upload up to 25 MB; downloads go through the API, which checks
+  access each time. There are no public file links.
+- **Global search** in the header: incidents, requests, changes, knowledge, catalogue, security findings and
+  assets you are allowed to see.
 
 ## Look and feel
 

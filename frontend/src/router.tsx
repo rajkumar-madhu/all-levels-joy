@@ -11,6 +11,7 @@ import { ChangesPage } from "@/pages/ChangesPage";
 import { CommandCenterPage } from "@/pages/CommandCenterPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { IncidentDetailPage } from "@/pages/IncidentDetailPage";
+import { IncidentInsightsPage } from "@/pages/IncidentInsightsPage";
 import { IncidentsPage } from "@/pages/IncidentsPage";
 import { KnowledgeCategoriesPage } from "@/pages/KnowledgeCategoriesPage";
 import { KnowledgePage } from "@/pages/KnowledgePage";
@@ -21,6 +22,7 @@ import { ProblemsPage } from "@/pages/ProblemsPage";
 import { RequestDetailPage } from "@/pages/RequestDetailPage";
 import { RequestsPage } from "@/pages/RequestsPage";
 import { SecurityPage } from "@/pages/SecurityPage";
+import { SlaPage } from "@/pages/SlaPage";
 
 // `handle.title` feeds the header breadcrumb; it matches the sidebar label for each page.
 export const router = createBrowserRouter([
@@ -40,6 +42,8 @@ export const router = createBrowserRouter([
           { path: "changes/new", element: <NewChangePage />, handle: { title: "Changes" } },
           { path: "changes/:changeId", element: <ChangeDetailPage />, handle: { title: "Changes" } },
           { path: "command-center", element: <CommandCenterPage />, handle: { title: "Major incident command" } },
+          { path: "sla", element: <SlaPage />, handle: { title: "SLA performance" } },
+          { path: "incident-insights", element: <IncidentInsightsPage />, handle: { title: "Incident insights" } },
           { path: "approvals", element: <ApprovalsPage />, handle: { title: "Approvals" } },
           { path: "catalog", element: <CatalogPage />, handle: { title: "Service catalogue" } },
           { path: "knowledge", element: <KnowledgePage />, handle: { title: "Knowledge" } },

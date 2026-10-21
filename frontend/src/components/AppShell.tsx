@@ -2,12 +2,14 @@ import { clsx } from "clsx";
 import {
   AlertTriangle,
   BadgeCheck,
+  BarChart3,
   BookOpen,
   Boxes,
   Bug,
   Building2,
   ChevronRight,
   ClipboardList,
+  Gauge,
   GitBranch,
   LayoutDashboard,
   LogOut,
@@ -20,6 +22,7 @@ import { useEffect, type ComponentType } from "react";
 import { Link, NavLink, Outlet, useLocation, useMatches } from "react-router";
 import { useActiveWorkspace, useMe } from "@/api/hooks";
 import { signOut } from "@/auth/oidc";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { ROLE_LABELS } from "@/lib/format";
 import { useSession } from "@/stores/session";
 import { useUi } from "@/stores/ui";
@@ -29,7 +32,13 @@ type NavItem = { to: string; label: string; icon: ComponentType<{ className?: st
 // Same sections, labels and icons as the existing app's sidebar (src/components/app-shell.tsx), limited to
 // the screens this app implements. Labels double as page titles so sidebar, breadcrumb and heading agree.
 export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
-  { label: "Overview", items: [{ to: "/", label: "Dashboard", icon: LayoutDashboard }] },
+  {
+    label: "Overview",
+    items: [
+      { to: "/", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/incident-insights", label: "Incident insights", icon: BarChart3, staffOnly: true },
+    ],
+  },
   {
     label: "ITSM",
     items: [
@@ -39,6 +48,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { to: "/problems", label: "Problems", icon: Bug, staffOnly: true },
       { to: "/changes", label: "Changes", icon: GitBranch },
       { to: "/command-center", label: "Major incident command", icon: Siren, staffOnly: true },
+      { to: "/sla", label: "SLA performance", icon: Gauge },
     ],
   },
   {
@@ -222,6 +232,9 @@ export function AppShell() {
               </>
             )}
           </p>
+          <div className="ml-auto flex min-w-0 flex-1 justify-end">
+            <GlobalSearch />
+          </div>
         </header>
         <main id="main" tabIndex={-1} className="mx-auto grid w-full max-w-[1400px] min-w-0 flex-1 content-start gap-6 px-4 py-6 focus:outline-none sm:px-6 lg:px-8">
           <Outlet />

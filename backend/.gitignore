@@ -5,3 +5,5 @@ __pycache__/
 .venv/
 .env
 celerybeat-schedule*
+# Local evidence attachments (EVIDENCE_ROOT default)
+var/

@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     "apps.comments",
     "apps.major_incidents",
     "apps.problems",
+    "apps.insights",
+    "apps.attachments",
     "apps.integrations",
 ]
 
@@ -138,3 +140,31 @@ LOGGING = {
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_CONTENT_TYPE_NOSNIFF = True
 DATA_UPLOAD_MAX_MEMORY_SIZE = 512_000
+
+# Evidence attachments (legacy `itsm-evidence` bucket). Files are only served through the API after an
+# access check, so no storage backend may hand out public URLs. Local disk by default; set
+# EVIDENCE_STORAGE=s3 with the EVIDENCE_S3_* variables for S3, MinIO or another S3-compatible store.
+ATTACHMENT_MAX_BYTES = 25 * 1024 * 1024
+if env("EVIDENCE_STORAGE", "filesystem") == "s3":
+    _evidence_storage = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": env("EVIDENCE_S3_BUCKET", "itsm-evidence"),
+            "endpoint_url": env("EVIDENCE_S3_ENDPOINT_URL"),
+            "region_name": env("EVIDENCE_S3_REGION"),
+            "access_key": env("EVIDENCE_S3_ACCESS_KEY_ID"),
+            "secret_key": env("EVIDENCE_S3_SECRET_ACCESS_KEY"),
+            "default_acl": "private",
+            "file_overwrite": False,
+            "querystring_auth": True,
+        },
+    }
+else:
+    _evidence_storage = {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {"location": env("EVIDENCE_ROOT", str(BASE_DIR / "var" / "evidence"))},
+    }
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "evidence": _evidence_storage,
+}
