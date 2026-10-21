@@ -2,7 +2,7 @@ import pytest
 
 from apps.core import policy
 
-from .conftest import seed
+from .conftest import create_org, seed
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -86,7 +86,7 @@ def test_staff_cannot_write_findings_table_directly(org, make_user):
 
 
 def test_finding_from_another_workspace_is_not_found(org, make_user, opa):
-    other = seed("INSERT INTO public.organizations(name, slug) VALUES ('Other', %s) RETURNING id", [f"s-{org[:8]}"])[0]
+    other = create_org("Other")
     elsewhere = make_user(str(other), roles=("requester", "service_desk"))
     created = elsewhere.post(
         f"/api/v1/orgs/{other}/security/findings",

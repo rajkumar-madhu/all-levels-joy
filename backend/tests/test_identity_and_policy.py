@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.test import APIClient
 
-from .conftest import make_token, seed
+from .conftest import create_org, make_token
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -59,6 +59,6 @@ def test_opa_outage_fails_closed(org, make_user, settings):
 
 
 def test_roles_from_another_workspace_do_not_apply(org, make_user, opa):
-    other = seed("INSERT INTO public.organizations(name, slug) VALUES ('Other', %s) RETURNING id", [f"o-{org[:8]}"])[0]
+    other = create_org("Other")
     admin_elsewhere = make_user(str(other), roles=("requester", "admin"))
     assert admin_elsewhere.get(f"/api/v1/orgs/{org}/security/board").status_code == 403

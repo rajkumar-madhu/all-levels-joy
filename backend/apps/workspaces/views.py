@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 
-from apps.core.db import call_function, fetch_one
+from apps.core.db import call_function, fetch_all, fetch_one
 from apps.core.permissions import IsAuthenticatedPrincipal
 from apps.core.views import CallerAPIView
 
@@ -45,3 +45,16 @@ class BootstrapView(CallerAPIView):
         if display_name is not None and not isinstance(display_name, str):
             return Response({"detail": "displayName must be text."}, status=400)
         return Response(call_function("bootstrap_workspace", [("_display_name", display_name, "text")]))
+
+
+class GroupsView(CallerAPIView):
+    """Active assignment groups, for routing incidents and requests."""
+
+    policy_actions = {"GET": "group.read"}
+
+    def get(self, request, org_id):
+        rows = fetch_all(
+            "SELECT id, name, description FROM public.groups WHERE organization_id = %s AND is_active ORDER BY name",
+            [str(org_id)],
+        )
+        return Response({"results": rows})

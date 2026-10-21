@@ -59,3 +59,9 @@ test_only_change_managers_move_changes if {
 	not authz.allow with input as req({org: ["service_desk"]}, "change.update", org)
 	not authz.allow with input as req({org: ["change_manager"]}, "change.update", other)
 }
+
+test_incident_updates_need_operator_roles if {
+	authz.allow with input as req({org: ["service_desk"]}, "incident.update", org)
+	not authz.allow with input as req({org: ["cab_member"]}, "incident.update", org)
+	not authz.allow with input as req({org: ["requester"]}, "incident.update", org)
+}

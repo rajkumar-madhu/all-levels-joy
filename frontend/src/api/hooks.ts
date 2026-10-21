@@ -4,6 +4,9 @@ import { api } from "./client";
 import type {
   Article,
   CatalogItem,
+  Comment,
+  Group,
+  IncidentUpdate,
   Change,
   ChangeAction,
   ChangeSummary,
@@ -68,6 +71,42 @@ export function useIncidents(org: string, filters: { state?: string; q?: string 
 
 export function useIncident(org: string, id: string) {
   return useQuery({ queryKey: keys.incident(org, id), queryFn: () => api<Incident>(`orgs/${org}/incidents/${id}`) });
+}
+
+export function useUpdateIncident(org: string, id: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: IncidentUpdate) => api<Incident>(`orgs/${org}/incidents/${id}`, { method: "PATCH", body }),
+    onSuccess: (incident) => {
+      client.setQueryData(keys.incident(org, id), incident);
+      return client.invalidateQueries({ queryKey: ["orgs", org, "incidents"] });
+    },
+  });
+}
+
+export function useGroups(org: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["orgs", org, "groups"],
+    queryFn: () => api<{ results: Group[] }>(`orgs/${org}/groups`).then((r) => r.results),
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function useComments(org: string, recordType: "incident" | "request", id: string) {
+  return useQuery({
+    queryKey: ["orgs", org, "comments", recordType, id],
+    queryFn: () => api<{ results: Comment[] }>(`orgs/${org}/${recordType}s/${id}/comments`).then((r) => r.results),
+  });
+}
+
+export function useAddComment(org: string, recordType: "incident" | "request", id: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { body: string; internal: boolean }) =>
+      api<{ results: Comment[] }>(`orgs/${org}/${recordType}s/${id}/comments`, { method: "POST", body }),
+    onSuccess: (r) => client.setQueryData(["orgs", org, "comments", recordType, id], r.results),
+  });
 }
 
 export function useCreateIncident(org: string) {

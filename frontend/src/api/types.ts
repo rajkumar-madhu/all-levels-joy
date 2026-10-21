@@ -34,6 +34,10 @@ export type Incident = IncidentSummary & {
   resolved_at: string | null;
   first_responded_at: string | null;
   reopen_count: number;
+  assignee_id: string | null;
+  assignee_name: string | null;
+  group_id: string | null;
+  group_name: string | null;
 };
 
 export type NewIncident = {
@@ -263,4 +267,28 @@ export type MyApproval = {
   change_type: ChangeType | null;
   start_at: string | null;
   end_at: string | null;
+};
+
+export type Group = { id: string; name: string; description: string | null };
+
+export type Comment = {
+  id: string;
+  body: string;
+  internal: boolean;
+  created_at: string;
+  author_id: string;
+  author_name: string | null;
+};
+
+/** Fields an operator may change; only the ones present are applied. */
+export type IncidentUpdate = {
+  expectedUpdatedAt: string;
+  state?: IncidentState;
+  assignToMe?: boolean;
+  groupId?: string | null;
+  impact?: number;
+  urgency?: number;
+  resolutionNotes?: string;
+  onHoldReason?: string | null;
+  closeCode?: string | null;
 };

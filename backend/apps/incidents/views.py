@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from django.http import Http404
 from rest_framework import status
 from rest_framework.response import Response
@@ -5,7 +7,8 @@ from rest_framework.response import Response
 from apps.core.db import call_function, fetch_all, fetch_one, like_pattern
 from apps.core.views import CallerAPIView
 
-from .serializers import SelfServiceIncidentSerializer
+from .serializers import IncidentUpdateSerializer, SelfServiceIncidentSerializer
+from .workflow import CONFLICT_MESSAGE, Conflict, WorkflowError, build_patch
 
 STATES = {"new", "open", "in_progress", "pending", "resolved", "closed", "cancelled"}
 LIST_COLUMNS = """
@@ -65,16 +68,77 @@ class IncidentListView(CallerAPIView):
         return Response(result, status=status.HTTP_201_CREATED)
 
 
+DETAIL_COLUMNS = (
+    f"{LIST_COLUMNS}, i.description, i.subcategory, i.on_hold_reason, i.close_code, i.resolution_notes, "
+    "i.resolved_at, i.first_responded_at, i.reopen_count, i.problem_id, g.name AS group_name, "
+    "p.display_name AS assignee_name"
+)
+# Columns build_patch may produce; the SET clause is built only from this list.
+PATCHABLE = {
+    "state": "%s::public.record_state",
+    "assignee_id": "%s::uuid",
+    "group_id": "%s::uuid",
+    "impact": "%s::smallint",
+    "urgency": "%s::smallint",
+    "category": "%s",
+    "subcategory": "%s",
+    "close_code": "%s",
+    "on_hold_reason": "%s",
+    "resolution_notes": "%s",
+    "resolved_at": "%s::timestamptz",
+    "reopen_count": "%s::integer",
+    "first_responded_at": "%s::timestamptz",
+}
+
+
+def load_incident(org_id: str, incident_id) -> dict:
+    row = fetch_one(
+        f"SELECT {DETAIL_COLUMNS} FROM public.incidents i "
+        "LEFT JOIN public.groups g ON g.id = i.group_id LEFT JOIN public.profiles p ON p.id = i.assignee_id "
+        "WHERE i.organization_id = %s AND i.id = %s",
+        [org_id, str(incident_id)],
+    )
+    if not row:
+        raise Http404
+    return row
+
+
 class IncidentDetailView(CallerAPIView):
-    policy_actions = {"GET": "incident.read"}
+    policy_actions = {"GET": "incident.read", "PATCH": "incident.update"}
 
     def get(self, request, org_id, incident_id):
-        row = fetch_one(
-            f"SELECT {LIST_COLUMNS}, i.description, i.subcategory, i.on_hold_reason, i.close_code, "
-            "i.resolution_notes, i.resolved_at, i.first_responded_at, i.reopen_count, i.problem_id "
-            "FROM public.incidents i WHERE i.organization_id = %s AND i.id = %s",
+        return Response(load_incident(self.org_id, incident_id))
+
+    def patch(self, request, org_id, incident_id):
+        data = IncidentUpdateSerializer(data=request.data)
+        data.is_valid(raise_exception=True)
+        current = fetch_one(
+            "SELECT state::text AS state, updated_at, first_responded_at, reopen_count, resolved_at, "
+            "resolution_notes, close_code, on_hold_reason FROM public.incidents WHERE organization_id = %s AND id = %s",
             [self.org_id, str(incident_id)],
         )
-        if not row:
+        if not current:
             raise Http404
-        return Response(row)
+        try:
+            patch = build_patch(current, dict(data.validated_data), request.user.user_id, datetime.now(UTC))
+        except Conflict as error:
+            return Response({"detail": str(error)}, status=status.HTTP_409_CONFLICT)
+        except WorkflowError as error:
+            return Response({"detail": str(error)}, status=400)
+        if patch.get("group_id") and not fetch_one(
+            "SELECT 1 AS ok FROM public.groups WHERE organization_id = %s AND id = %s AND is_active",
+            [self.org_id, patch["group_id"]],
+        ):
+            return Response({"detail": "The selected group is not available in this organization."}, status=400)
+        if patch:
+            columns = sorted(patch)
+            assignments = ", ".join(f"{c} = {PATCHABLE[c]}" for c in columns)
+            # validate_incident_workflow re-checks every rule; the version check stops lost updates.
+            updated = fetch_one(
+                f"UPDATE public.incidents SET {assignments} "
+                "WHERE organization_id = %s AND id = %s AND updated_at = %s RETURNING id",
+                [*(patch[c] for c in columns), self.org_id, str(incident_id), current["updated_at"]],
+            )
+            if not updated:
+                return Response({"detail": CONFLICT_MESSAGE}, status=status.HTTP_409_CONFLICT)
+        return Response(load_incident(self.org_id, incident_id))

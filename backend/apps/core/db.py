@@ -87,3 +87,11 @@ def fetch_one(sql: str, params: Sequence[Any] = ()) -> dict[str, Any] | None:
 def like_pattern(text: str) -> str:
     """`%text%` for ILIKE with the user's own wildcards escaped."""
     return "%" + text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+
+
+def execute(sql: str, params: Sequence[Any] = ()) -> int:
+    """Run a statement and return the affected row count. Use it where RETURNING would need read access
+    the caller lacks (for example, inserting an audit event they may not read back)."""
+    with connection.cursor() as cursor:
+        cursor.execute(sql, params)
+        return cursor.rowcount

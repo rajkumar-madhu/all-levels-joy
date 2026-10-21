@@ -18,7 +18,10 @@ with Keycloak.
 - **Dashboard**: open incidents, incidents past their SLA target, approvals waiting for you, and active
   security findings for staff.
 - **Incidents**: queue for staff, own tickets for requesters (the API's row-level security decides). Filter,
-  search, raise a ticket, and open a detail page.
+  search and raise a ticket. Staff assign to themselves, route to a group, change impact or urgency, put on
+  hold with a reason, resolve with notes and a close code, and reopen. Only valid next states are offered.
+- **Conversation** on incidents and requests: requesters and staff comment; staff can add internal notes
+  that requesters never receive.
 - **Requests and service catalogue**: browse the catalogue and ask for an item. Requests that need approval
   wait for an independent manager. Fulfilment staff move requests on, with stale-edit protection.
 - **Changes**: plan standard, normal or emergency changes in your own timezone. Change managers start,

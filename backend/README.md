@@ -53,6 +53,10 @@ Request bodies use the same camelCase fields as the legacy server functions; res
 | `GET /api/v1/orgs/{org}/incidents?state=&q=&limit=` | `incident.list` | RLS on `incidents` |
 | `POST /api/v1/orgs/{org}/incidents` | `incident.create_self_service` | `itsm_self_service_incident` |
 | `GET /api/v1/orgs/{org}/incidents/{id}` | `incident.read` | RLS |
+| `PATCH /api/v1/orgs/{org}/incidents/{id}` | `incident.update` (service desk, fulfiller, manager, admin) | assign, group, impact/urgency, hold, resolve, close, reopen; rules ported from `incident-workflow.ts`, re-checked by `validate_incident_workflow`; 409 when `expectedUpdatedAt` is stale |
+| `GET, POST /api/v1/orgs/{org}/incidents/{id}/comments` | `comment.read` / `comment.create` | RLS on `record_comments` hides internal notes from requesters; each comment writes a `comment_added` audit event |
+| `GET, POST /api/v1/orgs/{org}/requests/{id}/comments` | same | same |
+| `GET /api/v1/orgs/{org}/groups` | `group.read` | active assignment groups |
 | `GET /api/v1/orgs/{org}/knowledge?q=` | `knowledge.read` | RLS on `knowledge_articles` |
 | `GET /api/v1/orgs/{org}/knowledge/{id}` | `knowledge.read` | RLS |
 | `GET /api/v1/orgs/{org}/security/board` | `security.board.read` | `can_manage` + RLS |
@@ -118,12 +122,21 @@ ruff check . && ruff format --check .
 The pytest suite builds a fresh PostgreSQL 16 database with the full legacy schema and starts a real OPA
 server. It covers identity linking, token checks, OPA fail-closed, RLS isolation between requesters and
 workspaces, the security lifecycle through the database functions, request approval and fulfilment, the
-change lifecycle through CAB approval, and all three webhooks. Policy tests
+change lifecycle through CAB approval, incident handling (hold, resolve, reopen, stale edits), internal
+notes hidden from requesters, and all three webhooks. `tests/test_incident_workflow.py` mirrors the legacy
+`tests/incident-workflow.test.ts` rules.
+
+### Known limitation in the existing schema
+
+Record numbers (`INC0001001`, `REQ…`, `CHG…`) are unique across the whole database, but the counters that
+issue them are per workspace. The current app runs a single workspace, so this never shows. A second
+workspace would collide on its first record until the counters are made global or the uniqueness becomes
+per workspace. That needs a schema migration agreed with the Lovable app, so it is not changed here. Policy tests
 needing OPA are skipped when no `opa` binary is found.
 
 ## Not migrated yet
 
-Incident updates (assignment, hold and resolve), request tasks, problems, major incidents, CMDB, catalogue
+Staff-raised incidents (with group and service), request tasks, problems, major incidents, CMDB, catalogue
 administration, workspace administration, comments, attachments (Supabase Storage → object storage) and the
 AI assistant still run only in the current app. Each one should
 follow the same pattern: an OPA action, a `CallerAPIView`, and calls to the existing SQL functions.

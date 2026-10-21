@@ -31,6 +31,9 @@ member_actions := {
 	"change.read",
 	"approval.list",
 	"approval.decide",
+	"group.read",
+	"comment.read",
+	"comment.create",
 }
 
 staff_actions := {
@@ -60,7 +63,11 @@ change_update_roles := {"change_manager", "admin"}
 # itsm_create_change role check.
 change_create_roles := {"fulfiller", "change_manager", "manager", "admin"}
 
+# Legacy canManageIncidents and the validate_incident_workflow trigger.
+incident_update_roles := {"service_desk", "fulfiller", "manager", "admin"}
+
 role_actions := {
+	"incident.update": incident_update_roles,
 	"request.update": request_update_roles,
 	"change.create": change_create_roles,
 	"change.update": change_update_roles,

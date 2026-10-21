@@ -5,6 +5,7 @@ Needs: POSTGRES_* env pointing at a superuser (the test database is created and 
 """
 
 import os
+import random
 import shutil
 import socket
 import subprocess
@@ -68,14 +69,26 @@ def seed(sql: str, params=()):
         return cursor.fetchone() if cursor.description else None
 
 
-@pytest.fixture
-def org():
+def create_org(name_prefix: str = "Test") -> str:
     org_id = str(uuid.uuid4())
     seed(
         "INSERT INTO public.organizations(id, name, slug) VALUES (%s, %s, %s)",
-        [org_id, f"Test {org_id[:8]}", f"t-{org_id[:8]}"],
+        [org_id, f"{name_prefix} {org_id[:8]}", f"t-{org_id[:8]}"],
     )
+    # Record numbers (INC0001001, ...) are unique across the database while counters are per workspace,
+    # so each test workspace numbers from its own range.
+    base = random.randint(100, 8999) * 1000
+    for prefix in ("INC", "REQ", "CHG", "KB", "PRB", "MI", "SEC"):
+        seed(
+            "INSERT INTO public.record_counters(organization_id, prefix, current_value) VALUES (%s, %s, %s)",
+            [org_id, prefix, base],
+        )
     return org_id
+
+
+@pytest.fixture
+def org():
+    return create_org()
 
 
 @pytest.fixture
