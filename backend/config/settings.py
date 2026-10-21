@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "apps.assistant",
     "apps.portal",
     "apps.integration_status",
+    "apps.pam",
     "apps.integrations",
 ]
 
@@ -131,6 +132,14 @@ ASSISTANT_MAX_TOKENS = int(env("ASSISTANT_MAX_TOKENS", "16000") or 16000)
 # Customer portal: the workspace portal tickets are filed into (legacy DEMO_ORG_ID).
 PORTAL_ORG_ID = env("PORTAL_ORG_ID", "10000000-0000-0000-0000-000000000001")
 
+# Privileged access vault. PAM_MASTER_KEY is a base64 AES-256 key (`openssl rand -base64 32`); without it
+# a development key is derived in DEBUG and the vault refuses to run otherwise.
+PAM_MASTER_KEY = env("PAM_MASTER_KEY")
+# "ssh" changes passwords on the hosts; "simulated" only changes the vault copy (development).
+PAM_ROTATION_BACKEND = env("PAM_ROTATION_BACKEND", "simulated" if DEBUG else "ssh")
+PAM_SSH_KNOWN_HOSTS = env("PAM_SSH_KNOWN_HOSTS")
+PAM_SSH_TIMEOUT_SECONDS = float(env("PAM_SSH_TIMEOUT_SECONDS", "10") or 10)
+
 # Legacy schema sources applied by `manage.py apply_legacy_schema`.
 LEGACY_SQL_ROOT = Path(env("LEGACY_SQL_ROOT", str(BASE_DIR.parent)) or BASE_DIR.parent)
 
@@ -142,6 +151,9 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.integrations.tasks.expire_security_exceptions",
         "schedule": 15 * 60,
     },
+    "pam-expire-access": {"task": "apps.pam.tasks.expire_access", "schedule": 5 * 60},
+    "pam-rotate-due": {"task": "apps.pam.tasks.rotate_due", "schedule": 15 * 60},
+    "pam-verify-secrets": {"task": "apps.pam.tasks.verify_enabled", "schedule": 6 * 60 * 60},
 }
 
 LOGGING = {

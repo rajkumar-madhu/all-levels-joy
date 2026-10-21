@@ -73,6 +73,7 @@ services:
     command: >
       sh -c "python manage.py migrate --noinput &&
              python manage.py apply_legacy_schema &&
+             python manage.py apply_app_schema &&
              gunicorn config.asgi:application -k uvicorn_worker.UvicornWorker -b 0.0.0.0:8000 -w 2 --reload"
     environment: *api-env
     volumes:

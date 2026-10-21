@@ -11,6 +11,7 @@ import {
   ClipboardList,
   Gauge,
   GitBranch,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -19,6 +20,7 @@ import {
   MessageSquare,
   Plug,
   ShieldAlert,
+  ShieldCheck,
   Siren,
   X,
 } from "lucide-react";
@@ -61,6 +63,13 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { to: "/changes", label: "Changes", icon: GitBranch },
       { to: "/command-center", label: "Major incident command", icon: Siren, staffOnly: true },
       { to: "/sla", label: "SLA performance", icon: Gauge },
+    ],
+  },
+  {
+    label: "Privileged access",
+    items: [
+      { to: "/pam/secrets", label: "Secrets vault", icon: KeyRound, staffOnly: true },
+      { to: "/pam/access", label: "Access requests", icon: ShieldCheck, staffOnly: true },
     ],
   },
   {

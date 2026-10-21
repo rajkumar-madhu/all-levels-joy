@@ -137,6 +137,48 @@ or pre-signed links: the API checks access and streams the file.
   point at them. If a database commit fails after a file was written, that file is left unreferenced; a periodic
   sweep of objects without an `attachments` row can remove them.
 
+## Privileged access (PAM)
+
+A vault for privileged account passwords, with time-boxed access, rotation and verification. It is new in
+this backend (the legacy app has no equivalent), so its schema lives in `apps/pam/sql/0001_pam_vault.sql`
+and is applied by `apply_app_schema` after the legacy schema.
+
+- **Encryption.** Passwords are encrypted with AES-256-GCM under `PAM_MASTER_KEY` (base64 of 32 bytes,
+  `openssl rand -base64 32`). The workspace and secret ids are bound in as associated data, so a ciphertext
+  moved to another row does not decrypt. Without the key the vault refuses to run unless `DJANGO_DEBUG` is on.
+  Keep the key outside the database and its backups.
+- **Who sees what.** Staff (`can_manage`) read secret metadata through RLS. `authenticated` has no grant on
+  the `ciphertext` column and cannot write `pam_events`; only the API's service-role paths decrypt, after the
+  checks below. Custodians are workspace managers and administrators (`pam_is_custodian`, `pam.rego`).
+- **Access.** Staff request access with a reason and a window (up to the secret's limit). Production secrets
+  always need an approver (`pam_production_needs_approval`), and nobody approves their own request
+  (`pam_requests_independent_approver`, plus an API check). Requests can only be inserted as pending. The
+  password is revealed only to the requester, inside the approved window, with `Cache-Control: no-store`.
+  Every reveal increments the request's count and writes an event.
+- **Rotation.** `PAM_ROTATION_BACKEND=ssh` signs in as the account and runs `passwd`, then signs in with the
+  new password to confirm it. Host keys must be listed in `PAM_SSH_KNOWN_HOSTS`; unknown hosts are refused.
+  Other templates (database, Windows, API key) need their own backend; until then rotating them fails and is
+  recorded. `simulated` (the default with `DJANGO_DEBUG`) only changes the vault copy. Rotation runs on demand,
+  on schedule (`pam-rotate-due`, every 15 minutes, for secrets past `next_rotation_at`), and after a check-in
+  or expiry when the password was revealed and the secret asks for it. Failures keep the old password and
+  set `last_rotation_error`, retried after an hour.
+- **Verification.** `pam-verify-secrets` (every 6 hours) signs in with the vaulted password for secrets that
+  ask for it.
+- **Log.** `pam_events` is append-only (update, delete and truncate raise), names the secret even after it is
+  deleted, and never contains passwords.
+- **Not included:** session proxying or recording. "Launch" from the legacy design is "Request access".
+
+| Endpoint | OPA action | Enforced underneath by |
+| --- | --- | --- |
+| `GET /api/v1/orgs/{org}/pam/secrets` | `pam.read` | RLS (`can_manage`); risk and summary computed per secret |
+| `POST /api/v1/orgs/{org}/pam/secrets` | `pam.manage` | `pam_is_custodian` + RLS insert policy |
+| `GET, PATCH, DELETE /api/v1/orgs/{org}/pam/secrets/{id}` | `pam.read` / `pam.manage` | RLS; PATCH needs `expectedUpdatedAt` |
+| `POST /api/v1/orgs/{org}/pam/secrets/{id}/{rotate\|verify\|password}` | `pam.manage` | `pam_is_custodian`, then the service role |
+| `POST /api/v1/orgs/{org}/pam/secrets/bulk` | `pam.manage` | enable/disable rotation, verify, move to folder (up to 100) |
+| `GET, POST /api/v1/orgs/{org}/pam/requests` | `pam.read` / `pam.request` | RLS: own requests, or all for custodians |
+| `POST /api/v1/orgs/{org}/pam/requests/{id}/decision` | `pam.decide` | custodian, not the requester; DB check |
+| `POST /api/v1/orgs/{org}/pam/requests/{id}/{reveal\|check-in\|cancel}` | `pam.request` | requester only (custodians may check in) |
+
 ## Run locally
 
 ```sh
@@ -158,6 +200,7 @@ pip install -r requirements-dev.txt
 cp .env.example .env   # then export the variables
 python manage.py migrate            # creates the platform roles/schemas the legacy SQL expects
 python manage.py apply_legacy_schema  # supabase/migrations, then drizzle/migrations in journal order
+python manage.py apply_app_schema     # backend-owned SQL (apps/*/sql/NNNN_*.sql), e.g. the PAM vault
 gunicorn config.asgi:application -k uvicorn_worker.UvicornWorker -b 0.0.0.0:8000
 celery -A config worker -l info & celery -A config beat -l info
 ```
@@ -177,7 +220,8 @@ The pytest suite builds a fresh PostgreSQL 16 database with the full legacy sche
 server. It covers identity linking, token checks, OPA fail-closed, RLS isolation between requesters and
 workspaces, the security lifecycle through the database functions, request approval and fulfilment, the
 change lifecycle through CAB approval, incident handling (hold, resolve, reopen, stale edits), internal
-notes hidden from requesters, and all three webhooks. `tests/test_incident_workflow.py` mirrors the legacy
+notes hidden from requesters, all three webhooks, and the PAM vault (encryption binding, column grants,
+self-approval refused, reveal windows, rotation after check-in, the SSH rotator against a fake host). `tests/test_incident_workflow.py` mirrors the legacy
 `tests/incident-workflow.test.ts` rules.
 
 ### Differences from the legacy command center

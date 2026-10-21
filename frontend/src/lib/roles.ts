@@ -15,3 +15,5 @@ export const KNOWLEDGE_AUTHOR_ROLES = ["service_desk", "fulfiller", "manager", "
 // policies/itsm/cmdb.rego: configuration items and catalogue routing.
 export const CMDB_MANAGE_ROLES = ["cmdb_manager", "admin"];
 export const CATALOG_MANAGE_ROLES = ["manager", "admin"];
+// policies/itsm/pam.rego and public.pam_is_custodian(): who manages the vault and decides access.
+export const PAM_CUSTODIAN_ROLES = ["manager", "admin"];
