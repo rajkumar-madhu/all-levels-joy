@@ -95,6 +95,7 @@ function Landing() {
             <span className="text-sm font-semibold tracking-tight">Argus Service Desk</span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="ghost" size="sm"><Link to="/status">Service status</Link></Button>
           <Button asChild variant="outline" size="sm">
             <Link to="/portal">Customer portal login</Link>
           </Button>
