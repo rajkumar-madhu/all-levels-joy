@@ -43,6 +43,7 @@ function Portal() {
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-5 py-4">
           <p className="font-semibold text-foreground">Argus Service Desk</p>
           <div className="flex flex-wrap items-center gap-2">
+          <Button asChild size="sm" variant="ghost"><Link to="/status">Service status</Link></Button>
           <Button asChild size="sm" variant="outline"><Link to="/security">Security workspace</Link></Button>
           {signedIn ? (
             <Button size="sm" variant="ghost" onClick={() => void supabase.auth.signOut()}>

@@ -17,3 +17,5 @@
 
 - Monitoring alerts arrive at `/api/public/alerts` with a bearer token (`MONITORING_WEBHOOK_TOKEN`), become `contact_type=monitoring` incidents and dedupe on an `[alert:source:fingerprint]` marker in the description. Why: no extra table needed and alerts share the incident workflow.
 - PagerDuty webhooks (`/api/public/pagerduty`, HMAC `PAGERDUTY_WEBHOOK_SECRET`) save through service-role-only `itsm_upsert_pagerduty_incident`, linking each PagerDuty incident to one workspace incident and deduping by event id. Why: retries and out-of-order events must not create duplicate tickets.
+- Public service health uses the fixed-workspace, read-only `itsm_public_service_status` projection and a sessionless publishable client; never expose internal records or customer-only outage updates. Why: anonymous status reads must return only intentional public service names, states and update times.
+- The status page polls existing service records and reports missing component records as unknown, with source update times separate from fetch time. Why: refreshing records does not prove fresh monitoring or component availability.

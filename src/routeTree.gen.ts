@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as StatusRouteImport } from './routes/status'
 import { Route as AuthenticatedAcceptInvitationRouteImport } from './routes/_authenticated/accept-invitation'
 import { Route as AuthenticatedAdministrationRouteImport } from './routes/_authenticated/administration'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
@@ -61,6 +62,11 @@ const PortalRoute = PortalRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAcceptInvitationRoute =
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/portal': typeof PortalRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/status': typeof StatusRoute
   '/accept-invitation': typeof AuthenticatedAcceptInvitationRoute
   '/administration': typeof AuthenticatedAdministrationRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/portal': typeof PortalRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/status': typeof StatusRoute
   '/accept-invitation': typeof AuthenticatedAcceptInvitationRoute
   '/administration': typeof AuthenticatedAdministrationRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
@@ -260,6 +268,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/portal': typeof PortalRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/status': typeof StatusRoute
   '/_authenticated/accept-invitation': typeof AuthenticatedAcceptInvitationRoute
   '/_authenticated/administration': typeof AuthenticatedAdministrationRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
@@ -292,6 +301,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/portal'
     | '/reset-password'
+    | '/status'
     | '/accept-invitation'
     | '/administration'
     | '/approvals'
@@ -322,6 +332,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/portal'
     | '/reset-password'
+    | '/status'
     | '/accept-invitation'
     | '/administration'
     | '/approvals'
@@ -353,6 +364,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/portal'
     | '/reset-password'
+    | '/status'
     | '/_authenticated/accept-invitation'
     | '/_authenticated/administration'
     | '/_authenticated/approvals'
@@ -385,6 +397,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PortalRoute: typeof PortalRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  StatusRoute: typeof StatusRoute
   ApiPublicAlertsRoute: typeof ApiPublicAlertsRoute
   ApiPublicPagerdutyRoute: typeof ApiPublicPagerdutyRoute
   ApiPublicSecurityExceptionsExpireRoute: typeof ApiPublicSecurityExceptionsExpireRoute
@@ -426,6 +439,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/accept-invitation': {
@@ -654,6 +674,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PortalRoute: PortalRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  StatusRoute: StatusRoute,
   ApiPublicAlertsRoute: ApiPublicAlertsRoute,
   ApiPublicPagerdutyRoute: ApiPublicPagerdutyRoute,
   ApiPublicSecurityExceptionsExpireRoute:

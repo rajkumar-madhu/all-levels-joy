@@ -2175,6 +2175,14 @@ export type Database = {
         Args: { _roles: Database["public"]["Enums"]["app_role"][] }
         Returns: Database["public"]["Enums"]["app_role"][]
       }
+      itsm_public_service_status: {
+        Args: never
+        Returns: {
+          name: string
+          status: string
+          updated_at: string
+        }[]
+      }
       itsm_request_security_exception: {
         Args: {
           _controls: string
