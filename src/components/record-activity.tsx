@@ -37,8 +37,16 @@ export function RecordActivity({
 
   return (
     <section className="space-y-6">
-      {activity.isPending && ["incident", "request"].includes(recordType) ? <p className="text-xs text-muted-foreground">Loading response history…</p> : null}
-      {activity.data?.ticket ? <TicketResponseTimeline ticket={activity.data.ticket} audit={activity.data.audit} slas={activity.data.slas} /> : null}
+      {activity.isPending && ["incident", "request"].includes(recordType) ? (
+        <p className="text-xs text-muted-foreground">Loading response history…</p>
+      ) : null}
+      {activity.data?.ticket ? (
+        <TicketResponseTimeline
+          ticket={activity.data.ticket}
+          audit={activity.data.audit}
+          slas={activity.data.slas}
+        />
+      ) : null}
       <RecordAttachments recordType={recordType} recordId={recordId} />
 
       <div className="space-y-4">

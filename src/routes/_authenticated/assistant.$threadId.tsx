@@ -160,7 +160,9 @@ function AssistantThread() {
                   <Message key={message.id} from={message.role}>
                     <MessageContent>
                       {message.role === "assistant" ? (
-                        <MessageResponse components={assistantMarkdownComponents}>{message.content}</MessageResponse>
+                        <MessageResponse components={assistantMarkdownComponents}>
+                          {message.content}
+                        </MessageResponse>
                       ) : (
                         <p className="whitespace-pre-wrap">{message.content}</p>
                       )}
@@ -288,7 +290,12 @@ const assistantMarkdownComponents = {
         {children}
       </Link>
     ) : (
-      <a href={href} target="_blank" rel="noreferrer noopener" className="font-medium text-primary underline">
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="font-medium text-primary underline"
+      >
         {children}
       </a>
     ),

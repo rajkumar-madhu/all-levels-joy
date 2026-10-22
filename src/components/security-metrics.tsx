@@ -6,8 +6,10 @@ const OPEN = ["requested", "pending_approval", "scheduled", "remediating"];
 
 export function SecurityMetrics() {
   const board = useQuery({ queryKey: ["security-board"], queryFn: () => getSecurityBoard() });
-  if (board.isPending) return <p className="mt-6 text-xs text-muted-foreground">Loading security findings…</p>;
-  if (board.isError) return <p className="mt-6 text-xs text-destructive">Security findings could not be loaded.</p>;
+  if (board.isPending)
+    return <p className="mt-6 text-xs text-muted-foreground">Loading security findings…</p>;
+  if (board.isError)
+    return <p className="mt-6 text-xs text-destructive">Security findings could not be loaded.</p>;
   const now = Date.now();
   const { findings, exceptions } = board.data;
   const open = findings.filter((f) => OPEN.includes(f.state));

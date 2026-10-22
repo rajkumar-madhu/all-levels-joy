@@ -38,7 +38,12 @@ export const Route = createFileRoute("/api/public/pagerduty")({
       GET: async () =>
         Response.json({
           ok: Boolean(process.env["PAGERDUTY_WEBHOOK_SECRET"]),
-          events: ["incident.triggered", "incident.acknowledged", "incident.resolved", "incident.reopened"],
+          events: [
+            "incident.triggered",
+            "incident.acknowledged",
+            "incident.resolved",
+            "incident.reopened",
+          ],
         }),
       POST: async ({ request }) => {
         const secret = process.env["PAGERDUTY_WEBHOOK_SECRET"];
@@ -101,7 +106,10 @@ export const Route = createFileRoute("/api/public/pagerduty")({
         const rawId = data?.["id"];
         const id = typeof rawId === "string" ? rawId.trim() : "";
         if (!id || id.length > 256) {
-          return Response.json({ error: "Valid PagerDuty incident id is required" }, { status: 400 });
+          return Response.json(
+            { error: "Valid PagerDuty incident id is required" },
+            { status: 400 },
+          );
         }
         if (data?.["type"] !== "incident") {
           return Response.json({ error: "PagerDuty event is not an incident" }, { status: 400 });
@@ -118,7 +126,10 @@ export const Route = createFileRoute("/api/public/pagerduty")({
               ? "resolved"
               : "triggered";
         if (incidentStatus !== expectedStatus) {
-          return Response.json({ error: "PagerDuty event and incident status do not match" }, { status: 400 });
+          return Response.json(
+            { error: "PagerDuty event and incident status do not match" },
+            { status: 400 },
+          );
         }
         const occurredAt = event.occurred_at;
         if (
@@ -137,7 +148,8 @@ export const Route = createFileRoute("/api/public/pagerduty")({
             const parsedUrl = new URL(rawUrl);
             if (
               parsedUrl.protocol === "https:" &&
-              (parsedUrl.hostname === "pagerduty.com" || parsedUrl.hostname.endsWith(".pagerduty.com"))
+              (parsedUrl.hostname === "pagerduty.com" ||
+                parsedUrl.hostname.endsWith(".pagerduty.com"))
             ) {
               incidentUrl = parsedUrl.toString();
             }
@@ -151,14 +163,13 @@ export const Route = createFileRoute("/api/public/pagerduty")({
           status: incidentStatus,
           urgency: typeof data?.["urgency"] === "string" ? data["urgency"] : "high",
           html_url: incidentUrl,
-          service:
-            typeof service?.summary === "string" ? service.summary.slice(0, 100) : "",
+          service: typeof service?.summary === "string" ? service.summary.slice(0, 100) : "",
           event_type: eventType,
           event_id: eventId,
           occurred_at: occurredAt ?? null,
         };
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data: saved, error } = await (supabaseAdmin.rpc as any)("itsm_upsert_pagerduty_incident", {
+        const { data: saved, error } = await supabaseAdmin.rpc("itsm_upsert_pagerduty_incident", {
           _org_id: DEMO_ORG_ID,
           _input: input,
         });

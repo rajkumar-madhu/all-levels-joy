@@ -162,11 +162,7 @@ function SlaDashboard() {
                       <td className="px-4 py-2.5">
                         <Link
                           to="/requests"
-                          search={
-                            row.groupId
-                              ? { team: row.groupId }
-                              : { team: undefined }
-                          }
+                          search={row.groupId ? { team: row.groupId } : { team: undefined }}
                           className="text-primary underline-offset-4 hover:underline"
                         >
                           {row.openRequests}
@@ -175,20 +171,14 @@ function SlaDashboard() {
                       <td className="px-4 py-2.5">
                         <Link
                           to="/incidents"
-                          search={
-                            row.groupId
-                              ? { group: row.groupId }
-                              : { group: "unassigned" }
-                          }
+                          search={row.groupId ? { group: row.groupId } : { group: "unassigned" }}
                           className="text-primary underline-offset-4 hover:underline"
                         >
                           {row.openIncidents}
                         </Link>
                       </td>
                       <td className="px-4 py-2.5 text-warning">{row.dueSoon}</td>
-                      <td className="px-4 py-2.5 font-semibold text-destructive">
-                        {row.breached}
-                      </td>
+                      <td className="px-4 py-2.5 font-semibold text-destructive">{row.breached}</td>
                     </tr>
                   ))
                 )}

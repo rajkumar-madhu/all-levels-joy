@@ -27,10 +27,21 @@ export const Route = createFileRoute("/api/public/security-findings")({
         }
         const parsed = scannerPayloadSchema.safeParse(json);
         if (!parsed.success) {
-          return Response.json({ error: "Invalid payload", issues: parsed.error.issues }, { status: 400 });
+          return Response.json(
+            { error: "Invalid payload", issues: parsed.error.issues },
+            { status: 400 },
+          );
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const results: { scanner: string; reference: string; asset: string; id?: string; number?: string; created?: boolean; error?: string }[] = [];
+        const results: {
+          scanner: string;
+          reference: string;
+          asset: string;
+          id?: string;
+          number?: string;
+          created?: boolean;
+          error?: string;
+        }[] = [];
         for (const finding of parsed.data.findings) {
           const { data, error } = await supabaseAdmin.rpc("itsm_upsert_scanner_finding", {
             _org_id: DEMO_ORG_ID,
@@ -38,17 +49,32 @@ export const Route = createFileRoute("/api/public/security-findings")({
           });
           if (error) {
             console.error("scanner finding failed", error.code);
-            results.push({ scanner: finding.scanner, reference: finding.reference, asset: finding.asset ?? "", error: "Not saved; check workspace asset, service and owner identifiers." });
+            results.push({
+              scanner: finding.scanner,
+              reference: finding.reference,
+              asset: finding.asset ?? "",
+              error: "Not saved; check workspace asset, service and owner identifiers.",
+            });
           } else {
             const r = data as { id: string; number: string; created: boolean };
-            results.push({ scanner: finding.scanner, reference: finding.reference, asset: finding.asset ?? "", id: r.id, number: r.number, created: r.created });
+            results.push({
+              scanner: finding.scanner,
+              reference: finding.reference,
+              asset: finding.asset ?? "",
+              id: r.id,
+              number: r.number,
+              created: r.created,
+            });
           }
         }
         const failed = results.filter((r) => r.error).length;
-        return Response.json({ results, saved: results.length - failed, failed }, {
-          status: failed === results.length ? 422 : failed ? 207 : 200,
-          headers: { "Cache-Control": "no-store" },
-        });
+        return Response.json(
+          { results, saved: results.length - failed, failed },
+          {
+            status: failed === results.length ? 422 : failed ? 207 : 200,
+            headers: { "Cache-Control": "no-store" },
+          },
+        );
       },
     },
   },

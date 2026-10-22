@@ -72,15 +72,25 @@ const genericPayload = z.object({
 });
 
 function slug(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 200) || "alert";
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 200) || "alert"
+  );
 }
 
 export function parseAlertPayload(json: unknown): NormalizedAlert[] | null {
   const am = amPayload.safeParse(json);
   if (am.success) {
-    const source = am.data.orgId !== undefined || am.data.alerts.some((a) => a.dashboardURL || a.panelURL) ? "grafana" : "prometheus";
+    const source =
+      am.data.orgId !== undefined || am.data.alerts.some((a) => a.dashboardURL || a.panelURL)
+        ? "grafana"
+        : "prometheus";
     return am.data.alerts.map((a) => {
-      const name = a.labels["alertname"] || a.labels["rulename"] || am.data.title || "Unnamed alert";
+      const name =
+        a.labels["alertname"] || a.labels["rulename"] || am.data.title || "Unnamed alert";
       const instance = safeInstance(a.labels["instance"] || a.labels["host"]);
       return {
         source,
@@ -98,18 +108,20 @@ export function parseAlertPayload(json: unknown): NormalizedAlert[] | null {
   }
   const g = genericPayload.safeParse(json);
   if (g.success) {
-    return [{
-      source: "webhook",
-      fingerprint: slug(g.data.fingerprint || `${g.data.name}|${g.data.instance ?? ""}`),
-      name: g.data.name,
-      status: g.data.status,
-      severity: g.data.severity.toLowerCase(),
-      instance: safeInstance(g.data.instance),
-      service: g.data.service ?? null,
-      summary: g.data.summary,
-      link: safeLink(g.data.link),
-      startsAt: null,
-    }];
+    return [
+      {
+        source: "webhook",
+        fingerprint: slug(g.data.fingerprint || `${g.data.name}|${g.data.instance ?? ""}`),
+        name: g.data.name,
+        status: g.data.status,
+        severity: g.data.severity.toLowerCase(),
+        instance: safeInstance(g.data.instance),
+        service: g.data.service ?? null,
+        summary: g.data.summary,
+        link: safeLink(g.data.link),
+        startsAt: null,
+      },
+    ];
   }
   return null;
 }

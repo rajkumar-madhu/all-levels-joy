@@ -56,7 +56,11 @@ export function PortalGate({ children }: { children: (d: PortalAllowedData) => R
   const query = usePortal();
   if (query.isPending) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (query.isError)
-    return <p className="text-sm text-destructive">Your portal could not be loaded. Try again shortly.</p>;
+    return (
+      <p className="text-sm text-destructive">
+        Your portal could not be loaded. Try again shortly.
+      </p>
+    );
   if (query.data.allowed === false) return <NotAllowed />;
   return <>{children(query.data as PortalAllowedData)}</>;
 }
@@ -66,8 +70,8 @@ export function NotAllowed() {
     <div className="rounded-lg border border-border bg-card p-6">
       <h1 className="text-lg font-semibold text-foreground">Please use your @wecrew.in email</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        The support portal is available to confirmed @wecrew.in accounts only. Sign out and sign in with your
-        company email, then confirm it from the link we send you.
+        The support portal is available to confirmed @wecrew.in accounts only. Sign out and sign in
+        with your company email, then confirm it from the link we send you.
       </p>
     </div>
   );
@@ -109,11 +113,23 @@ export function PortalSignIn() {
       >
         <div className="space-y-1.5">
           <Label htmlFor="p-email">Email</Label>
-          <Input id="p-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            id="p-email"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="p-pass">Password</Label>
-          <Input id="p-pass" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Input
+            id="p-pass"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
         <Button type="submit" className="w-full" disabled={busy}>
           {mode === "signin" ? "Sign in" : "Create account"}
@@ -147,7 +163,8 @@ export function TicketDetail({ ticket, data }: { ticket: PortalItem; data: Porta
   const queryClient = useQueryClient();
   const [body, setBody] = useState("");
   const reply = useMutation({
-    mutationFn: () => postPortalReply({ data: { recordType: ticket.kind, recordId: ticket.id, body } }),
+    mutationFn: () =>
+      postPortalReply({ data: { recordType: ticket.kind, recordId: ticket.id, body } }),
     onSuccess: async (result) => {
       setBody("");
       const outcome = result?.outcome;
@@ -164,7 +181,12 @@ export function TicketDetail({ ticket, data }: { ticket: PortalItem; data: Porta
   const timeline = [
     ...data.comments
       .filter((c) => c.record_id === ticket.id)
-      .map((c) => ({ id: c.id, at: c.created_at, who: c.mine ? "You" : "Support team", body: c.body })),
+      .map((c) => ({
+        id: c.id,
+        at: c.created_at,
+        who: c.mine ? "You" : "Support team",
+        body: c.body,
+      })),
     ...(data.outageUpdates ?? [])
       .filter((u) => u.incident_id === ticket.id)
       .map((u) => ({ id: u.id, at: u.created_at, who: "Outage update", body: u.body })),
@@ -196,9 +218,13 @@ export function TicketDetail({ ticket, data }: { ticket: PortalItem; data: Porta
       ) : null}
       {problem ? (
         <div className="rounded-md border border-border bg-background p-3">
-          <p className="text-xs font-semibold text-muted-foreground">Linked known problem · {problem.number}</p>
+          <p className="text-xs font-semibold text-muted-foreground">
+            Linked known problem · {problem.number}
+          </p>
           <p className="mt-1 font-medium">{problem.title}</p>
-          {problem.workaround ? <p className="mt-1 whitespace-pre-wrap">Workaround: {problem.workaround}</p> : null}
+          {problem.workaround ? (
+            <p className="mt-1 whitespace-pre-wrap">Workaround: {problem.workaround}</p>
+          ) : null}
         </div>
       ) : null}
       <div>
@@ -226,7 +252,12 @@ export function TicketDetail({ ticket, data }: { ticket: PortalItem; data: Porta
         }}
       >
         <Label htmlFor={`reply-${ticket.id}`}>Reply to support</Label>
-        <Textarea id={`reply-${ticket.id}`} rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
+        <Textarea
+          id={`reply-${ticket.id}`}
+          rows={3}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+        />
         <Button size="sm" type="submit" disabled={reply.isPending || !body.trim()}>
           Send reply
         </Button>
@@ -246,7 +277,13 @@ export function Field({ label, value }: { label: string; value: string }) {
 
 export const selectClass = "h-9 w-full rounded-md border border-input bg-background px-2 text-sm";
 
-export function NewTicket({ onCreated, onCancel }: { onCreated: (id: string) => void; onCancel: () => void }) {
+export function NewTicket({
+  onCreated,
+  onCancel,
+}: {
+  onCreated: (id: string) => void;
+  onCancel: () => void;
+}) {
   const qc = useQueryClient();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -255,7 +292,9 @@ export function NewTicket({ onCreated, onCancel }: { onCreated: (id: string) => 
   const [urgency, setUrgency] = useState(3);
   const submit = useMutation({
     mutationFn: () =>
-      submitPortalTicket({ data: { title, description, impact, urgency, category: (category || null) as never } }),
+      submitPortalTicket({
+        data: { title, description, impact, urgency, category: (category || null) as never },
+      }),
     onSuccess: async (t) => {
       toast.success(`Ticket ${t.number} submitted.`);
       await qc.invalidateQueries({ queryKey: portalQueryKey });
@@ -274,7 +313,12 @@ export function NewTicket({ onCreated, onCancel }: { onCreated: (id: string) => 
       <h2 className="text-lg font-semibold text-foreground sm:col-span-3">Report an issue</h2>
       <div className="space-y-1.5">
         <Label htmlFor="nt-cat">Area</Label>
-        <select id="nt-cat" className={selectClass} value={category} onChange={(e) => setCategory(e.target.value)}>
+        <select
+          id="nt-cat"
+          className={selectClass}
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
           <option value="">Not sure</option>
           <option value="network">Network / VPN / Wi-Fi</option>
           <option value="hardware">Hardware</option>
@@ -285,7 +329,12 @@ export function NewTicket({ onCreated, onCancel }: { onCreated: (id: string) => 
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="nt-imp">Who is affected</Label>
-        <select id="nt-imp" className={selectClass} value={impact} onChange={(e) => setImpact(Number(e.target.value))}>
+        <select
+          id="nt-imp"
+          className={selectClass}
+          value={impact}
+          onChange={(e) => setImpact(Number(e.target.value))}
+        >
           <option value={3}>Just me</option>
           <option value={2}>My team</option>
           <option value={1}>Many people</option>
@@ -293,7 +342,12 @@ export function NewTicket({ onCreated, onCancel }: { onCreated: (id: string) => 
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="nt-urg">How urgent</Label>
-        <select id="nt-urg" className={selectClass} value={urgency} onChange={(e) => setUrgency(Number(e.target.value))}>
+        <select
+          id="nt-urg"
+          className={selectClass}
+          value={urgency}
+          onChange={(e) => setUrgency(Number(e.target.value))}
+        >
           <option value={3}>Can wait</option>
           <option value={2}>Slowing me down</option>
           <option value={1}>Can't work</option>
@@ -301,11 +355,25 @@ export function NewTicket({ onCreated, onCancel }: { onCreated: (id: string) => 
       </div>
       <div className="space-y-1.5 sm:col-span-3">
         <Label htmlFor="nt-title">Summary</Label>
-        <Input id="nt-title" required minLength={5} maxLength={160} value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Input
+          id="nt-title"
+          required
+          minLength={5}
+          maxLength={160}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
       </div>
       <div className="space-y-1.5 sm:col-span-3">
         <Label htmlFor="nt-desc">Details</Label>
-        <Textarea id="nt-desc" rows={4} required minLength={5} value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Textarea
+          id="nt-desc"
+          rows={4}
+          required
+          minLength={5}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
       </div>
       <div className="flex gap-2 sm:col-span-3">
         <Button type="submit" disabled={submit.isPending}>

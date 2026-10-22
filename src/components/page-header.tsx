@@ -15,9 +15,7 @@ export function PageHeader({
     <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border pb-3">
       <div className="min-w-0">
         {eyebrow ? (
-          <p className="text-[11px] font-semibold uppercase text-muted-foreground">
-            {eyebrow}
-          </p>
+          <p className="text-[11px] font-semibold uppercase text-muted-foreground">{eyebrow}</p>
         ) : null}
         <h1 className="mt-1 text-2xl font-semibold text-foreground sm:text-[28px] sm:leading-9">
           {title}
@@ -28,7 +26,11 @@ export function PageHeader({
           </p>
         ) : null}
       </div>
-      {actions ? <div className="col-span-2 flex shrink-0 flex-wrap items-center gap-2 sm:col-span-1">{actions}</div> : null}
+      {actions ? (
+        <div className="col-span-2 flex shrink-0 flex-wrap items-center gap-2 sm:col-span-1">
+          {actions}
+        </div>
+      ) : null}
     </header>
   );
 }

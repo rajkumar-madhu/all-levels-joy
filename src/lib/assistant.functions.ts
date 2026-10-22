@@ -180,7 +180,10 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       .eq("active", true)
       .limit(60);
     const catalogText = (catalogItems ?? [])
-      .map((item) => `- ${item.name} [${item.category}]: ${item.description ?? ""} → [Request ${item.name}](/catalog?item=${item.id})`)
+      .map(
+        (item) =>
+          `- ${item.name} [${item.category}]: ${item.description ?? ""} → [Request ${item.name}](/catalog?item=${item.id})`,
+      )
       .join("\n");
 
     const { streamText, Output, NoObjectGeneratedError } = await import("ai");
@@ -290,7 +293,10 @@ export const sendChatMessage = createServerFn({ method: "POST" })
         organization_id: DEMO_ORG_ID,
         user_id: userId,
         role: "assistant",
-        content: linkKnowledgeCitations(parsed?.reply ?? "", ranked.map(({ article }) => article)),
+        content: linkKnowledgeCitations(
+          parsed?.reply ?? "",
+          ranked.map(({ article }) => article),
+        ),
         suggested_ticket: suggested,
       })
       .select("id")

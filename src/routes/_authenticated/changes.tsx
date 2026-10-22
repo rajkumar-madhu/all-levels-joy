@@ -97,9 +97,24 @@ function Changes() {
       (!reg.state || c.state === reg.state),
   );
   const exportRegister = () => {
-    const cols = ["number", "title", "change_type", "risk", "approval_status", "state", "start_at", "end_at", "expected_outage_minutes", "impact_assessment", "rollback_plan"] as const;
+    const cols = [
+      "number",
+      "title",
+      "change_type",
+      "risk",
+      "approval_status",
+      "state",
+      "start_at",
+      "end_at",
+      "expected_outage_minutes",
+      "impact_assessment",
+      "rollback_plan",
+    ] as const;
     const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const csv = [cols.join(","), ...registerRows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n");
+    const csv = [
+      cols.join(","),
+      ...registerRows.map((r) => cols.map((c) => esc(r[c])).join(",")),
+    ].join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
@@ -436,7 +451,10 @@ function Changes() {
                 [
                   ["type", ["standard", "normal", "emergency"]],
                   ["risk", ["low", "medium", "high", "critical"]],
-                  ["state", ["new", "pending", "open", "in_progress", "resolved", "closed", "cancelled"]],
+                  [
+                    "state",
+                    ["new", "pending", "open", "in_progress", "resolved", "closed", "cancelled"],
+                  ],
                 ] as const
               ).map(([field, values]) => (
                 <select
@@ -446,7 +464,9 @@ function Changes() {
                   value={reg[field]}
                   onChange={(e) => setReg({ ...reg, [field]: e.target.value })}
                 >
-                  <option value="">All {field === "type" ? "types" : field === "risk" ? "risks" : "states"}</option>
+                  <option value="">
+                    All {field === "type" ? "types" : field === "risk" ? "risks" : "states"}
+                  </option>
                   {values.map((v) => (
                     <option key={v} value={v}>
                       {v.replace(/_/g, " ")}
@@ -459,62 +479,65 @@ function Changes() {
               </Button>
             </div>
             <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-2.5 font-medium">Number</th>
-                  <th className="px-4 py-2.5 font-medium">Title</th>
-                  <th className="px-4 py-2.5 font-medium">Type</th>
-                  <th className="px-4 py-2.5 font-medium">Risk</th>
-                  <th className="px-4 py-2.5 font-medium">Approval</th>
-                  <th className="px-4 py-2.5 font-medium">State</th>
-                  <th className="px-4 py-2.5 font-medium">Window</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {registerRows.length === 0 ? (
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                   <tr>
-                    <td colSpan={7} className="px-4 py-6 text-center text-sm text-muted-foreground">
-                      No changes match these filters.
-                    </td>
+                    <th className="px-4 py-2.5 font-medium">Number</th>
+                    <th className="px-4 py-2.5 font-medium">Title</th>
+                    <th className="px-4 py-2.5 font-medium">Type</th>
+                    <th className="px-4 py-2.5 font-medium">Risk</th>
+                    <th className="px-4 py-2.5 font-medium">Approval</th>
+                    <th className="px-4 py-2.5 font-medium">State</th>
+                    <th className="px-4 py-2.5 font-medium">Window</th>
                   </tr>
-                ) : null}
-                {registerRows.map((change) => (
-                  <tr
-                    key={change.id}
-                    className={change.id === search.record ? "bg-accent/40" : "hover:bg-muted/60"}
-                  >
-                    <td className="px-4 py-2.5">
-                      <button
-                        type="button"
-                        className="font-mono text-xs text-primary underline underline-offset-4"
-                        onClick={() =>
-                          void navigate({ to: "/changes", search: { record: change.id } })
-                        }
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {registerRows.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-4 py-6 text-center text-sm text-muted-foreground"
                       >
-                        {change.number}
-                      </button>
-                    </td>
-                    <td className="px-4 py-2.5 text-foreground">{change.title}</td>
-                    <td className="px-4 py-2.5 text-xs capitalize text-muted-foreground">
-                      {change.change_type}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <RiskBadge risk={change.risk} />
-                    </td>
-                    <td className="px-4 py-2.5 text-xs capitalize text-muted-foreground">
-                      {change.approval_status.replace(/_/g, " ")}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <StateBadge state={change.state} />
-                    </td>
-                    <td className="px-4 py-2.5 text-xs text-muted-foreground">
-                      {formatDateTime(change.start_at)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        No changes match these filters.
+                      </td>
+                    </tr>
+                  ) : null}
+                  {registerRows.map((change) => (
+                    <tr
+                      key={change.id}
+                      className={change.id === search.record ? "bg-accent/40" : "hover:bg-muted/60"}
+                    >
+                      <td className="px-4 py-2.5">
+                        <button
+                          type="button"
+                          className="font-mono text-xs text-primary underline underline-offset-4"
+                          onClick={() =>
+                            void navigate({ to: "/changes", search: { record: change.id } })
+                          }
+                        >
+                          {change.number}
+                        </button>
+                      </td>
+                      <td className="px-4 py-2.5 text-foreground">{change.title}</td>
+                      <td className="px-4 py-2.5 text-xs capitalize text-muted-foreground">
+                        {change.change_type}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <RiskBadge risk={change.risk} />
+                      </td>
+                      <td className="px-4 py-2.5 text-xs capitalize text-muted-foreground">
+                        {change.approval_status.replace(/_/g, " ")}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <StateBadge state={change.state} />
+                      </td>
+                      <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                        {formatDateTime(change.start_at)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 

@@ -23,7 +23,14 @@ import {
 import { SEVERITIES, SEVERITY_DAYS, type TransitionInput } from "@/lib/security-workflow";
 import { securityWindowPayload, windowTimeToLocalInput } from "@/lib/security-window";
 
-const FILTERS = ["all", "open", "overdue", "critical_high", "scanner", "exceptions_expiring"] as const;
+const FILTERS = [
+  "all",
+  "open",
+  "overdue",
+  "critical_high",
+  "scanner",
+  "exceptions_expiring",
+] as const;
 
 export const Route = createFileRoute("/_authenticated/security")({
   validateSearch: z.object({
@@ -75,7 +82,11 @@ function SecurityPage() {
   const queryClient = useQueryClient();
   const roles = (workspace.data?.roles ?? []) as AppRole[];
   const staff = canManage(roles);
-  const board = useQuery({ queryKey: ["security-board"], queryFn: () => getSecurityBoard(), enabled: Boolean(workspace.data) && staff });
+  const board = useQuery({
+    queryKey: ["security-board"],
+    queryFn: () => getSecurityBoard(),
+    enabled: Boolean(workspace.data) && staff,
+  });
   const userId = workspace.data?.userId;
   const canApprove = roles.some((r) => ["manager", "admin", "change_manager"].includes(r));
   const canDecideException = roles.some((r) => ["manager", "admin"].includes(r));
@@ -131,15 +142,32 @@ function SecurityPage() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Finding was not saved."),
   });
 
-  if (workspace.isPending) return <AppShell workspace={workspace.data}><WorkspaceLoading /></AppShell>;
-  if (workspace.isError) return <AppShell workspace={workspace.data}><p role="alert" className="mt-6 text-sm text-destructive">Workspace access could not be verified. Please try again.</p></AppShell>;
-  if (!staff) return (
-    <AppShell workspace={workspace.data}>
-      <PageHeader eyebrow="Security" title="Staff access required" />
-      <p className="mt-4 text-sm text-muted-foreground">The Security workspace is available to workspace staff only.</p>
-      <Button asChild variant="outline" className="mt-4"><Link to="/portal">Customer portal</Link></Button>
-    </AppShell>
-  );
+  if (workspace.isPending)
+    return (
+      <AppShell workspace={workspace.data}>
+        <WorkspaceLoading />
+      </AppShell>
+    );
+  if (workspace.isError)
+    return (
+      <AppShell workspace={workspace.data}>
+        <p role="alert" className="mt-6 text-sm text-destructive">
+          Workspace access could not be verified. Please try again.
+        </p>
+      </AppShell>
+    );
+  if (!staff)
+    return (
+      <AppShell workspace={workspace.data}>
+        <PageHeader eyebrow="Security" title="Staff access required" />
+        <p className="mt-4 text-sm text-muted-foreground">
+          The Security workspace is available to workspace staff only.
+        </p>
+        <Button asChild variant="outline" className="mt-4">
+          <Link to="/portal">Customer portal</Link>
+        </Button>
+      </AppShell>
+    );
 
   return (
     <AppShell workspace={workspace.data}>
@@ -149,7 +177,9 @@ function SecurityPage() {
         description="Vulnerabilities and audit findings move through request, approval, schedule and delivery. Risk exceptions are approved by a manager and expire automatically."
         actions={<Button onClick={() => setShowNew((v) => !v)}>New finding</Button>}
       />
-      {showNew ? <NewFinding onSubmit={(d) => create.mutate(d)} pending={create.isPending} /> : null}
+      {showNew ? (
+        <NewFinding onSubmit={(d) => create.mutate(d)} pending={create.isPending} />
+      ) : null}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <Input
@@ -182,7 +212,9 @@ function SecurityPage() {
 
       <ScannerConnections
         findings={findings as never}
-        onRefresh={async () => { await queryClient.invalidateQueries({ queryKey: ["security-board"] }); }}
+        onRefresh={async () => {
+          await queryClient.invalidateQueries({ queryKey: ["security-board"] });
+        }}
       />
 
       {board.isPending || workspace.isPending ? (
@@ -196,7 +228,10 @@ function SecurityPage() {
           <div className="overflow-hidden rounded-lg border border-border bg-card">
             {visible.length === 0 ? (
               <div className="p-4">
-                <EmptyState title="No findings match" hint="Change the filter or record a new finding." />
+                <EmptyState
+                  title="No findings match"
+                  hint="Change the filter or record a new finding."
+                />
               </div>
             ) : (
               <ul className="divide-y divide-border">
@@ -211,7 +246,9 @@ function SecurityPage() {
                       >
                         <div className="flex flex-wrap items-center gap-2 text-xs">
                           <span className="font-mono text-muted-foreground">{f.number}</span>
-                          <span className={`rounded px-1.5 py-0.5 capitalize ${SEV_CLASS[f.severity]}`}>
+                          <span
+                            className={`rounded px-1.5 py-0.5 capitalize ${SEV_CLASS[f.severity]}`}
+                          >
                             {f.severity}
                           </span>
                           <span className="text-muted-foreground">{STATE_TEXT[f.state]}</span>
@@ -280,7 +317,13 @@ function NewFinding({
     >
       <div className="space-y-1 sm:col-span-2">
         <Label htmlFor="sf-title">Title</Label>
-        <Input id="sf-title" value={title} onChange={(e) => setTitle(e.target.value)} required minLength={5} />
+        <Input
+          id="sf-title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          minLength={5}
+        />
       </div>
       <div className="space-y-1">
         <Label htmlFor="sf-ref">Reference (CVE or control ID)</Label>
@@ -303,7 +346,12 @@ function NewFinding({
       </div>
       <div className="space-y-1 sm:col-span-2">
         <Label htmlFor="sf-desc">Description</Label>
-        <Textarea id="sf-desc" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Textarea
+          id="sf-desc"
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
       </div>
       <div className="sm:col-span-2">
         <Button type="submit" disabled={pending}>
@@ -354,10 +402,13 @@ function FindingDetail({
     expiresAt: "",
     exceptionNotes: "",
   });
-  const set = (k: string) => (e: { target: { value: string } }) => setForm({ ...form, [k]: e.target.value });
+  const set = (k: string) => (e: { target: { value: string } }) =>
+    setForm({ ...form, [k]: e.target.value });
   const [windowTimezone, setWindowTimezone] = useState("");
   const [windowError, setWindowError] = useState("");
-  useEffect(() => { setWindowTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone); }, []);
+  useEffect(() => {
+    setWindowTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, []);
   const saveWindow = () => {
     try {
       const payload = securityWindowPayload(form["windowStart"] ?? "", form["windowEnd"] ?? "");
@@ -422,7 +473,9 @@ function FindingDetail({
         </p>
         <h2 className="mt-1 text-lg font-semibold text-foreground">{f.title}</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          <span className={`mr-2 rounded px-1.5 py-0.5 capitalize ${SEV_CLASS[f.severity]}`}>{f.severity}</span>
+          <span className={`mr-2 rounded px-1.5 py-0.5 capitalize ${SEV_CLASS[f.severity]}`}>
+            {f.severity}
+          </span>
           {STATE_TEXT[f.state]} · Due {formatDateTime(f.due_at)}
           {f.asset_key ? ` · Asset ${f.asset_key}` : ""}
         </p>
@@ -443,7 +496,9 @@ function FindingDetail({
             <div key={k} className="text-sm">
               <p className="text-xs text-muted-foreground">{label}</p>
               <p className="whitespace-pre-wrap text-foreground">
-                {(f as Record<string, unknown>)[k.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)] as string || "—"}
+                {((f as Record<string, unknown>)[
+                  k.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)
+                ] as string) || "—"}
               </p>
             </div>
           ),
@@ -473,12 +528,29 @@ function FindingDetail({
           <h3 className="text-sm font-semibold text-foreground">Approval</h3>
           {canApprove ? (
             <>
-              <Textarea rows={2} placeholder="Decision notes (required to reject)" value={form["notes"]} onChange={set("notes")} aria-label="Decision notes" />
+              <Textarea
+                rows={2}
+                placeholder="Decision notes (required to reject)"
+                value={form["notes"]}
+                onChange={set("notes")}
+                aria-label="Decision notes"
+              />
               <div className="flex gap-2">
-                <Button size="sm" disabled={busy} onClick={() => step.mutate({ action: "approve", notes: form["notes"] || undefined })}>
+                <Button
+                  size="sm"
+                  disabled={busy}
+                  onClick={() =>
+                    step.mutate({ action: "approve", notes: form["notes"] || undefined })
+                  }
+                >
                   Approve fix
                 </Button>
-                <Button size="sm" variant="outline" disabled={busy} onClick={() => step.mutate({ action: "reject", notes: form["notes"]! })}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => step.mutate({ action: "reject", notes: form["notes"]! })}
+                >
                   Reject
                 </Button>
               </div>
@@ -499,7 +571,9 @@ function FindingDetail({
       {f.state === "scheduled" ? (
         <section className="space-y-2 rounded-md border border-border bg-background p-3">
           <h3 className="text-sm font-semibold text-foreground">Schedule</h3>
-          {windowTimezone ? <p className="text-xs text-muted-foreground">Timezone: {windowTimezone}</p> : null}
+          {windowTimezone ? (
+            <p className="text-xs text-muted-foreground">Timezone: {windowTimezone}</p>
+          ) : null}
           {f.window_start ? (
             <p className="text-xs text-muted-foreground">
               Window {formatDateTime(f.window_start)} → {formatDateTime(f.window_end)}
@@ -508,37 +582,76 @@ function FindingDetail({
           <div className="grid gap-2 sm:grid-cols-2">
             <div className="space-y-1">
               <Label htmlFor="ws">Window start</Label>
-              <Input id="ws" type="datetime-local" value={form["windowStart"]} onChange={set("windowStart")} />
+              <Input
+                id="ws"
+                type="datetime-local"
+                value={form["windowStart"]}
+                onChange={set("windowStart")}
+              />
             </div>
             <div className="space-y-1">
               <Label htmlFor="we">Window end</Label>
-              <Input id="we" type="datetime-local" value={form["windowEnd"]} onChange={set("windowEnd")} />
+              <Input
+                id="we"
+                type="datetime-local"
+                value={form["windowEnd"]}
+                onChange={set("windowEnd")}
+              />
             </div>
           </div>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" disabled={busy} onClick={saveWindow}>
               Save window
             </Button>
-            <Button size="sm" disabled={busy || !f.window_start} onClick={() => step.mutate({ action: "start" })}>
+            <Button
+              size="sm"
+              disabled={busy || !f.window_start}
+              onClick={() => step.mutate({ action: "start" })}
+            >
               Start remediation
             </Button>
           </div>
-          {windowError ? <p role="alert" className="text-sm text-destructive">{windowError}</p> : null}
+          {windowError ? (
+            <p role="alert" className="text-sm text-destructive">
+              {windowError}
+            </p>
+          ) : null}
         </section>
       ) : null}
 
       {f.state === "remediating" ? (
         <section className="space-y-2 rounded-md border border-border bg-background p-3">
           <h3 className="text-sm font-semibold text-foreground">Record delivery</h3>
-          <select aria-label="Outcome" className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={form["outcome"]} onChange={set("outcome")}>
+          <select
+            aria-label="Outcome"
+            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+            value={form["outcome"]}
+            onChange={set("outcome")}
+          >
             <option value="successful">Successful</option>
             <option value="partial">Partial</option>
             <option value="failed">Failed</option>
           </select>
-          <Textarea rows={2} placeholder="Validation results" aria-label="Validation results" value={form["validationResults"]} onChange={set("validationResults")} />
-          <Textarea rows={2} placeholder="Review notes" aria-label="Review notes" value={form["reviewNotes"]} onChange={set("reviewNotes")} />
+          <Textarea
+            rows={2}
+            placeholder="Validation results"
+            aria-label="Validation results"
+            value={form["validationResults"]}
+            onChange={set("validationResults")}
+          />
+          <Textarea
+            rows={2}
+            placeholder="Review notes"
+            aria-label="Review notes"
+            value={form["reviewNotes"]}
+            onChange={set("reviewNotes")}
+          />
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form["rollbackUsed"] === "true"} onChange={(e) => setForm({ ...form, rollbackUsed: String(e.target.checked) })} />
+            <input
+              type="checkbox"
+              checked={form["rollbackUsed"] === "true"}
+              onChange={(e) => setForm({ ...form, rollbackUsed: String(e.target.checked) })}
+            />
             Rollback was used
           </label>
           <Button
@@ -563,12 +676,18 @@ function FindingDetail({
         <section className="text-sm">
           <p className="text-xs text-muted-foreground">Delivery</p>
           <p className="text-foreground capitalize">
-            {f.delivery_outcome} · {formatDateTime(f.delivered_at)} · Rollback {f.rollback_used ? "used" : "not used"}
+            {f.delivery_outcome} · {formatDateTime(f.delivered_at)} · Rollback{" "}
+            {f.rollback_used ? "used" : "not used"}
           </p>
           <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{f.validation_results}</p>
           <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{f.review_notes}</p>
           {f.state === "delivered" ? (
-            <Button className="mt-2" size="sm" disabled={busy} onClick={() => step.mutate({ action: "close" })}>
+            <Button
+              className="mt-2"
+              size="sm"
+              disabled={busy}
+              onClick={() => step.mutate({ action: "close" })}
+            >
               Close finding
             </Button>
           ) : null}
@@ -578,29 +697,59 @@ function FindingDetail({
       <section className="space-y-2 rounded-md border border-border bg-background p-3">
         <h3 className="text-sm font-semibold text-foreground">Linked records</h3>
         <div className="grid gap-2 sm:grid-cols-2">
-          <select aria-label="Linked change" className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={f.change_id ?? ""} onChange={(e) => step.mutate({ action: "link", changeId: e.target.value })}>
+          <select
+            aria-label="Linked change"
+            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+            value={f.change_id ?? ""}
+            onChange={(e) => step.mutate({ action: "link", changeId: e.target.value })}
+          >
             <option value="">No change linked</option>
             {changes.map((c) => (
-              <option key={c.id} value={c.id}>{c.number} · {c.title}</option>
+              <option key={c.id} value={c.id}>
+                {c.number} · {c.title}
+              </option>
             ))}
           </select>
-          <select aria-label="Linked incident" className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={f.incident_id ?? ""} onChange={(e) => step.mutate({ action: "link", incidentId: e.target.value })}>
+          <select
+            aria-label="Linked incident"
+            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+            value={f.incident_id ?? ""}
+            onChange={(e) => step.mutate({ action: "link", incidentId: e.target.value })}
+          >
             <option value="">No incident linked</option>
             {incidents.map((c) => (
-              <option key={c.id} value={c.id}>{c.number} · {c.title}</option>
+              <option key={c.id} value={c.id}>
+                {c.number} · {c.title}
+              </option>
             ))}
           </select>
         </div>
         <div className="flex flex-wrap gap-3 text-xs">
-          {f.change_id ? <Link to="/changes" search={{ record: f.change_id }} className="text-primary underline">Open change</Link> : null}
-          {f.incident_id ? <Link to="/incidents" search={{ record: f.incident_id } as never} className="text-primary underline">Open incident</Link> : null}
-          <Link to="/changes" className="text-primary underline">Raise a new change for this fix</Link>
+          {f.change_id ? (
+            <Link to="/changes" search={{ record: f.change_id }} className="text-primary underline">
+              Open change
+            </Link>
+          ) : null}
+          {f.incident_id ? (
+            <Link
+              to="/incidents"
+              search={{ record: f.incident_id } as never}
+              className="text-primary underline"
+            >
+              Open incident
+            </Link>
+          ) : null}
+          <Link to="/changes" className="text-primary underline">
+            Raise a new change for this fix
+          </Link>
         </div>
       </section>
 
       <section className="space-y-2 rounded-md border border-border bg-background p-3">
         <h3 className="text-sm font-semibold text-foreground">Risk exceptions</h3>
-        {exceptions.length === 0 ? <p className="text-xs text-muted-foreground">No exceptions requested.</p> : null}
+        {exceptions.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No exceptions requested.</p>
+        ) : null}
         <ul className="space-y-2 text-sm">
           {exceptions.map((e) => (
             <li key={e.id} className="rounded border border-border p-2">
@@ -608,14 +757,37 @@ function FindingDetail({
                 {e.status} · expires {formatDateTime(e.expires_at)}
               </p>
               <p className="whitespace-pre-wrap text-foreground">{e.justification}</p>
-              <p className="whitespace-pre-wrap text-xs text-muted-foreground">Controls: {e.compensating_controls}</p>
-              {e.decision_notes ? <p className="text-xs text-muted-foreground">Decision: {e.decision_notes}</p> : null}
+              <p className="whitespace-pre-wrap text-xs text-muted-foreground">
+                Controls: {e.compensating_controls}
+              </p>
+              {e.decision_notes ? (
+                <p className="text-xs text-muted-foreground">Decision: {e.decision_notes}</p>
+              ) : null}
               {e.status === "requested" && canDecideException && e.requested_by !== userId ? (
                 <div className="mt-2 space-y-2">
-                  <Textarea rows={2} placeholder="Decision notes (required to reject)" aria-label="Exception decision notes" value={form["exceptionNotes"]} onChange={set("exceptionNotes")} />
+                  <Textarea
+                    rows={2}
+                    placeholder="Decision notes (required to reject)"
+                    aria-label="Exception decision notes"
+                    value={form["exceptionNotes"]}
+                    onChange={set("exceptionNotes")}
+                  />
                   <div className="flex gap-2">
-                    <Button size="sm" disabled={decideEx.isPending} onClick={() => decideEx.mutate({ id: e.id, decision: "approved" })}>Approve exception</Button>
-                    <Button size="sm" variant="outline" disabled={decideEx.isPending} onClick={() => decideEx.mutate({ id: e.id, decision: "rejected" })}>Reject</Button>
+                    <Button
+                      size="sm"
+                      disabled={decideEx.isPending}
+                      onClick={() => decideEx.mutate({ id: e.id, decision: "approved" })}
+                    >
+                      Approve exception
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={decideEx.isPending}
+                      onClick={() => decideEx.mutate({ id: e.id, decision: "rejected" })}
+                    >
+                      Reject
+                    </Button>
                   </div>
                 </div>
               ) : null}
@@ -624,14 +796,36 @@ function FindingDetail({
         </ul>
         {OPEN.includes(f.state) && !pendingEx ? (
           <div className="space-y-2">
-            <Textarea rows={2} placeholder="Business justification" aria-label="Exception justification" value={form["justification"]} onChange={set("justification")} />
-            <Textarea rows={2} placeholder="Compensating controls" aria-label="Compensating controls" value={form["controls"]} onChange={set("controls")} />
+            <Textarea
+              rows={2}
+              placeholder="Business justification"
+              aria-label="Exception justification"
+              value={form["justification"]}
+              onChange={set("justification")}
+            />
+            <Textarea
+              rows={2}
+              placeholder="Compensating controls"
+              aria-label="Compensating controls"
+              value={form["controls"]}
+              onChange={set("controls")}
+            />
             <div className="flex flex-wrap items-end gap-2">
               <div className="space-y-1">
                 <Label htmlFor="ex-exp">Expires</Label>
-                <Input id="ex-exp" type="date" value={form["expiresAt"]} onChange={set("expiresAt")} />
+                <Input
+                  id="ex-exp"
+                  type="date"
+                  value={form["expiresAt"]}
+                  onChange={set("expiresAt")}
+                />
               </div>
-              <Button size="sm" variant="outline" disabled={reqException.isPending} onClick={() => reqException.mutate()}>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={reqException.isPending}
+                onClick={() => reqException.mutate()}
+              >
                 Request risk exception
               </Button>
             </div>
@@ -640,7 +834,12 @@ function FindingDetail({
       </section>
 
       {OPEN.includes(f.state) ? (
-        <Button size="sm" variant="ghost" disabled={busy} onClick={() => step.mutate({ action: "cancel" })}>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={busy}
+          onClick={() => step.mutate({ action: "cancel" })}
+        >
           Cancel finding
         </Button>
       ) : null}

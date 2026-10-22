@@ -123,15 +123,12 @@ export function IncidentWorkbench(props: Props) {
               {metric.label}
               <metric.icon className="h-4 w-4 shrink-0" aria-hidden />
             </span>
-            <span
-              className={cn(
-                "mt-1 block text-2xl font-semibold tabular-nums",
-                metric.tone,
-              )}
-            >
+            <span className={cn("mt-1 block text-2xl font-semibold tabular-nums", metric.tone)}>
               {props.countsError ? "—" : (props.counts?.[metric.queue] ?? "…")}
             </span>
-            <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">{metric.note}</span>
+            <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
+              {metric.note}
+            </span>
           </Button>
         ))}
       </div>

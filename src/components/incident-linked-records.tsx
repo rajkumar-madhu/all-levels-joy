@@ -30,7 +30,8 @@ export function IncidentLinkedRecords({ incidentId }: { incidentId: string }) {
               </Link>
               <span className="ml-2 text-foreground">{c.title}</span>
               <p className="text-xs capitalize text-muted-foreground">
-                Change · {c.state.replace("_", " ")} · {c.risk} risk · {c.relation.replace("_", " ")}
+                Change · {c.state.replace("_", " ")} · {c.risk} risk ·{" "}
+                {c.relation.replace("_", " ")}
               </p>
             </li>
           ))}

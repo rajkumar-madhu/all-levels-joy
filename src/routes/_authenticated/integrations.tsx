@@ -242,7 +242,9 @@ function IntegrationsPage() {
             </dl>
           </section>
           <p className="text-xs text-muted-foreground">
-            <Link to="/dashboard" className="underline underline-offset-4">Operations</Link>
+            <Link to="/dashboard" className="underline underline-offset-4">
+              Operations
+            </Link>
             <span className="px-2">/</span>
             Integrations
           </p>
@@ -336,9 +338,14 @@ function IntegrationsPage() {
             <div className="rounded-lg border border-border bg-card p-5">
               <h2 className="font-sans text-sm font-semibold text-foreground">Inbound webhook</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                PagerDuty sends signed incident events here. Security scanners use their separate signed endpoint.
+                PagerDuty sends signed incident events here. Security scanners use their separate
+                signed endpoint.
               </p>
-              <button type="button" onClick={() => void copy(pagerduty)} className="mt-3 text-xs text-primary underline underline-offset-4">
+              <button
+                type="button"
+                onClick={() => void copy(pagerduty)}
+                className="mt-3 text-xs text-primary underline underline-offset-4"
+              >
                 Copy incident webhook
               </button>
             </div>
@@ -346,11 +353,16 @@ function IntegrationsPage() {
               <h2 className="font-sans text-sm font-semibold text-foreground">Outbound</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 Critical alert incidents post to Slack
-                {status.data?.slack ? " (webhook configured)" : " when SLACK_WEBHOOK_URL is set"} and to Microsoft
-                Teams
+                {status.data?.slack
+                  ? " (webhook configured)"
+                  : " when SLACK_WEBHOOK_URL is set"}{" "}
+                and to Microsoft Teams
                 {status.data?.teams ? " (webhook configured)" : " when TEAMS_WEBHOOK_URL is set"}.
               </p>
-              <Link to="/dashboard" className="mt-3 inline-block text-xs text-primary underline underline-offset-4">
+              <Link
+                to="/dashboard"
+                className="mt-3 inline-block text-xs text-primary underline underline-offset-4"
+              >
                 Back to the platform dashboard
               </Link>
             </div>
