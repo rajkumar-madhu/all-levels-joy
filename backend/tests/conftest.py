@@ -32,12 +32,15 @@ _KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
         call_command("apply_legacy_schema", verbosity=0)
+        call_command("apply_app_schema", verbosity=0)
 
 
 @pytest.fixture(autouse=True)
 def _settings(settings, monkeypatch):
     settings.KEYCLOAK_ISSUER = ISSUER
     settings.KEYCLOAK_AUDIENCE = AUDIENCE
+    settings.PAM_MASTER_KEY = "dGVzdC1vbmx5LXZhdWx0LWtleS0zMi1ieXRlcy1sb24="
+    settings.PAM_ROTATION_BACKEND = "simulated"
 
     class _Key:
         key = _KEY.public_key()

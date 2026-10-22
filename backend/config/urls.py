@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/v1/", include("apps.assistant.urls")),
     path("api/v1/", include("apps.portal.urls")),
     path("api/v1/", include("apps.integration_status.urls")),
+    path("api/v1/", include("apps.pam.urls")),
     # Public intake keeps the legacy paths so senders only change the host.
     path("api/public/", include("apps.integrations.urls")),
     path("api/public/", include("apps.portal.public_urls")),
