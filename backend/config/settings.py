@@ -135,10 +135,15 @@ PORTAL_ORG_ID = env("PORTAL_ORG_ID", "10000000-0000-0000-0000-000000000001")
 # Privileged access vault. PAM_MASTER_KEY is a base64 AES-256 key (`openssl rand -base64 32`); without it
 # a development key is derived in DEBUG and the vault refuses to run otherwise.
 PAM_MASTER_KEY = env("PAM_MASTER_KEY")
-# "ssh" changes passwords on the hosts; "simulated" only changes the vault copy (development).
-PAM_ROTATION_BACKEND = env("PAM_ROTATION_BACKEND", "simulated" if DEBUG else "ssh")
+# "live" changes passwords on the targets (SSH, PostgreSQL, MySQL, WinRM); "simulated" only changes the
+# vault copy (development).
+PAM_ROTATION_BACKEND = env("PAM_ROTATION_BACKEND", "simulated" if DEBUG else "live")
 PAM_SSH_KNOWN_HOSTS = env("PAM_SSH_KNOWN_HOSTS")
 PAM_SSH_TIMEOUT_SECONDS = float(env("PAM_SSH_TIMEOUT_SECONDS", "10") or 10)
+PAM_DB_SSLMODE = env("PAM_DB_SSLMODE", "require")
+PAM_DB_SSL_CA = env("PAM_DB_SSL_CA")
+PAM_DB_DEFAULT_DATABASE = env("PAM_DB_DEFAULT_DATABASE", "postgres")
+PAM_WINRM_CA = env("PAM_WINRM_CA")
 
 # Legacy schema sources applied by `manage.py apply_legacy_schema`.
 LEGACY_SQL_ROOT = Path(env("LEGACY_SQL_ROOT", str(BASE_DIR.parent)) or BASE_DIR.parent)

@@ -56,7 +56,8 @@ with Keycloak.
   Requesters never load the board, and the nav item is hidden from them.
 - **Secrets vault** and **Access requests** (staff, under *Privileged access*): secrets sorted by risk with
   summary cards, environment tabs, a "used, never rotated" filter and a detail panel with the risk reasons,
-  rotation policy and activity. Managers and administrators add secrets, rotate and verify them, run bulk
+  rotation policy and activity. Managers and administrators add secrets (database secrets name their engine, and the port follows the
+  template), rotate and verify them, run bulk
   actions and approve requests. Staff request time-boxed access, reveal the password inside the window (it
   is cleared from the page after 60 seconds), copy it and check in.
 - **SLA performance**: open requests and incidents per team, what is due within 24 hours, and what is breached

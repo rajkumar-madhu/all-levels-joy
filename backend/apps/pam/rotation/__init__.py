@@ -1,7 +1,10 @@
 """Rotation backends change a password on the target system and verify it.
 
-`PAM_ROTATION_BACKEND` picks one: "ssh" (Linux accounts over SSH) or "simulated" (development and
-demos; it changes nothing outside the vault).
+`PAM_ROTATION_BACKEND` picks one:
+- "live": changes the password on the target, by template: Linux accounts over SSH, PostgreSQL and MySQL
+  accounts over their own protocol, Windows local accounts over WinRM. API keys cannot be rotated
+  generically and fail with a clear message. "ssh" is accepted as an older name for "live".
+- "simulated": development and demos; it changes nothing outside the vault.
 """
 
 from dataclasses import dataclass
@@ -20,6 +23,7 @@ class Target:
     port: int
     username: str
     template: str
+    database_engine: str | None = None
 
 
 class Rotator:
@@ -32,7 +36,8 @@ class Rotator:
 
 BACKENDS = {
     "simulated": "apps.pam.rotation.simulated.SimulatedRotator",
-    "ssh": "apps.pam.rotation.ssh.SshRotator",
+    "live": "apps.pam.rotation.live.LiveRotator",
+    "ssh": "apps.pam.rotation.live.LiveRotator",
 }
 
 

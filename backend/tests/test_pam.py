@@ -250,7 +250,13 @@ def test_requests_cannot_be_inserted_already_approved(org, team, opa):
 
 def test_no_approval_secrets_open_at_once_and_expire(org, team, opa):
     secret_id = create_secret(
-        team["custodian"], org, name="uat db", environment="uat", approvalRequired=False, template="database"
+        team["custodian"],
+        org,
+        name="uat db",
+        environment="uat",
+        approvalRequired=False,
+        template="database",
+        databaseEngine="postgresql",
     ).json()["id"]
     created = (
         team["engineer"]

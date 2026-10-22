@@ -155,10 +155,21 @@ and is applied by `apply_app_schema` after the legacy schema.
   (`pam_requests_independent_approver`, plus an API check). Requests can only be inserted as pending. The
   password is revealed only to the requester, inside the approved window, with `Cache-Control: no-store`.
   Every reveal increments the request's count and writes an event.
-- **Rotation.** `PAM_ROTATION_BACKEND=ssh` signs in as the account and runs `passwd`, then signs in with the
-  new password to confirm it. Host keys must be listed in `PAM_SSH_KNOWN_HOSTS`; unknown hosts are refused.
-  Other templates (database, Windows, API key) need their own backend; until then rotating them fails and is
-  recorded. `simulated` (the default with `DJANGO_DEBUG`) only changes the vault copy. Rotation runs on demand,
+- **Rotation.** `PAM_ROTATION_BACKEND=live` (the default without `DJANGO_DEBUG`; `ssh` is an older name for
+  it) signs in as the account itself, changes its own password, then signs in with the new one to confirm:
+  - *Unix (SSH)*: `passwd` over SSH. Host keys must be in `PAM_SSH_KNOWN_HOSTS`; unknown hosts are refused.
+  - *PostgreSQL*: `ALTER ROLE CURRENT_USER WITH PASSWORD` over TLS (`PAM_DB_SSLMODE`, default `require`; use
+    `verify-full` with `PAM_DB_SSL_CA` to check the certificate), connecting to `PAM_DB_DEFAULT_DATABASE`.
+  - *MySQL*: `ALTER USER CURRENT_USER() IDENTIFIED BY`, with certificate checks when `PAM_DB_SSL_CA` is set.
+    Database servers that log DDL statements will log the new password; keep statement logging off for these
+    accounts.
+  - *Windows local accounts*: ADSI `ChangePassword` over WinRM HTTPS (port 5986, NTLM, certificate
+    validated; `PAM_WINRM_CA` for a private CA). Domain accounts are rotated in the directory instead.
+  - *API keys* are issued by their provider, so they cannot be rotated generically: rotation fails with that
+    message, and custodians replace the stored key after reissuing it.
+
+  Database secrets name their engine (`database_engine`, PostgreSQL or MySQL). `simulated` (the default with
+  `DJANGO_DEBUG`) only changes the vault copy. Rotation runs on demand,
   on schedule (`pam-rotate-due`, every 15 minutes, for secrets past `next_rotation_at`), and after a check-in
   or expiry when the password was revealed and the secret asks for it. Failures keep the old password and
   set `last_rotation_error`, retried after an hour.

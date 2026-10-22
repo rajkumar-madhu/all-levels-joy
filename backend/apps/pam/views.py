@@ -21,6 +21,7 @@ from apps.core.views import CallerAPIView
 
 from . import crypto, vault
 from .serializers import (
+    DATABASE_ENGINE_REQUIRED,
     ENVIRONMENTS,
     PRODUCTION_APPROVAL,
     RISKS,
@@ -36,7 +37,7 @@ from .tasks import rotate_secret
 CONFLICT_MESSAGE = "This secret changed after you opened it. Refresh and review the latest values before saving."
 AUTO_APPROVED = "auto-approved: no approval required"
 COLUMNS = """
-  s.id, s.name, s.host, s.port, s.username, s.template, s.environment, s.folder, s.description,
+  s.id, s.name, s.host, s.port, s.username, s.template, s.database_engine, s.environment, s.folder, s.description,
   s.owner_group_id, g.name AS owner_group_name, s.approval_required, s.max_checkout_minutes, s.rotation_enabled,
   s.rotation_interval_days, s.rotate_after_checkout, s.verify_enabled, s.password_changed_at, s.next_rotation_at,
   s.last_verified_at, s.last_verification_ok, s.last_rotation_error, s.last_used_at, s.created_at, s.updated_at
@@ -61,6 +62,7 @@ FIELDS = {
     "port": "port",
     "username": "username",
     "template": "template",
+    "databaseEngine": "database_engine",
     "environment": "environment",
     "folder": "folder",
     "description": "description",
@@ -199,10 +201,11 @@ class PamSecretListView(CallerAPIView):
             return Response({"detail": "That group is not available in this workspace."}, status=400)
         secret_id = str(uuid.uuid4())
         execute(
-            "INSERT INTO public.pam_secrets(id, organization_id, name, host, port, username, template, environment, "
-            "folder, description, owner_group_id, approval_required, max_checkout_minutes, rotation_enabled, "
+            "INSERT INTO public.pam_secrets(id, organization_id, name, host, port, username, template, "
+            "database_engine, environment, folder, description, owner_group_id, approval_required, "
+            "max_checkout_minutes, rotation_enabled, "
             "rotation_interval_days, rotate_after_checkout, verify_enabled, ciphertext, key_version, created_by) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             [
                 secret_id,
                 self.org_id,
@@ -211,6 +214,7 @@ class PamSecretListView(CallerAPIView):
                 v["port"],
                 v["username"].strip(),
                 v["template"],
+                v.get("databaseEngine") if v["template"] == "database" else None,
                 v["environment"],
                 v["folder"].strip() or "General",
                 v["description"].strip(),
@@ -265,8 +269,8 @@ class PamSecretDetailView(CallerAPIView):
         require_custodian(self.org_id)
         actor = request.user.user_id
         current = fetch_one(
-            "SELECT name, environment, approval_required, updated_at FROM public.pam_secrets "
-            "WHERE organization_id = %s AND id = %s FOR UPDATE",
+            "SELECT name, environment, approval_required, template, database_engine, updated_at "
+            "FROM public.pam_secrets WHERE organization_id = %s AND id = %s FOR UPDATE",
             [self.org_id, str(secret_id)],
         )
         if not current:
@@ -277,6 +281,12 @@ class PamSecretDetailView(CallerAPIView):
         merged = {**current, **patch}
         if merged["environment"] == "production" and not merged["approval_required"]:
             raise ValidationError({"approvalRequired": PRODUCTION_APPROVAL})
+        # Only database secrets carry an engine, and they must.
+        if merged["template"] != "database":
+            if merged["database_engine"]:
+                patch["database_engine"] = None
+        elif not merged["database_engine"]:
+            raise ValidationError({"databaseEngine": DATABASE_ENGINE_REQUIRED})
         for column in ("name", "host", "username", "folder", "description"):
             if column in patch:
                 patch[column] = patch[column].strip()

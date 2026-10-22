@@ -12,6 +12,7 @@ import {
   useSecrets,
   useSetPassword,
   useUpdateSecret,
+  type DatabaseEngine,
   type Environment,
   type Risk,
   type SecretDetail,
@@ -22,11 +23,13 @@ import { Badge, Button, Field, FormError, Input, PageHeader, Panel, Select, Stat
 import { useWorkspace } from "@/components/workspace";
 import { formatDateTime, humanize, relativeTime } from "@/lib/format";
 import {
+  DATABASE_ENGINE_LABELS,
   DURATIONS,
   ENVIRONMENT_LABELS,
   EVENT_LABELS,
   RISK_TONES,
   TEMPLATE_LABELS,
+  defaultPort,
   durationLabel,
   rotationState,
   verificationState,
@@ -357,7 +360,10 @@ function SecretDetailView({ orgId, secret, onClose }: { orgId: string; secret: S
       )}
 
       <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Template</dt><dd>{TEMPLATE_LABELS[secret.template]}</dd>
+        <dt className="text-muted-foreground">Template</dt><dd>
+          {TEMPLATE_LABELS[secret.template]}
+          {secret.database_engine && ` · ${DATABASE_ENGINE_LABELS[secret.database_engine]}`}
+        </dd>
         <dt className="text-muted-foreground">Folder</dt><dd className="break-words">{secret.folder}</dd>
         <dt className="text-muted-foreground">Password changed</dt><dd>{secret.password_changed_at ? formatDateTime(secret.password_changed_at) : "Never (original password)"}</dd>
         <dt className="text-muted-foreground">Last used</dt><dd>{secret.last_used_at ? formatDateTime(secret.last_used_at) : "Never"}</dd>
@@ -541,6 +547,10 @@ function ManageSecret({
 function NewSecretForm({ orgId, data, onCreated }: { orgId: string; data: SecretList; onCreated: (id: string) => void }) {
   const create = useCreateSecret(orgId);
   const [environment, setEnvironment] = useState<Environment>("production");
+  const [template, setTemplate] = useState<SecretDetail["template"]>("ssh");
+  const [engine, setEngine] = useState<DatabaseEngine>("postgresql");
+  // The port follows the template until someone types their own.
+  const [port, setPort] = useState<string | null>(null);
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
@@ -550,9 +560,10 @@ function NewSecretForm({ orgId, data, onCreated }: { orgId: string; data: Secret
       {
         name: text("name"),
         host: text("host"),
-        port: Number(text("port") || 22),
+        port: Number(port ?? defaultPort(template, engine)),
         username: text("username"),
-        template: text("template") as SecretDetail["template"],
+        template,
+        databaseEngine: template === "database" ? engine : null,
         environment,
         folder: text("folder") || "General",
         description: text("description"),
@@ -573,16 +584,23 @@ function NewSecretForm({ orgId, data, onCreated }: { orgId: string; data: Secret
       <form className="grid gap-4 md:grid-cols-3" onSubmit={submit} autoComplete="off">
         <Field label="Name"><Input id="pam-name" name="name" required minLength={2} maxLength={120} placeholder="web-01 root" /></Field>
         <Field label="Host"><Input id="pam-host" name="host" required maxLength={255} placeholder="web-01.example.test" /></Field>
-        <Field label="Port"><Input id="pam-port" name="port" type="number" min={1} max={65535} defaultValue={22} /></Field>
+        <Field label="Port"><Input id="pam-port" type="number" min={1} max={65535} value={port ?? defaultPort(template, engine)} onChange={(e) => setPort(e.target.value)} /></Field>
         <Field label="Account"><Input id="pam-username" name="username" required maxLength={128} placeholder="root" /></Field>
         <Field label="Current password" hint="Encrypted before it is stored; never shown back here.">
           <Input id="pam-password" name="password" type="password" autoComplete="new-password" required />
         </Field>
         <Field label="Template">
-          <Select id="pam-template" name="template" defaultValue="ssh">
+          <Select id="pam-template" value={template} onChange={(e) => setTemplate(e.target.value as SecretDetail["template"])}>
             {Object.entries(TEMPLATE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </Select>
         </Field>
+        {template === "database" && (
+          <Field label="Database engine">
+            <Select id="pam-engine" value={engine} onChange={(e) => setEngine(e.target.value as DatabaseEngine)}>
+              {Object.entries(DATABASE_ENGINE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </Select>
+          </Field>
+        )}
         <Field label="Environment">
           <Select id="pam-environment" value={environment} onChange={(e) => setEnvironment(e.target.value as Environment)}>
             {Object.entries(ENVIRONMENT_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}

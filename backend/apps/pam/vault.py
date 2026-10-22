@@ -50,14 +50,20 @@ def log_event(org_id, action: str, *, secret_id=None, secret_name=None, request_
 
 def _locked_secret(secret_id) -> dict | None:
     return fetch_one(
-        "SELECT id, organization_id, name, host, port, username, template, ciphertext, rotation_enabled, "
-        "rotation_interval_days FROM public.pam_secrets WHERE id = %s FOR UPDATE",
+        "SELECT id, organization_id, name, host, port, username, template, database_engine, ciphertext, "
+        "rotation_enabled, rotation_interval_days FROM public.pam_secrets WHERE id = %s FOR UPDATE",
         [str(secret_id)],
     )
 
 
 def _target(row: dict) -> Target:
-    return Target(host=row["host"], port=row["port"], username=row["username"], template=row["template"])
+    return Target(
+        host=row["host"],
+        port=row["port"],
+        username=row["username"],
+        template=row["template"],
+        database_engine=row["database_engine"],
+    )
 
 
 def store_password(row: dict, password: str) -> None:
