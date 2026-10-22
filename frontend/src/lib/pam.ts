@@ -1,4 +1,4 @@
-import type { AccessRequest, Environment, Risk, Secret } from "@/api/pam";
+import type { AccessRequest, DatabaseEngine, Environment, Risk, Secret, Template } from "@/api/pam";
 import type { Tone } from "@/components/ui";
 
 export const ENVIRONMENT_LABELS: Record<Environment, string> = {
@@ -14,6 +14,16 @@ export const TEMPLATE_LABELS: Record<Secret["template"], string> = {
   windows: "Windows account",
   api_key: "API key",
 };
+
+export const DATABASE_ENGINE_LABELS: Record<DatabaseEngine, string> = { postgresql: "PostgreSQL", mysql: "MySQL" };
+
+/** The port the live rotation backend connects to for each kind of secret. */
+export function defaultPort(template: Template, engine: DatabaseEngine = "postgresql"): number {
+  if (template === "database") return engine === "mysql" ? 3306 : 5432;
+  if (template === "windows") return 5986;
+  if (template === "api_key") return 443;
+  return 22;
+}
 
 export const RISK_TONES: Record<Risk, Tone> = { critical: "bad", high: "warn", medium: "info", low: "good" };
 

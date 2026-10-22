@@ -4,6 +4,7 @@ import { api } from "./client";
 export type Environment = "production" | "dr" | "uat" | "development";
 export type Risk = "critical" | "high" | "medium" | "low";
 export type Template = "ssh" | "database" | "windows" | "api_key";
+export type DatabaseEngine = "postgresql" | "mysql";
 
 export type Secret = {
   id: string;
@@ -12,6 +13,7 @@ export type Secret = {
   port: number;
   username: string;
   template: Template;
+  database_engine: DatabaseEngine | null;
   environment: Environment;
   folder: string;
   description: string;
@@ -81,6 +83,7 @@ export type SecretFields = {
   port: number;
   username: string;
   template: Template;
+  databaseEngine?: DatabaseEngine | null;
   environment: Environment;
   folder: string;
   description?: string;

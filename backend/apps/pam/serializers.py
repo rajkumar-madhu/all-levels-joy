@@ -2,9 +2,11 @@ from rest_framework import serializers
 
 TEMPLATES = ["ssh", "database", "windows", "api_key"]
 ENVIRONMENTS = ["production", "dr", "uat", "development"]
+DATABASE_ENGINES = ["postgresql", "mysql"]
 RISKS = ["critical", "high", "medium", "low"]
 BULK_ACTIONS = ["enable_rotation", "disable_rotation", "verify", "move"]
 PRODUCTION_APPROVAL = "Production secrets always need an approver."
+DATABASE_ENGINE_REQUIRED = "Choose the database engine."
 
 
 class SecretFieldsSerializer(serializers.Serializer):
@@ -13,6 +15,7 @@ class SecretFieldsSerializer(serializers.Serializer):
     port = serializers.IntegerField(min_value=1, max_value=65535, default=22)
     username = serializers.CharField(max_length=128)
     template = serializers.ChoiceField(choices=TEMPLATES, default="ssh")
+    databaseEngine = serializers.ChoiceField(choices=DATABASE_ENGINES, required=False, allow_null=True)
     environment = serializers.ChoiceField(choices=ENVIRONMENTS)
     folder = serializers.CharField(max_length=80, default="General")
     description = serializers.CharField(max_length=2000, required=False, allow_blank=True, default="")
@@ -32,6 +35,8 @@ class SecretCreateSerializer(SecretFieldsSerializer):
     def validate(self, attrs):
         if attrs["environment"] == "production" and not attrs["approvalRequired"]:
             raise serializers.ValidationError({"approvalRequired": PRODUCTION_APPROVAL})
+        if attrs["template"] == "database" and not attrs.get("databaseEngine"):
+            raise serializers.ValidationError({"databaseEngine": DATABASE_ENGINE_REQUIRED})
         return attrs
 
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { countdown, durationLabel, isActive, rotationState, verificationState } from "./pam.ts";
+import { countdown, defaultPort, durationLabel, isActive, rotationState, verificationState } from "./pam.ts";
 
 const now = Date.parse("2026-10-21T10:00:00Z");
 
@@ -28,4 +28,11 @@ test("duration labels", () => {
   assert.equal(durationLabel(30), "30 min");
   assert.equal(durationLabel(240), "4 h");
   assert.equal(durationLabel(1440), "24 hours");
+});
+
+test("default ports follow the template and engine", () => {
+  assert.equal(defaultPort("ssh"), 22);
+  assert.equal(defaultPort("database"), 5432);
+  assert.equal(defaultPort("database", "mysql"), 3306);
+  assert.equal(defaultPort("windows"), 5986);
 });
