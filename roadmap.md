@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Public service status page: live service health, landing and portal links, public-safe reads and verification
+
 - [ ] Sign up info@wecrew.in, accept staff invitation and approve a finding, change and catalogue request (blocked: account does not exist; user must choose a password and confirm their mailbox before invitation acceptance and approvals)
 
 - [x] Staff-only Security workspace: landing links, server staff gate, staff finding inspection and non-staff direct-board rejection; 15 security tests passed
