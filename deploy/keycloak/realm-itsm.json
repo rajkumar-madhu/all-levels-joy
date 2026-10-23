@@ -1,0 +1,49 @@
+{
+  "realm": "itsm",
+  "enabled": true,
+  "displayName": "WeCrew ITSM",
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "registrationAllowed": false,
+  "verifyEmail": true,
+  "sslRequired": "all",
+  "accessTokenLifespan": 300,
+  "clients": [
+    {
+      "clientId": "itsm-web",
+      "name": "ITSM web app",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "redirectUris": ["https://${APP_DOMAIN}/*"],
+      "webOrigins": ["https://${APP_DOMAIN}"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "https://${APP_DOMAIN}/*"
+      },
+      "defaultClientScopes": ["basic", "web-origins", "profile", "email", "roles"],
+      "protocolMappers": [
+        {
+          "name": "itsm-api audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "itsm-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "itsm-api",
+      "name": "ITSM API (token audience only)",
+      "enabled": true,
+      "bearerOnly": true,
+      "publicClient": false
+    }
+  ],
+  "bruteForceProtected": true
+}
