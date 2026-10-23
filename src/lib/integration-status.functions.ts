@@ -9,12 +9,42 @@ const INTERNAL_TOOLS: Array<{
   probe?: string;
   state?: "up" | "down" | "absent";
 }> = [
-  { name: "Prometheus", kind: "Metrics", url: "", probe: "http://prometheus.wecrew-observatory.svc.cluster.local:9090/-/healthy" },
-  { name: "Grafana", kind: "Dashboards", url: "https://ops.wecrew.in", probe: "http://wecrew-ops-grafana.wecrew-ops.svc.cluster.local/api/health" },
-  { name: "VictoriaMetrics", kind: "Metrics", url: "https://ops.wecrew.in", probe: "http://victoria-metrics.wecrew-ops.svc.cluster.local:8428/health" },
-  { name: "Alertmanager", kind: "Alerts", url: "https://ops.wecrew.in", probe: "http://wecrew-ops-alertmanager.wecrew-ops.svc.cluster.local:9093/-/ready" },
-  { name: "Tempo", kind: "Traces", url: "https://ops.wecrew.in", probe: "http://wecrew-ops-tempo.wecrew-ops.svc.cluster.local:3100/ready" },
-  { name: "OpenSearch", kind: "Logs", url: "", probe: "http://opensearch.wecrew-logs.svc.cluster.local:9200/" },
+  {
+    name: "Prometheus",
+    kind: "Metrics",
+    url: "",
+    probe: "http://prometheus.wecrew-observatory.svc.cluster.local:9090/-/healthy",
+  },
+  {
+    name: "Grafana",
+    kind: "Dashboards",
+    url: "https://ops.wecrew.in",
+    probe: "http://wecrew-ops-grafana.wecrew-ops.svc.cluster.local/api/health",
+  },
+  {
+    name: "VictoriaMetrics",
+    kind: "Metrics",
+    url: "https://ops.wecrew.in",
+    probe: "http://victoria-metrics.wecrew-ops.svc.cluster.local:8428/health",
+  },
+  {
+    name: "Alertmanager",
+    kind: "Alerts",
+    url: "https://ops.wecrew.in",
+    probe: "http://wecrew-ops-alertmanager.wecrew-ops.svc.cluster.local:9093/-/ready",
+  },
+  {
+    name: "Tempo",
+    kind: "Traces",
+    url: "https://ops.wecrew.in",
+    probe: "http://wecrew-ops-tempo.wecrew-ops.svc.cluster.local:3100/ready",
+  },
+  {
+    name: "OpenSearch",
+    kind: "Logs",
+    url: "",
+    probe: "http://opensearch.wecrew-logs.svc.cluster.local:9200/",
+  },
   { name: "Zabbix", kind: "Monitoring", url: "", state: "absent" },
   { name: "Elasticsearch", kind: "Logs", url: "", state: "absent" },
   { name: "Logstash", kind: "Logs", url: "", state: "absent" },
@@ -62,10 +92,7 @@ async function readIntegrationStatus() {
     teams: Boolean(process.env["TEAMS_WEBHOOK_URL"]),
     scanner: Boolean(process.env["SECURITY_SCANNER_SECRET"]),
     cron: Boolean(process.env["LOVABLE_CRON_SECRET"]),
-    tools: [
-      { name: "Workspace Auth API", kind: "Identity", url: "", state: database },
-      ...tools,
-    ],
+    tools: [{ name: "Workspace Auth API", kind: "Identity", url: "", state: database }, ...tools],
   };
 }
 

@@ -68,7 +68,13 @@ function RoutingEditor(props: {
           ))}
         </select>
       </div>
-      <Button type="button" size="sm" variant="outline" disabled={save.isPending} onClick={() => save.mutate()}>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        disabled={save.isPending}
+        onClick={() => save.mutate()}
+      >
         Save routing
       </Button>
     </div>
@@ -210,7 +216,9 @@ function Catalog() {
                 }}
                 aria-pressed={item.id === selectedId}
                 className={`rounded-lg border bg-card p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                  item.id === selectedId ? "border-primary ring-1 ring-primary" : "border-border hover:bg-muted/60"
+                  item.id === selectedId
+                    ? "border-primary ring-1 ring-primary"
+                    : "border-border hover:bg-muted/60"
                 }`}
               >
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -218,7 +226,9 @@ function Catalog() {
                 </p>
                 <p className="mt-1 font-semibold text-foreground">{item.name}</p>
                 {item.description ? (
-                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
                 ) : null}
                 <p className="mt-3 text-xs text-muted-foreground">
                   Delivery in {item.delivery_days} day{item.delivery_days === 1 ? "" : "s"} ·{" "}

@@ -82,7 +82,10 @@ function Requests() {
     const due = r.due_at ? new Date(r.due_at).getTime() : null;
     if (view === "unassigned" && r.group_id) return false;
     if (view === "breached" && !(active(r.state) && due !== null && due < nowMs)) return false;
-    if (view === "at_risk" && !(active(r.state) && due !== null && due >= nowMs && due - nowMs <= 86400000))
+    if (
+      view === "at_risk" &&
+      !(active(r.state) && due !== null && due >= nowMs && due - nowMs <= 86400000)
+    )
       return false;
     if (priorityFilter !== "all" && String(r.priority) !== priorityFilter) return false;
     if (groupFilter !== "all" && r.group_id !== groupFilter) return false;
@@ -201,180 +204,184 @@ function Requests() {
         </div>
       ) : (
         <>
-        <div className="mt-6 flex flex-wrap items-center gap-2">
-          {(
-            [
-              ["all", "All"],
-              ["unassigned", "Unassigned team"],
-              ["at_risk", "At risk"],
-              ["breached", "Breached"],
-            ] as const
-          ).map(([value, label]) => (
-            <Button
-              key={value}
-              size="sm"
-              variant={view === value ? "default" : "outline"}
-              aria-pressed={view === value}
-              onClick={() => setView(value)}
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            {(
+              [
+                ["all", "All"],
+                ["unassigned", "Unassigned team"],
+                ["at_risk", "At risk"],
+                ["breached", "Breached"],
+              ] as const
+            ).map(([value, label]) => (
+              <Button
+                key={value}
+                size="sm"
+                variant={view === value ? "default" : "outline"}
+                aria-pressed={view === value}
+                onClick={() => setView(value)}
+              >
+                {label}
+              </Button>
+            ))}
+            <select
+              aria-label="Priority"
+              className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
             >
-              {label}
-            </Button>
-          ))}
-          <select
-            aria-label="Priority"
-            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-          >
-            <option value="all">All priorities</option>
-            {Object.entries(REQUEST_PRIORITY).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
-          <select
-            aria-label="Team"
-            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-            value={groupFilter}
-            onChange={(e) => setGroupFilter(e.target.value)}
-          >
-            <option value="all">All teams</option>
-            {groups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name}
-              </option>
-            ))}
-          </select>
-          <span className="text-xs text-muted-foreground">{requests.length} shown</span>
-        </div>
-        <div className="mt-4 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
-          <div className="overflow-x-auto rounded-lg border border-border bg-card">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-2.5 font-medium">Number</th>
-                  <th className="px-4 py-2.5 font-medium">Request</th>
-                  <th className="px-4 py-2.5 font-medium">Priority</th>
-                  <th className="px-4 py-2.5 font-medium">Team</th>
-                  <th className="px-4 py-2.5 font-medium">State</th>
-                  <th className="px-4 py-2.5 font-medium">Due</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {requests.map((request) => (
-                  <tr
-                    key={request.id}
-                    className={request.id === search.record ? "bg-accent/40" : "hover:bg-muted/60"}
-                  >
-                    <td className="px-4 py-2.5">
-                      <button
-                        type="button"
-                        className="font-mono text-xs text-primary underline underline-offset-4"
-                        onClick={() =>
-                          void navigate({ to: "/requests", search: { record: request.id } })
-                        }
-                      >
-                        {request.number}
-                      </button>
-                    </td>
-                    <td className="px-4 py-2.5 text-foreground">{request.title}</td>
-                    <td className="px-4 py-2.5 text-xs">{REQUEST_PRIORITY[request.priority] ?? "—"}</td>
-                    <td className="px-4 py-2.5 text-xs text-muted-foreground">
-                      {groupName(request.group_id)}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <StateBadge state={request.state} />
-                    </td>
-                    <td className="px-4 py-2.5 text-xs text-muted-foreground">
-                      {formatDateTime(request.due_at)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              <option value="all">All priorities</option>
+              {Object.entries(REQUEST_PRIORITY).map(([v, l]) => (
+                <option key={v} value={v}>
+                  {l}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Team"
+              className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+              value={groupFilter}
+              onChange={(e) => setGroupFilter(e.target.value)}
+            >
+              <option value="all">All teams</option>
+              {groups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-muted-foreground">{requests.length} shown</span>
           </div>
-
-          <aside className="rounded-lg border border-border bg-card p-5">
-            {!selected ? (
-              <p className="text-sm text-muted-foreground">
-                Select a request number to see its details and fulfillment history.
-              </p>
-            ) : (
-              <div className="space-y-5">
-                <div>
-                  <p className="font-mono text-xs text-muted-foreground">{selected.number}</p>
-                  <h2 className="mt-1 text-lg font-semibold text-foreground">{selected.title}</h2>
-                  <div className="mt-2">
-                    <StateBadge state={selected.state} />
-                  </div>
-                  {selected.approval_status === "requested" ? (
-                    <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
-                      Awaiting approval from every assigned approver. Fulfillment starts after all
-                      decisions are approved.
-                    </p>
-                  ) : selected.approval_status === "rejected" ? (
-                    <p className="mt-3 rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
-                      This request was rejected. Submit a new request if the requirements change.
-                    </p>
-                  ) : null}
-                </div>
-                <dl className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <dt className="text-muted-foreground">Submitted</dt>
-                    <dd className="mt-0.5 text-foreground">
-                      {formatDateTime(selected.created_at)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">Committed by</dt>
-                    <dd className="mt-0.5 text-foreground">{formatDateTime(selected.due_at)}</dd>
-                  </div>
-                  <div className="col-span-2">
-                    <dt className="text-muted-foreground">Details</dt>
-                    <dd className="mt-0.5 whitespace-pre-wrap text-foreground">
-                      {selected.description}
-                    </dd>
-                  </div>
-                </dl>
-
-                {manager && ["approved", "not_required"].includes(selected.approval_status) ? (
-                  <div className="flex flex-wrap gap-2 rounded-md border border-border bg-background p-3">
-                    {(["open", "in_progress", "resolved", "closed"] as RecordState[]).map(
-                      (state) => (
-                        <Button
-                          key={state}
-                          size="sm"
-                          variant="outline"
+          <div className="mt-4 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
+            <div className="overflow-x-auto rounded-lg border border-border bg-card">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-2.5 font-medium">Number</th>
+                    <th className="px-4 py-2.5 font-medium">Request</th>
+                    <th className="px-4 py-2.5 font-medium">Priority</th>
+                    <th className="px-4 py-2.5 font-medium">Team</th>
+                    <th className="px-4 py-2.5 font-medium">State</th>
+                    <th className="px-4 py-2.5 font-medium">Due</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {requests.map((request) => (
+                    <tr
+                      key={request.id}
+                      className={
+                        request.id === search.record ? "bg-accent/40" : "hover:bg-muted/60"
+                      }
+                    >
+                      <td className="px-4 py-2.5">
+                        <button
+                          type="button"
+                          className="font-mono text-xs text-primary underline underline-offset-4"
                           onClick={() =>
-                            update.mutate({
-                              id: selected.id,
-                              state,
-                              expectedUpdatedAt: selected.updated_at,
-                            })
+                            void navigate({ to: "/requests", search: { record: request.id } })
                           }
-                          disabled={update.isPending || selected.state === state}
                         >
-                          {STATE_LABELS[state]}
-                        </Button>
-                      ),
-                    )}
+                          {request.number}
+                        </button>
+                      </td>
+                      <td className="px-4 py-2.5 text-foreground">{request.title}</td>
+                      <td className="px-4 py-2.5 text-xs">
+                        {REQUEST_PRIORITY[request.priority] ?? "—"}
+                      </td>
+                      <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                        {groupName(request.group_id)}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <StateBadge state={request.state} />
+                      </td>
+                      <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                        {formatDateTime(request.due_at)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <aside className="rounded-lg border border-border bg-card p-5">
+              {!selected ? (
+                <p className="text-sm text-muted-foreground">
+                  Select a request number to see its details and fulfillment history.
+                </p>
+              ) : (
+                <div className="space-y-5">
+                  <div>
+                    <p className="font-mono text-xs text-muted-foreground">{selected.number}</p>
+                    <h2 className="mt-1 text-lg font-semibold text-foreground">{selected.title}</h2>
+                    <div className="mt-2">
+                      <StateBadge state={selected.state} />
+                    </div>
+                    {selected.approval_status === "requested" ? (
+                      <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+                        Awaiting approval from every assigned approver. Fulfillment starts after all
+                        decisions are approved.
+                      </p>
+                    ) : selected.approval_status === "rejected" ? (
+                      <p className="mt-3 rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
+                        This request was rejected. Submit a new request if the requirements change.
+                      </p>
+                    ) : null}
                   </div>
-                ) : null}
+                  <dl className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <dt className="text-muted-foreground">Submitted</dt>
+                      <dd className="mt-0.5 text-foreground">
+                        {formatDateTime(selected.created_at)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground">Committed by</dt>
+                      <dd className="mt-0.5 text-foreground">{formatDateTime(selected.due_at)}</dd>
+                    </div>
+                    <div className="col-span-2">
+                      <dt className="text-muted-foreground">Details</dt>
+                      <dd className="mt-0.5 whitespace-pre-wrap text-foreground">
+                        {selected.description}
+                      </dd>
+                    </div>
+                  </dl>
 
-                {manager && ["approved", "not_required"].includes(selected.approval_status) ? (
-                  <RequestTasks requestId={selected.id} canWork />
-                ) : null}
+                  {manager && ["approved", "not_required"].includes(selected.approval_status) ? (
+                    <div className="flex flex-wrap gap-2 rounded-md border border-border bg-background p-3">
+                      {(["open", "in_progress", "resolved", "closed"] as RecordState[]).map(
+                        (state) => (
+                          <Button
+                            key={state}
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              update.mutate({
+                                id: selected.id,
+                                state,
+                                expectedUpdatedAt: selected.updated_at,
+                              })
+                            }
+                            disabled={update.isPending || selected.state === state}
+                          >
+                            {STATE_LABELS[state]}
+                          </Button>
+                        ),
+                      )}
+                    </div>
+                  ) : null}
 
-                <RecordActivity
-                  recordType="request"
-                  recordId={selected.id}
-                  canPostInternal={manager}
-                />
-              </div>
-            )}
-          </aside>
-        </div>
+                  {manager && ["approved", "not_required"].includes(selected.approval_status) ? (
+                    <RequestTasks requestId={selected.id} canWork />
+                  ) : null}
+
+                  <RecordActivity
+                    recordType="request"
+                    recordId={selected.id}
+                    canPostInternal={manager}
+                  />
+                </div>
+              )}
+            </aside>
+          </div>
         </>
       )}
     </AppShell>

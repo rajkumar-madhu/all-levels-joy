@@ -19,9 +19,16 @@ export const Route = createFileRoute("/portal")({
   head: () => ({
     meta: [
       { title: "Customer portal — Argus Service Desk" },
-      { name: "description", content: "Search help articles, track your support tickets, known problems and outage updates." },
+      {
+        name: "description",
+        content:
+          "Search help articles, track your support tickets, known problems and outage updates.",
+      },
       { property: "og:title", content: "Customer portal — Argus Service Desk" },
-      { property: "og:description", content: "Check status and reply to your Argus support tickets." },
+      {
+        property: "og:description",
+        content: "Check status and reply to your Argus support tickets.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -33,7 +40,9 @@ function Portal() {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => setSignedIn(Boolean(data.user)));
-    const { data } = supabase.auth.onAuthStateChange((_e, session) => setSignedIn(Boolean(session)));
+    const { data } = supabase.auth.onAuthStateChange((_e, session) =>
+      setSignedIn(Boolean(session)),
+    );
     return () => data.subscription.unsubscribe();
   }, []);
 
@@ -43,13 +52,17 @@ function Portal() {
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-5 py-4">
           <p className="font-semibold text-foreground">Argus Service Desk</p>
           <div className="flex flex-wrap items-center gap-2">
-          <Button asChild size="sm" variant="ghost"><Link to="/status">Service status</Link></Button>
-          <Button asChild size="sm" variant="outline"><Link to="/security">Security workspace</Link></Button>
-          {signedIn ? (
-            <Button size="sm" variant="ghost" onClick={() => void supabase.auth.signOut()}>
-              Sign out
+            <Button asChild size="sm" variant="ghost">
+              <Link to="/status">Service status</Link>
             </Button>
-          ) : null}
+            <Button asChild size="sm" variant="outline">
+              <Link to="/security">Security workspace</Link>
+            </Button>
+            {signedIn ? (
+              <Button size="sm" variant="ghost" onClick={() => void supabase.auth.signOut()}>
+                Sign out
+              </Button>
+            ) : null}
           </div>
         </div>
       </header>
@@ -77,7 +90,9 @@ function PortalSignIn() {
       <h1 className="text-xl font-semibold text-foreground">
         {mode === "signin" ? "Sign in to the service desk" : "Create a support account"}
       </h1>
-      <p className="mt-1 text-sm text-muted-foreground">Submit new tickets and track the ones you've raised.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Submit new tickets and track the ones you've raised.
+      </p>
       <form
         className="mt-5 space-y-4"
         onSubmit={async (e) => {
@@ -101,11 +116,23 @@ function PortalSignIn() {
       >
         <div className="space-y-1.5">
           <Label htmlFor="p-email">Email</Label>
-          <Input id="p-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            id="p-email"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="p-pass">Password</Label>
-          <Input id="p-pass" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Input
+            id="p-pass"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
         <Button type="submit" className="w-full" disabled={busy}>
           {mode === "signin" ? "Sign in" : "Create account"}
@@ -197,10 +224,13 @@ function KnowledgeSearch({ signedIn }: { signedIn: boolean }) {
       {search.isPending ? (
         <p className="mt-4 text-sm text-muted-foreground">Searching…</p>
       ) : search.isError ? (
-        <p className="mt-4 text-sm text-destructive">Articles could not be loaded. Try again shortly.</p>
+        <p className="mt-4 text-sm text-destructive">
+          Articles could not be loaded. Try again shortly.
+        </p>
       ) : d && d.articles.length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">
-          No articles match. {signedIn ? "Raise a ticket below and we'll help." : "Sign in below to raise a ticket."}
+          No articles match.{" "}
+          {signedIn ? "Raise a ticket below and we'll help." : "Sign in below to raise a ticket."}
         </p>
       ) : (
         <ul className="mt-4 divide-y divide-border">
@@ -215,7 +245,9 @@ function KnowledgeSearch({ signedIn }: { signedIn: boolean }) {
                 <span className="min-w-0 flex-1">
                   <span className="block font-medium text-foreground">{a.title}</span>
                   {a.summary ? (
-                    <span className="mt-0.5 block truncate text-sm text-muted-foreground">{a.summary}</span>
+                    <span className="mt-0.5 block truncate text-sm text-muted-foreground">
+                      {a.summary}
+                    </span>
                   ) : null}
                 </span>
                 <span className="shrink-0 text-xs text-muted-foreground">{a.category}</span>
@@ -247,17 +279,22 @@ function KnowledgeSearch({ signedIn }: { signedIn: boolean }) {
 function Tickets() {
   const query = useQuery({ queryKey: ["portal"], queryFn: () => getPortal() });
   const [open, setOpen] = useState<string | null>(null);
-  if (query.isPending) return <p className="text-sm text-muted-foreground">Loading your tickets…</p>;
+  if (query.isPending)
+    return <p className="text-sm text-muted-foreground">Loading your tickets…</p>;
   if (query.isError)
-    return <p className="text-sm text-destructive">Your tickets could not be loaded. Try again shortly.</p>;
+    return (
+      <p className="text-sm text-destructive">
+        Your tickets could not be loaded. Try again shortly.
+      </p>
+    );
   const d = query.data;
   if (d.allowed === false)
     return (
       <div className="rounded-lg border border-border bg-card p-6">
         <h1 className="text-lg font-semibold text-foreground">Please use your @wecrew.in email</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          The support portal is available to confirmed @wecrew.in accounts only. Sign out and sign in with your
-          company email, then confirm it from the link we send you.
+          The support portal is available to confirmed @wecrew.in accounts only. Sign out and sign
+          in with your company email, then confirm it from the link we send you.
         </p>
       </div>
     );
@@ -306,20 +343,30 @@ function TicketDetail({
   ticket,
   data,
 }: {
-  ticket: { id: string; kind: "incident" | "request"; description: string; created_at: string; updated_at: string; due: string | null } & Record<string, unknown>;
+  ticket: {
+    id: string;
+    kind: "incident" | "request";
+    description: string;
+    created_at: string;
+    updated_at: string;
+    due: string | null;
+  } & Record<string, unknown>;
   data: PortalData;
 }) {
   const queryClient = useQueryClient();
   const [body, setBody] = useState("");
   const reply = useMutation({
-    mutationFn: () => postPortalReply({ data: { recordType: ticket.kind, recordId: ticket.id, body } }),
+    mutationFn: () =>
+      postPortalReply({ data: { recordType: ticket.kind, recordId: ticket.id, body } }),
     onSuccess: async (result) => {
       setBody("");
       const outcome = (result as { outcome?: string } | undefined)?.outcome;
       if (outcome === "reopened") toast.success("Reply sent. Your ticket has been reopened.");
       else if (outcome === "resumed") toast.success("Reply sent. Support is working on it again.");
       else if (outcome === "closed")
-        toast.info("Reply saved. This ticket is closed — please open a new ticket if you still need help.");
+        toast.info(
+          "Reply saved. This ticket is closed — please open a new ticket if you still need help.",
+        );
       else toast.success("Reply sent.");
       await queryClient.invalidateQueries({ queryKey: ["portal"] });
     },
@@ -329,7 +376,12 @@ function TicketDetail({
   const timeline = [
     ...data.comments
       .filter((c) => c.record_id === ticket.id)
-      .map((c) => ({ id: c.id, at: c.created_at, who: c.mine ? "You" : "Support team", body: c.body })),
+      .map((c) => ({
+        id: c.id,
+        at: c.created_at,
+        who: c.mine ? "You" : "Support team",
+        body: c.body,
+      })),
     ...(data.outageUpdates ?? [])
       .filter((u) => u.incident_id === ticket.id)
       .map((u) => ({ id: u.id, at: u.created_at, who: "Outage update", body: u.body })),
@@ -365,7 +417,9 @@ function TicketDetail({
             Linked known problem · {problem.number}
           </p>
           <p className="mt-1 font-medium">{problem.title}</p>
-          {problem.workaround ? <p className="mt-1 whitespace-pre-wrap">Workaround: {problem.workaround}</p> : null}
+          {problem.workaround ? (
+            <p className="mt-1 whitespace-pre-wrap">Workaround: {problem.workaround}</p>
+          ) : null}
         </div>
       ) : null}
       <div>
@@ -393,7 +447,12 @@ function TicketDetail({
         }}
       >
         <Label htmlFor={`reply-${ticket.id}`}>Reply to support</Label>
-        <Textarea id={`reply-${ticket.id}`} rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
+        <Textarea
+          id={`reply-${ticket.id}`}
+          rows={3}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+        />
         <Button size="sm" type="submit" disabled={reply.isPending || !body.trim()}>
           Send reply
         </Button>
@@ -421,7 +480,9 @@ function NewTicket({ onCreated }: { onCreated: (id: string) => void }) {
   const [urgency, setUrgency] = useState(3);
   const submit = useMutation({
     mutationFn: () =>
-      submitPortalTicket({ data: { title, description, impact, urgency, category: category || null } }),
+      submitPortalTicket({
+        data: { title, description, impact, urgency, category: category || null },
+      }),
     onSuccess: async (t) => {
       toast.success(`Ticket ${t.number} submitted.`);
       setTitle("");
@@ -437,7 +498,9 @@ function NewTicket({ onCreated }: { onCreated: (id: string) => void }) {
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-5">
         <div>
           <p className="font-medium text-foreground">Need help?</p>
-          <p className="text-sm text-muted-foreground">Tell us what's wrong and we'll open a ticket.</p>
+          <p className="text-sm text-muted-foreground">
+            Tell us what's wrong and we'll open a ticket.
+          </p>
         </div>
         <Button onClick={() => setShow(true)}>Submit a ticket</Button>
       </div>
@@ -454,7 +517,12 @@ function NewTicket({ onCreated }: { onCreated: (id: string) => void }) {
       <h2 className="text-lg font-semibold text-foreground sm:col-span-3">Submit a ticket</h2>
       <div className="space-y-1.5">
         <Label htmlFor="nt-cat">Area</Label>
-        <select id="nt-cat" className={sel} value={category} onChange={(e) => setCategory(e.target.value)}>
+        <select
+          id="nt-cat"
+          className={sel}
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
           <option value="">Not sure</option>
           <option value="network">Network / VPN / Wi-Fi</option>
           <option value="hardware">Hardware</option>
@@ -465,7 +533,12 @@ function NewTicket({ onCreated }: { onCreated: (id: string) => void }) {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="nt-imp">Who is affected</Label>
-        <select id="nt-imp" className={sel} value={impact} onChange={(e) => setImpact(Number(e.target.value))}>
+        <select
+          id="nt-imp"
+          className={sel}
+          value={impact}
+          onChange={(e) => setImpact(Number(e.target.value))}
+        >
           <option value={3}>Just me</option>
           <option value={2}>My team</option>
           <option value={1}>Many people</option>
@@ -473,7 +546,12 @@ function NewTicket({ onCreated }: { onCreated: (id: string) => void }) {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="nt-urg">How urgent</Label>
-        <select id="nt-urg" className={sel} value={urgency} onChange={(e) => setUrgency(Number(e.target.value))}>
+        <select
+          id="nt-urg"
+          className={sel}
+          value={urgency}
+          onChange={(e) => setUrgency(Number(e.target.value))}
+        >
           <option value={3}>Can wait</option>
           <option value={2}>Slowing me down</option>
           <option value={1}>Can't work</option>
@@ -481,11 +559,25 @@ function NewTicket({ onCreated }: { onCreated: (id: string) => void }) {
       </div>
       <div className="space-y-1.5 sm:col-span-3">
         <Label htmlFor="nt-title">Summary</Label>
-        <Input id="nt-title" required minLength={5} maxLength={160} value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Input
+          id="nt-title"
+          required
+          minLength={5}
+          maxLength={160}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
       </div>
       <div className="space-y-1.5 sm:col-span-3">
         <Label htmlFor="nt-desc">Details</Label>
-        <Textarea id="nt-desc" rows={4} required minLength={5} value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Textarea
+          id="nt-desc"
+          rows={4}
+          required
+          minLength={5}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
       </div>
       <div className="flex gap-2 sm:col-span-3">
         <Button type="submit" disabled={submit.isPending}>

@@ -80,7 +80,9 @@ function Knowledge() {
     : allArticles.filter((article) => article.status === "published");
   const categories = [
     ...new Set([...activeCategories, ...visibleArticles.map((article) => article.category)]),
-  ].filter((name) => activeCategories.includes(name) || visibleArticles.some((a) => a.category === name));
+  ].filter(
+    (name) => activeCategories.includes(name) || visibleArticles.some((a) => a.category === name),
+  );
   const allTags = [...new Set(visibleArticles.flatMap((article) => article.tags ?? []))].sort();
   const safeStatus = ["all", "draft", "review", "published", "retired"].includes(search.status)
     ? search.status
@@ -89,7 +91,14 @@ function Knowledge() {
   const articles = visibleArticles.filter((article) => {
     const matchesQuery =
       normalizedQuery.length === 0 ||
-      [article.number, article.title, article.summary, article.category, article.content, ...(article.tags ?? [])]
+      [
+        article.number,
+        article.title,
+        article.summary,
+        article.category,
+        article.content,
+        ...(article.tags ?? []),
+      ]
         .filter(Boolean)
         .some((value) => String(value).toLocaleLowerCase().includes(normalizedQuery));
     const matchesCategory = search.category === "all" || article.category === search.category;
@@ -147,7 +156,11 @@ function Knowledge() {
           canAuthor ? (
             <div className="flex gap-2">
               {canManageCategories ? (
-                <Button size="sm" variant="outline" onClick={() => setManagingCategories((v) => !v)}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setManagingCategories((v) => !v)}
+                >
                   {managingCategories ? "Close categories" : "Manage categories"}
                 </Button>
               ) : null}
@@ -206,7 +219,9 @@ function Knowledge() {
             <Button
               variant="outline"
               onClick={() =>
-                void navigate({ search: { record: "", q: "", category: "all", status: "all", tag: "" } })
+                void navigate({
+                  search: { record: "", q: "", category: "all", status: "all", tag: "" },
+                })
               }
             >
               <X className="h-4 w-4" aria-hidden /> Clear
@@ -271,13 +286,13 @@ function Knowledge() {
               onChange={(event) => setEditor({ ...editor, category: event.target.value })}
               required
             >
-              {[...new Set([...activeCategories, ...(editor.category ? [editor.category] : [])])].map(
-                (name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ),
-              )}
+              {[
+                ...new Set([...activeCategories, ...(editor.category ? [editor.category] : [])]),
+              ].map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
             </select>
           </div>
           <div className="space-y-1.5">
@@ -379,7 +394,10 @@ function Knowledge() {
                   {(article.tags ?? []).length > 0 ? (
                     <p className="mt-1 flex flex-wrap gap-1">
                       {(article.tags ?? []).map((tag) => (
-                        <span key={tag} className="rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">
+                        <span
+                          key={tag}
+                          className="rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground"
+                        >
                           #{tag}
                         </span>
                       ))}
@@ -461,8 +479,12 @@ function CategoryManager({
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const save = useMutation({
-    mutationFn: (input: { id?: string | null; name: string; description?: string; active: boolean }) =>
-      saveKnowledgeCategory({ data: input }),
+    mutationFn: (input: {
+      id?: string | null;
+      name: string;
+      description?: string;
+      active: boolean;
+    }) => saveKnowledgeCategory({ data: input }),
     onSuccess: async () => {
       toast.success("Category saved.");
       setNewName("");
@@ -470,31 +492,49 @@ function CategoryManager({
       await onSaved();
       await onRenamed();
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Category was not saved."),
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "Category was not saved."),
   });
   return (
-    <section className="mt-6 space-y-3 rounded-lg border border-border bg-card p-5" aria-label="Manage categories">
+    <section
+      className="mt-6 space-y-3 rounded-lg border border-border bg-card p-5"
+      aria-label="Manage categories"
+    >
       <h2 className="text-sm font-semibold text-foreground">Categories</h2>
       <ul className="divide-y divide-border">
         {rows.map((row) => {
           const draft = drafts[row.id] ?? { name: row.name, description: row.description ?? "" };
           return (
-            <li key={row.id} className="grid gap-2 py-2 sm:grid-cols-[200px_1fr_auto_auto] sm:items-center">
+            <li
+              key={row.id}
+              className="grid gap-2 py-2 sm:grid-cols-[200px_1fr_auto_auto] sm:items-center"
+            >
               <Input
                 aria-label={`Name for ${row.name}`}
                 value={draft.name}
-                onChange={(e) => setDrafts({ ...drafts, [row.id]: { ...draft, name: e.target.value } })}
+                onChange={(e) =>
+                  setDrafts({ ...drafts, [row.id]: { ...draft, name: e.target.value } })
+                }
               />
               <Input
                 aria-label={`Description for ${row.name}`}
                 value={draft.description}
-                onChange={(e) => setDrafts({ ...drafts, [row.id]: { ...draft, description: e.target.value } })}
+                onChange={(e) =>
+                  setDrafts({ ...drafts, [row.id]: { ...draft, description: e.target.value } })
+                }
               />
               <Button
                 size="sm"
                 variant="outline"
                 disabled={save.isPending}
-                onClick={() => save.mutate({ id: row.id, name: draft.name, description: draft.description, active: row.active })}
+                onClick={() =>
+                  save.mutate({
+                    id: row.id,
+                    name: draft.name,
+                    description: draft.description,
+                    active: row.active,
+                  })
+                }
               >
                 Save
               </Button>
@@ -502,7 +542,14 @@ function CategoryManager({
                 size="sm"
                 variant="ghost"
                 disabled={save.isPending}
-                onClick={() => save.mutate({ id: row.id, name: row.name, description: row.description ?? "", active: !row.active })}
+                onClick={() =>
+                  save.mutate({
+                    id: row.id,
+                    name: row.name,
+                    description: row.description ?? "",
+                    active: !row.active,
+                  })
+                }
               >
                 {row.active ? "Retire" : "Restore"}
               </Button>
@@ -517,9 +564,23 @@ function CategoryManager({
           save.mutate({ name: newName, description: newDescription, active: true });
         }}
       >
-        <Input aria-label="New category name" placeholder="New category" value={newName} onChange={(e) => setNewName(e.target.value)} required minLength={2} />
-        <Input aria-label="New category description" placeholder="Description" value={newDescription} onChange={(e) => setNewDescription(e.target.value)} />
-        <Button size="sm" type="submit" disabled={save.isPending}>Add category</Button>
+        <Input
+          aria-label="New category name"
+          placeholder="New category"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          required
+          minLength={2}
+        />
+        <Input
+          aria-label="New category description"
+          placeholder="Description"
+          value={newDescription}
+          onChange={(e) => setNewDescription(e.target.value)}
+        />
+        <Button size="sm" type="submit" disabled={save.isPending}>
+          Add category
+        </Button>
       </form>
     </section>
   );

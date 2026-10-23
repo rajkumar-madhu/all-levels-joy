@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 const plan = z.string().trim().min(5).max(6000);
-const windowTimestamp = z.string().datetime({ offset: true, message: "Choose a valid window time with a timezone." });
+const windowTimestamp = z
+  .string()
+  .datetime({ offset: true, message: "Choose a valid window time with a timezone." });
 
 export const SEVERITIES = ["critical", "high", "medium", "low"] as const;
 export const SECURITY_STATES = [
@@ -29,40 +31,47 @@ export const findingInputSchema = z.object({
   serviceId: z.string().uuid().nullish(),
 });
 
-export const transitionSchema = z.discriminatedUnion("action", [
-  z.object({
-    action: z.literal("submit"),
-    impactAssessment: plan,
-    fixPlan: plan,
-    testPlan: plan,
-    rollbackPlan: plan,
-    rollbackTrigger: plan,
-  }),
-  z.object({ action: z.literal("approve"), notes: z.string().trim().max(2000).optional() }),
-  z.object({ action: z.literal("reject"), notes: z.string().trim().min(1).max(2000) }),
-  z.object({
-    action: z.literal("schedule"),
-    windowStart: windowTimestamp,
-    windowEnd: windowTimestamp,
-  }),
-  z.object({ action: z.literal("start") }),
-  z.object({
-    action: z.literal("deliver"),
-    outcome: z.enum(["successful", "partial", "failed"]),
-    validationResults: plan,
-    reviewNotes: plan,
-    rollbackUsed: z.boolean(),
-  }),
-  z.object({ action: z.literal("close") }),
-  z.object({ action: z.literal("cancel") }),
-  z.object({
-    action: z.literal("link"),
-    changeId: z.string().uuid().or(z.literal("")).optional(),
-    incidentId: z.string().uuid().or(z.literal("")).optional(),
-  }),
-]).refine((value) => value.action !== "schedule" || Date.parse(value.windowEnd) > Date.parse(value.windowStart), {
-  message: "The fix window must end after it starts.", path: ["windowEnd"],
-});
+export const transitionSchema = z
+  .discriminatedUnion("action", [
+    z.object({
+      action: z.literal("submit"),
+      impactAssessment: plan,
+      fixPlan: plan,
+      testPlan: plan,
+      rollbackPlan: plan,
+      rollbackTrigger: plan,
+    }),
+    z.object({ action: z.literal("approve"), notes: z.string().trim().max(2000).optional() }),
+    z.object({ action: z.literal("reject"), notes: z.string().trim().min(1).max(2000) }),
+    z.object({
+      action: z.literal("schedule"),
+      windowStart: windowTimestamp,
+      windowEnd: windowTimestamp,
+    }),
+    z.object({ action: z.literal("start") }),
+    z.object({
+      action: z.literal("deliver"),
+      outcome: z.enum(["successful", "partial", "failed"]),
+      validationResults: plan,
+      reviewNotes: plan,
+      rollbackUsed: z.boolean(),
+    }),
+    z.object({ action: z.literal("close") }),
+    z.object({ action: z.literal("cancel") }),
+    z.object({
+      action: z.literal("link"),
+      changeId: z.string().uuid().or(z.literal("")).optional(),
+      incidentId: z.string().uuid().or(z.literal("")).optional(),
+    }),
+  ])
+  .refine(
+    (value) =>
+      value.action !== "schedule" || Date.parse(value.windowEnd) > Date.parse(value.windowStart),
+    {
+      message: "The fix window must end after it starts.",
+      path: ["windowEnd"],
+    },
+  );
 export type TransitionInput = z.input<typeof transitionSchema>;
 
 export const exceptionInputSchema = z

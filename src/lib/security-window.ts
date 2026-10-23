@@ -5,9 +5,12 @@ export function localWindowTimeToIso(value: string): string {
   const [year, month, day, hour, minute] = match.slice(1).map(Number);
   const date = new Date(value);
   if (
-    !Number.isFinite(date.getTime()) || date.getFullYear() !== year ||
-    date.getMonth() + 1 !== month || date.getDate() !== day ||
-    date.getHours() !== hour || date.getMinutes() !== minute
+    !Number.isFinite(date.getTime()) ||
+    date.getFullYear() !== year ||
+    date.getMonth() + 1 !== month ||
+    date.getDate() !== day ||
+    date.getHours() !== hour ||
+    date.getMinutes() !== minute
   ) {
     throw new Error("That local time does not exist. Choose another window time.");
   }

@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { addRequestTask, listRequestTasks, setRequestTaskState } from "@/lib/request-tasks.functions";
+import {
+  addRequestTask,
+  listRequestTasks,
+  setRequestTaskState,
+} from "@/lib/request-tasks.functions";
 import { StateBadge } from "@/components/status-badge";
 import { formatDateTime, type RecordState } from "@/lib/itsm-shared";
 import { Button } from "@/components/ui/button";
@@ -10,7 +14,10 @@ import { Input } from "@/components/ui/input";
 export function RequestTasks({ requestId, canWork }: { requestId: string; canWork: boolean }) {
   const queryClient = useQueryClient();
   const key = ["request-tasks", requestId];
-  const query = useQuery({ queryKey: key, queryFn: () => listRequestTasks({ data: { requestId } }) });
+  const query = useQuery({
+    queryKey: key,
+    queryFn: () => listRequestTasks({ data: { requestId } }),
+  });
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
   const refresh = () => queryClient.invalidateQueries({ queryKey: key });
@@ -58,18 +65,28 @@ export function RequestTasks({ requestId, canWork }: { requestId: string; canWor
           {tasks.map((task) => (
             <li key={task.id} className="flex flex-wrap items-center gap-2 py-2">
               <span className="min-w-0 flex-1 text-foreground">{task.title}</span>
-              <span className="text-xs text-muted-foreground">Due {formatDateTime(task.due_at)}</span>
+              <span className="text-xs text-muted-foreground">
+                Due {formatDateTime(task.due_at)}
+              </span>
               <StateBadge state={task.state as RecordState} />
               {canWork && !["closed", "cancelled"].includes(task.state) ? (
                 <>
                   {task.state !== "in_progress" ? (
-                    <Button size="sm" variant="outline" disabled={move.isPending}
-                      onClick={() => move.mutate({ id: task.id, state: "in_progress" })}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={move.isPending}
+                      onClick={() => move.mutate({ id: task.id, state: "in_progress" })}
+                    >
                       Start
                     </Button>
                   ) : null}
-                  <Button size="sm" variant="outline" disabled={move.isPending}
-                    onClick={() => move.mutate({ id: task.id, state: "closed" })}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={move.isPending}
+                    onClick={() => move.mutate({ id: task.id, state: "closed" })}
+                  >
                     Complete
                   </Button>
                 </>
@@ -86,11 +103,25 @@ export function RequestTasks({ requestId, canWork }: { requestId: string; canWor
             add.mutate();
           }}
         >
-          <Input aria-label="Task title" placeholder="e.g. Image laptop" value={title}
-            onChange={(e) => setTitle(e.target.value)} minLength={3} required className="h-8 min-w-0 flex-1 text-xs" />
-          <Input aria-label="Task due date" type="datetime-local" value={dueAt}
-            onChange={(e) => setDueAt(e.target.value)} className="h-8 w-auto text-xs" />
-          <Button size="sm" type="submit" disabled={add.isPending}>Add task</Button>
+          <Input
+            aria-label="Task title"
+            placeholder="e.g. Image laptop"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            minLength={3}
+            required
+            className="h-8 min-w-0 flex-1 text-xs"
+          />
+          <Input
+            aria-label="Task due date"
+            type="datetime-local"
+            value={dueAt}
+            onChange={(e) => setDueAt(e.target.value)}
+            className="h-8 w-auto text-xs"
+          />
+          <Button size="sm" type="submit" disabled={add.isPending}>
+            Add task
+          </Button>
         </form>
       ) : null}
     </section>

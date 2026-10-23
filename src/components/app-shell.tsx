@@ -161,7 +161,9 @@ function WorkspaceNavigation({
             W
           </span>
           <span>
-            <span className="block text-base font-semibold tracking-tight text-white">Argus Service Desk</span>
+            <span className="block text-base font-semibold tracking-tight text-white">
+              Argus Service Desk
+            </span>
             <span className="block text-[10px] font-medium uppercase tracking-[0.16em] text-sidebar-foreground/70">
               Service management
             </span>

@@ -226,9 +226,13 @@ export const getRecordActivity = createServerFn({ method: "GET" })
       (async () => {
         const rows: Database["public"]["Tables"]["audit_events"]["Row"][] = [];
         for (let offset = 0; ; offset += 500) {
-          const page = await supabase.from("audit_events").select("*")
-            .eq("record_type", data.recordType).eq("record_id", data.recordId)
-            .order("created_at", { ascending: false }).order("id")
+          const page = await supabase
+            .from("audit_events")
+            .select("*")
+            .eq("record_type", data.recordType)
+            .eq("record_id", data.recordId)
+            .order("created_at", { ascending: false })
+            .order("id")
             .range(offset, offset + 499);
           if (page.error) return { data: null, error: page.error };
           rows.push(...(page.data ?? []));
@@ -236,20 +240,37 @@ export const getRecordActivity = createServerFn({ method: "GET" })
         }
       })(),
       data.recordType === "incident"
-        ? supabase.from("incidents").select("created_at,state,resolved_at,first_responded_at,assignee_id,sla_due_at").eq("id", data.recordId).maybeSingle()
+        ? supabase
+            .from("incidents")
+            .select("created_at,state,resolved_at,first_responded_at,assignee_id,sla_due_at")
+            .eq("id", data.recordId)
+            .maybeSingle()
         : data.recordType === "request"
-          ? supabase.from("service_requests").select("created_at,state,assignee_id,due_at").eq("id", data.recordId).maybeSingle()
+          ? supabase
+              .from("service_requests")
+              .select("created_at,state,assignee_id,due_at")
+              .eq("id", data.recordId)
+              .maybeSingle()
           : Promise.resolve({ data: null, error: null }),
       isTicket
-        ? supabase.from("sla_instances").select("id,target_type,started_at,due_at,completed_at,paused_at,status")
-          .eq("record_type", data.recordType).eq("record_id", data.recordId).order("started_at")
+        ? supabase
+            .from("sla_instances")
+            .select("id,target_type,started_at,due_at,completed_at,paused_at,status")
+            .eq("record_type", data.recordType)
+            .eq("record_id", data.recordId)
+            .order("started_at")
         : Promise.resolve({ data: [], error: null }),
     ]);
     if (comments.error) throw new Error(comments.error.message);
     if (audit.error) throw new Error(audit.error.message);
     if (ticket.error) throw new Error(ticket.error.message);
     if (slas.error) throw new Error(slas.error.message);
-    return { comments: comments.data ?? [], audit: audit.data ?? [], ticket: ticket.data, slas: slas.data ?? [] };
+    return {
+      comments: comments.data ?? [],
+      audit: audit.data ?? [],
+      ticket: ticket.data,
+      slas: slas.data ?? [],
+    };
   });
 
 export const addComment = createServerFn({ method: "POST" })
@@ -445,7 +466,15 @@ export const updateServiceRequest = createServerFn({ method: "POST" })
         .object({
           id: uuid,
           expectedUpdatedAt: z.string().datetime({ offset: true }),
-          state: z.enum(["new", "open", "in_progress", "pending", "resolved", "closed", "cancelled"]),
+          state: z.enum([
+            "new",
+            "open",
+            "in_progress",
+            "pending",
+            "resolved",
+            "closed",
+            "cancelled",
+          ]),
           awaitingCustomer: z.boolean().optional(),
         })
         .parse(input),
@@ -807,7 +836,9 @@ export const searchRecords = createServerFn({ method: "GET" })
         .from("knowledge_articles")
         .select("id, number, title, status")
         .eq("organization_id", DEMO_ORG_ID)
-        .or(`${knowledgeMatch}${/^[a-z0-9-]+$/i.test(escaped) ? `,tags.cs.{${escaped.toLowerCase()}}` : ""}`)
+        .or(
+          `${knowledgeMatch}${/^[a-z0-9-]+$/i.test(escaped) ? `,tags.cs.{${escaped.toLowerCase()}}` : ""}`,
+        )
         .order("created_at", { ascending: false })
         .limit(5),
       supabase

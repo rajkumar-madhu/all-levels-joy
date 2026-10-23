@@ -26,7 +26,11 @@ export const getChangeLinks = createServerFn({ method: "POST" })
         .limit(200),
     ]);
     for (const r of [links, incidents, problems]) if (r.error) throw new Error(r.error.message);
-    return { links: links.data ?? [], incidents: incidents.data ?? [], problems: problems.data ?? [] };
+    return {
+      links: links.data ?? [],
+      incidents: incidents.data ?? [],
+      problems: problems.data ?? [],
+    };
   });
 
 export const setChangeLink = createServerFn({ method: "POST" })

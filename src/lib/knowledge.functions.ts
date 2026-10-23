@@ -30,7 +30,10 @@ export const saveKnowledgeCategory = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const slug = data.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
     if (data.id) {
       const { data: old } = await supabase
         .from("knowledge_categories")
@@ -39,7 +42,12 @@ export const saveKnowledgeCategory = createServerFn({ method: "POST" })
         .maybeSingle();
       const { error } = await supabase
         .from("knowledge_categories")
-        .update({ name: data.name, slug, description: data.description ?? null, active: data.active })
+        .update({
+          name: data.name,
+          slug,
+          description: data.description ?? null,
+          active: data.active,
+        })
         .eq("id", data.id);
       if (error) throw new Error(error.message);
       if (old && old.name !== data.name) {
@@ -59,6 +67,9 @@ export const saveKnowledgeCategory = createServerFn({ method: "POST" })
       description: data.description ?? null,
       active: data.active,
     });
-    if (error) throw new Error(error.message.includes("duplicate") ? "That category already exists." : error.message);
+    if (error)
+      throw new Error(
+        error.message.includes("duplicate") ? "That category already exists." : error.message,
+      );
     return { ok: true };
   });

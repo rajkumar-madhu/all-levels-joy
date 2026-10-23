@@ -21,7 +21,10 @@ export const Route = createFileRoute("/")({
         content:
           "Incident, request, change, knowledge, and CMDB management with role-based access, SLA tracking, and audit evidence for core workflows.",
       },
-      { property: "og:title", content: "Argus Service Desk — Governed Service Management Platform" },
+      {
+        property: "og:title",
+        content: "Argus Service Desk — Governed Service Management Platform",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       {
@@ -95,29 +98,33 @@ function Landing() {
             <span className="text-sm font-semibold tracking-tight">Argus Service Desk</span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-          <Button asChild variant="ghost" size="sm"><Link to="/status">Service status</Link></Button>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/portal">Customer portal login</Link>
-          </Button>
-          <Button asChild variant="outline" size="sm"><Link to="/security">Security workspace</Link></Button>
-          {signedIn ? (
-            <Button asChild size="sm">
-              <Link to="/dashboard">Open workspace</Link>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/status">Service status</Link>
             </Button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/auth" search={{ redirect: "/dashboard", mode: "signin" }}>
-                  Sign in
-                </Link>
-              </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/portal">Customer portal login</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/security">Security workspace</Link>
+            </Button>
+            {signedIn ? (
               <Button asChild size="sm">
-                <Link to="/auth" search={{ redirect: "/dashboard", mode: "signup" }}>
-                  Create account
-                </Link>
+                <Link to="/dashboard">Open workspace</Link>
               </Button>
-            </div>
-          )}
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/auth" search={{ redirect: "/dashboard", mode: "signin" }}>
+                    Sign in
+                  </Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link to="/auth" search={{ redirect: "/dashboard", mode: "signup" }}>
+                    Create account
+                  </Link>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -132,9 +139,9 @@ function Landing() {
               One system of record for every service commitment.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
-              Argus Service Desk brings the service desk, engineering, change advisory, asset owners, and
-              leadership into a single governed workspace, with permissions enforced on the server
-              and audit evidence for incident, request, change, and approval workflows.
+              Argus Service Desk brings the service desk, engineering, change advisory, asset
+              owners, and leadership into a single governed workspace, with permissions enforced on
+              the server and audit evidence for incident, request, change, and approval workflows.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">

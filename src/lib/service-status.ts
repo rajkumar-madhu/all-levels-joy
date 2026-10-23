@@ -4,11 +4,17 @@ export type PublicService = { name: string; status: string; updated_at: string |
 
 export function serviceState(value: string): ServiceState {
   switch (value.toLowerCase()) {
-    case "operational": return "operational";
-    case "degraded": return "degraded";
-    case "outage": case "down": return "outage";
-    case "maintenance": return "maintenance";
-    default: return "unknown";
+    case "operational":
+      return "operational";
+    case "degraded":
+      return "degraded";
+    case "outage":
+    case "down":
+      return "outage";
+    case "maintenance":
+      return "maintenance";
+    default:
+      return "unknown";
   }
 }
 
