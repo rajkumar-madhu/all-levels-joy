@@ -192,6 +192,8 @@ and is applied by `apply_app_schema` after the legacy schema.
 
 ## Run locally
 
+For a production server (HTTPS, Keycloak, backups, upgrades), see [`deploy/README.md`](../deploy/README.md).
+
 ```sh
 cd backend
 docker compose up --build          # Postgres 16, Redis 7, Keycloak, OPA, API, Celery worker and beat

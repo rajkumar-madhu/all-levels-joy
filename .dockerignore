@@ -1,0 +1,12 @@
+# Build context for deploy/*.Dockerfile
+.git
+**/node_modules
+**/dist
+**/.vite
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+backend/var
+deploy/.env
+deploy/backups
+deploy/pam

@@ -23,7 +23,7 @@
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "http://localhost:5173/*"
       },
-      "defaultClientScopes": ["web-origins", "profile", "email", "roles"],
+      "defaultClientScopes": ["basic", "web-origins", "profile", "email", "roles"],
       "protocolMappers": [
         {
           "name": "itsm-api audience",

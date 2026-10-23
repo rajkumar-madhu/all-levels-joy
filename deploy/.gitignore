@@ -1,0 +1,5 @@
+# Local deployment secrets and data
+.env
+backups/
+pam/*
+!pam/.gitkeep
