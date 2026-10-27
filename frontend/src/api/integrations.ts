@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./client";
 
 export type ToolState = "up" | "down" | "absent";
@@ -29,4 +29,14 @@ export function useRecheckIntegrations(org: string) {
     const fresh = await api<IntegrationStatus>(`orgs/${org}/integrations/status?force=1`);
     client.setQueryData(key(org), fresh);
   };
+}
+
+export type TestResult = { ok: boolean; message?: string; error?: string };
+
+/** Sends one real test message (Slack, Teams) or email (to the caller) through a configured channel. */
+export function useTestIntegration(org: string) {
+  return useMutation({
+    mutationFn: (channel: "slack" | "teams" | "email") =>
+      api<TestResult>(`orgs/${org}/integrations/test`, { method: "POST", body: { channel } }),
+  });
 }
