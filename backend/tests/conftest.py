@@ -82,9 +82,8 @@ def create_org(name_prefix: str = "Test") -> str:
         "INSERT INTO public.organizations(id, name, slug) VALUES (%s, %s, %s)",
         [org_id, f"{name_prefix} {org_id[:8]}", f"t-{org_id[:8]}"],
     )
-    # Record numbers (INC0001001, ...) are unique across the database while counters are per workspace,
-    # so each test workspace numbers from its own range. Ranges come from a counter: random ranges collided
-    # often enough across a session to fail tests intermittently. The test database is created per session.
+    # Each test workspace numbers from its own range so records are easy to tell apart across a session.
+    # (Numbers are unique per workspace; test_workspace_isolation covers two workspaces sharing a number.)
     base = next(_NUMBER_RANGES)
     for prefix in ("INC", "REQ", "CHG", "KB", "PRB", "MI", "SEC"):
         seed(

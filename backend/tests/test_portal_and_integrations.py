@@ -1,4 +1,5 @@
 import pytest
+from django.core.management import call_command
 from django.test import Client
 
 from apps.integration_status import probes
@@ -12,6 +13,8 @@ pytestmark = pytest.mark.django_db(transaction=True)
 def portal_org(org, settings):
     settings.PORTAL_ORG_ID = org
     settings.PORTAL_EMAIL_DOMAIN = "wecrew.in"
+    # As deployments do after migrating: only the portal workspace publishes knowledge anonymously.
+    call_command("sync_portal_workspace", verbosity=0)
     return org
 
 

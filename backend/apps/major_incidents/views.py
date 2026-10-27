@@ -130,6 +130,8 @@ class DeclareView(CallerAPIView):
         ):
             raise Conflict("The incident changed while you were declaring. Refresh and declare again.")
         audit(self.org_id, actor, major["id"], "declared", {"number": number, "severity": severity})
+        # Responders are notified in the same transaction; the database picks recipients and text.
+        call_function("itsm_notify_major_incident_declared", [("_major_incident_id", str(major["id"]), "uuid")])
         return Response(major, status=status.HTTP_201_CREATED)
 
 
