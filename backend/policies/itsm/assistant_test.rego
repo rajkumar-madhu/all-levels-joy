@@ -18,6 +18,8 @@ test_members_use_the_assistant if {
 test_only_admins_read_integrations if {
 	authz.allow with input as req({org: ["admin"]}, "integrations.read", org)
 	not authz.allow with input as req({org: ["manager", "service_desk"]}, "integrations.read", org)
+	authz.allow with input as req({org: ["admin"]}, "integrations.test", org)
+	not authz.allow with input as req({org: ["manager"]}, "integrations.test", org)
 }
 
 test_portal_needs_a_confirmed_domain_account if {

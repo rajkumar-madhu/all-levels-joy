@@ -9,9 +9,10 @@ allow if {
 	is_member
 }
 
-# Legacy integration-status: administrators only (has_role(..., 'admin', ...)).
+# Legacy integration-status: administrators only (has_role(..., 'admin', ...)). Sending a test message or
+# email through a configured channel is administrators only too.
 allow if {
-	input.action == "integrations.read"
+	input.action in {"integrations.read", "integrations.test"}
 	is_member
 	has_any({"admin"})
 }
