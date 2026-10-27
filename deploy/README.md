@@ -36,7 +36,7 @@ server; it is git-ignored.
 - `PAM_MASTER_KEY`. Store a copy somewhere other than the server and its backups (a password manager or
   secrets vault). Without it, nobody can decrypt the vaulted passwords, and a backup that contains it
   exposes them.
-- Webhook secrets, the Anthropic key and S3 evidence storage are optional.
+- Webhook secrets, SMTP for notification emails, the Anthropic key and S3 evidence storage are optional.
 
 ## 3. Start
 

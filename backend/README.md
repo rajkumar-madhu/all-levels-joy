@@ -258,6 +258,20 @@ before it is stored, and nothing is created until the employee confirms. The mod
 articles and catalogue items the caller can read. Without a key the threads still load and the page says the
 assistant is not configured. Tests replace the client with a fake and never call the API.
 
+### Notification delivery
+
+In-app notifications (the header bell) are also delivered by email when `EMAIL_HOST` is set. The Celery beat
+job `notification-email-digests` runs every 5 minutes and sends each person one email listing their new
+notifications, with links into the app (`APP_PUBLIC_URL`). It honours the profile's existing email
+preference (on by default) and skips notifications already read in the app, older than two days, or for
+unconfirmed addresses. Each notification is emailed at most once; delivery state is in
+`notifications.email_status` (`apps/account/sql/0001_notification_delivery.sql`), and a failing SMTP send is
+retried on the next two runs before it is marked failed. Notifications that existed before this was deployed
+are never emailed.
+
+Major incident declarations are also posted to `SLACK_WEBHOOK_URL` and `TEAMS_WEBHOOK_URL`, like priority 1
+monitoring incidents.
+
 ### Workspace isolation fixes to the existing schema
 
 `apps/core/sql/0001_workspace_isolation.sql` (applied by `apply_app_schema`, so only to this backend's
