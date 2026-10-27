@@ -28,6 +28,7 @@ class IntegrationStatusView(CallerAPIView):
         checked_at, tools = probes.cached_tools(force=request.query_params.get("force") in ("1", "true"))
         endpoint = request.build_absolute_uri
         expiry_minutes = settings.CELERY_BEAT_SCHEDULE["expire-security-exceptions"]["schedule"] // 60
+        digest_minutes = settings.CELERY_BEAT_SCHEDULE["notification-email-digests"]["schedule"] // 60
         return Response(
             {
                 "checkedAt": checked_at,
@@ -37,6 +38,7 @@ class IntegrationStatusView(CallerAPIView):
                     "scanner": bool(settings.SECURITY_SCANNER_SECRET),
                     "slack": bool(settings.SLACK_WEBHOOK_URL),
                     "teams": bool(settings.TEAMS_WEBHOOK_URL),
+                    "email": bool(settings.EMAIL_HOST),
                     "assistant": bool(getattr(settings, "ANTHROPIC_API_KEY", None)),
                 },
                 "endpoints": {
@@ -49,7 +51,11 @@ class IntegrationStatusView(CallerAPIView):
                     {
                         "name": "Expire security exceptions",
                         "schedule": f"Every {expiry_minutes} minutes",
-                    }
+                    },
+                    {
+                        "name": "Email notification digests",
+                        "schedule": f"Every {digest_minutes} minutes",
+                    },
                 ],
                 "tools": [{"name": "Database", "kind": "Data", "url": "", "state": database_state()}, *tools],
             }

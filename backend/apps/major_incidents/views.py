@@ -5,6 +5,8 @@ bridge behind when the incident flag failed)."""
 import json
 from datetime import UTC, datetime, timedelta
 
+from django.conf import settings
+from django.db import transaction
 from django.http import Http404
 from rest_framework import status
 from rest_framework.response import Response
@@ -12,6 +14,7 @@ from rest_framework.response import Response
 from apps.core.db import call_function, execute, fetch_all, fetch_one
 from apps.core.exceptions import Conflict
 from apps.core.views import CallerAPIView
+from apps.integrations.tasks import post_chat_notification
 
 from .serializers import DeclareSerializer, PostUpdateSerializer, UpdateSerializer
 
@@ -132,6 +135,12 @@ class DeclareView(CallerAPIView):
         audit(self.org_id, actor, major["id"], "declared", {"number": number, "severity": severity})
         # Responders are notified in the same transaction; the database picks recipients and text.
         call_function("itsm_notify_major_incident_declared", [("_major_incident_id", str(major["id"]), "uuid")])
+        if settings.SLACK_WEBHOOK_URL or settings.TEAMS_WEBHOOK_URL:
+            text = (
+                f"🚨 {number} declared — severity {severity}: {v['situationSummary'].strip()[:200]} "
+                f"{settings.APP_PUBLIC_URL.rstrip('/')}/command-center"
+            )
+            transaction.on_commit(lambda: post_chat_notification.delay(text))
         return Response(major, status=status.HTTP_201_CREATED)
 
 

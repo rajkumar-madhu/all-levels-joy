@@ -107,6 +107,8 @@ def test_integration_status_reports_configuration_without_secret_values(org, mak
     settings.SECURITY_SCANNER_SECRET = ""
     settings.SLACK_WEBHOOK_URL = "https://hooks.slack.example/T000/B000/slack-secret-path"
     settings.ANTHROPIC_API_KEY = "sk-ant-secret-value"
+    settings.EMAIL_HOST = "smtp.example.test"
+    settings.EMAIL_HOST_PASSWORD = "smtp-secret-value"
     monkeypatch.setattr(
         probes, "read_tools", lambda: [{"name": "Grafana", "kind": "Dashboards", "url": "", "state": "up"}]
     )
@@ -122,11 +124,18 @@ def test_integration_status_reports_configuration_without_secret_values(org, mak
         "scanner": False,
         "slack": True,
         "teams": False,
+        "email": True,
         "assistant": True,
     }
     assert body["endpoints"]["pagerduty"].endswith("/api/public/pagerduty")
     assert {"Database", "Grafana"} <= {t["name"] for t in body["tools"]}
     raw = response.content.decode()
-    for secret in ("monitoring-secret-value", "pagerduty-secret-value", "slack-secret-path", "sk-ant-secret"):
+    for secret in (
+        "monitoring-secret-value",
+        "pagerduty-secret-value",
+        "slack-secret-path",
+        "sk-ant-secret",
+        "smtp-secret",
+    ):
         assert secret not in raw
     assert manager.get(f"/api/v1/orgs/{org}/integrations/status").status_code == 403

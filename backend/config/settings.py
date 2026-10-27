@@ -124,6 +124,16 @@ TEAMS_WEBHOOK_URL = env("TEAMS_WEBHOOK_URL")
 INTEGRATION_ORG_ID = env("INTEGRATION_ORG_ID", "10000000-0000-0000-0000-000000000001")
 APP_PUBLIC_URL = env("APP_PUBLIC_URL", "http://localhost:5173")
 
+# Outgoing email for notification digests (SMTP). Without EMAIL_HOST no email is sent.
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_PORT = int(env("EMAIL_PORT", "587") or 587)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", "") or ""
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", "") or ""
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL", False)
+EMAIL_TIMEOUT = 10
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "Argus Service Desk <no-reply@localhost>")
+
 # Support assistant (Anthropic API). Empty key = assistant reports "not configured".
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY")
 ANTHROPIC_MODEL = env("ANTHROPIC_MODEL", "claude-opus-5-5")
@@ -156,6 +166,7 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.integrations.tasks.expire_security_exceptions",
         "schedule": 15 * 60,
     },
+    "notification-email-digests": {"task": "apps.account.tasks.send_notification_digests", "schedule": 5 * 60},
     "pam-expire-access": {"task": "apps.pam.tasks.expire_access", "schedule": 5 * 60},
     "pam-rotate-due": {"task": "apps.pam.tasks.rotate_due", "schedule": 15 * 60},
     "pam-verify-secrets": {"task": "apps.pam.tasks.verify_enabled", "schedule": 6 * 60 * 60},

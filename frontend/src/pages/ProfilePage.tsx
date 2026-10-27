@@ -77,7 +77,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
         </Field>
         <label className="flex items-center gap-2 text-sm sm:col-span-2">
           <input id="profile-digest" type="checkbox" name="emailDigest" defaultChecked={profile.preferences?.emailDigest ?? true} />
-          Send me an email digest of my notifications
+          Email me my new notifications (one digest every few minutes; anything I already read here is skipped)
         </label>
         <div className="grid gap-2 sm:col-span-2">
           <FormError error={update.error} />

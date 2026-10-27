@@ -64,10 +64,14 @@ export function IntegrationsPage() {
                 Signed findings. The same scanner, reference and asset update one finding instead of creating duplicates.
               </Channel>
               <Channel name="Slack" on={s.channels.slack} setting="SLACK_WEBHOOK_URL">
-                Priority 1 monitoring incidents are announced in Slack.
+                Priority 1 monitoring incidents and major incident declarations are announced in Slack.
               </Channel>
               <Channel name="Microsoft Teams" on={s.channels.teams} setting="TEAMS_WEBHOOK_URL">
-                Priority 1 monitoring incidents are announced in Teams.
+                Priority 1 monitoring incidents and major incident declarations are announced in Teams.
+              </Channel>
+              <Channel name="Email" on={s.channels.email} setting="EMAIL_HOST">
+                Everyone with new notifications gets one digest email every few minutes, unless they turned email off in
+                their profile. Notifications already read in the app are not emailed.
               </Channel>
               <Channel name="Support assistant" on={s.channels.assistant} setting="ANTHROPIC_API_KEY">
                 Answers employee questions from the knowledge base and drafts tickets for them to confirm.

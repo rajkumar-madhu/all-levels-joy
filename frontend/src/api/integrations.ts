@@ -6,7 +6,7 @@ export type ToolState = "up" | "down" | "absent";
 export type IntegrationStatus = {
   checkedAt: string;
   /** Configured or not; the API never returns the secrets themselves. */
-  channels: { monitoring: boolean; pagerduty: boolean; scanner: boolean; slack: boolean; teams: boolean; assistant: boolean };
+  channels: { monitoring: boolean; pagerduty: boolean; scanner: boolean; slack: boolean; teams: boolean; email: boolean; assistant: boolean };
   endpoints: { alerts: string; pagerduty: string; scanner: string };
   scheduledJobs: { name: string; schedule: string }[];
   tools: { name: string; kind: string; url: string; state: ToolState }[];
