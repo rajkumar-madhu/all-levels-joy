@@ -118,7 +118,8 @@ services:
     command: >
       sh -c "python manage.py migrate --noinput &&
              python manage.py apply_legacy_schema &&
-             python manage.py apply_app_schema"
+             python manage.py apply_app_schema &&
+             python manage.py sync_portal_workspace"
     depends_on:
       postgres: { condition: service_healthy }
 

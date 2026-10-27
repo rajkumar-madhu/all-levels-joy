@@ -82,7 +82,8 @@ To open the admin console directly from an office network instead of a tunnel, s
 
    ```sh
    argus run --rm migrate sh -c "python manage.py migrate --noinput && \
-     python manage.py apply_legacy_schema --mark-applied && python manage.py apply_app_schema"
+     python manage.py apply_legacy_schema --mark-applied && python manage.py apply_app_schema && \
+     python manage.py sync_portal_workspace"
    ```
 
 3. Copy the evidence files from the `itsm-evidence` bucket with their names unchanged. Copy them into the

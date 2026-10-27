@@ -241,9 +241,11 @@ self-approval refused, reveal windows, rotation after check-in, the SSH rotator 
 
 - Bridge links must be http(s). The legacy app accepted any text and rendered it as a link.
 - Declaring is atomic. The legacy server function could create the bridge and then fail to flag the incident.
-- Declaration notifications are not sent. The legacy code inserted them as the signed-in user, but
-  `notifications` has no insert policy, so those inserts were always refused (and the error ignored).
-  Sending them needs a security-definer function or a Celery task with the service role.
+- Declaration notifications are sent. The legacy code inserted them as the signed-in user, but
+  `notifications` has no insert policy, so those inserts were always refused (and the error ignored). Here
+  the security-definer `itsm_notify_major_incident_declared` sends them in the declaring transaction to active
+  managers, administrators, service desk and change managers (not the declarer), once per bridge. It takes
+  only the bridge id: recipients and text come from the database, and only the declarer may call it.
 
 ### Support assistant
 
@@ -256,13 +258,20 @@ before it is stored, and nothing is created until the employee confirms. The mod
 articles and catalogue items the caller can read. Without a key the threads still load and the page says the
 assistant is not configured. Tests replace the client with a fake and never call the API.
 
-### Known limitation in the existing schema
+### Workspace isolation fixes to the existing schema
 
-Record numbers (`INC0001001`, `REQ…`, `CHG…`) are unique across the whole database, but the counters that
-issue them are per workspace. The current app runs a single workspace, so this never shows. A second
-workspace would collide on its first record until the counters are made global or the uniqueness becomes
-per workspace. That needs a schema migration agreed with the Lovable app, so it is not changed here. Policy tests
-needing OPA are skipped when no `opa` binary is found.
+`apps/core/sql/0001_workspace_isolation.sql` (applied by `apply_app_schema`, so only to this backend's
+database; the Lovable app's Supabase project is untouched) fixes three legacy gaps that matter once more than
+one workspace exists:
+
+- Record numbers (`INC0001001`, `REQ…`, `CHG…`, `KB…`) are unique per workspace, matching the per-workspace
+  counters. They were unique across the whole database, so a second workspace failed on its first record.
+- Anonymous visitors read published knowledge only from workspaces flagged `organizations.knowledge_public`.
+  `manage.py sync_portal_workspace` (run after `apply_app_schema` in both compose files) sets the flag on
+  `PORTAL_ORG_ID` alone. The legacy policy exposed every workspace's published articles.
+- Major incident declarations notify responders (see above).
+
+Policy tests needing OPA are skipped when no `opa` binary is found.
 
 ## Administration, invitations, profile, notifications and audit
 
@@ -292,9 +301,7 @@ Keycloak after linking cannot use an invitation sent to the old one. Existing in
 Every screen of the current app now has an equivalent here. Known gaps, all of which the current app also
 lacks or gets wrong:
 
-- Declaration and other system notifications are not sent: `notifications` has no insert policy, so they
-  need a security-definer function or a Celery task with the service role.
 - Business services can be listed but not created or edited (no screen in the current app either).
-- Record numbers are unique database-wide while counters are per workspace (see above).
-- `knowledge_public_read` lets anonymous visitors read published articles of every workspace; restrict it
-  per workspace before running more than one.
+
+The legacy gaps in notifications, record numbering and public knowledge are fixed here (see "Workspace
+isolation fixes" above).
